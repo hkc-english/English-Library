@@ -2,401 +2,159 @@
 <html lang="zh-TW">
 
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>English Library</title>
-
-<link rel="stylesheet"
-href="style.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Library</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-<div class="container">
-
-
-<h1>
-📚 English Library
-</h1>
-
-
-<!-- ========================================
-     資料筆數
-======================================== -->
-
-<div id="count">
-資料載入中...
-</div>
-
-
-<!-- ========================================
-     顯示模式
-======================================== -->
-
-<div class="toolbar">
-
-<button
-onclick="changeShow('en')">
-英文
-</button>
-
-<button
-onclick="changeShow('zh')">
-中文
-</button>
-
-<button
-onclick="changeShow('both')">
-英＋中
-</button>
-
-<button
-onclick="blindMode()">
-盲聽
-</button>
-
-</div>
-
-
-<!-- ========================================
-     目前句子
-======================================== -->
-
-<div id="card">
-
-<div id="english">
-Loading...
-</div>
-
-<div id="chinese">
-</div>
-
-</div>
-
-
-<!-- ========================================
-     播放控制
-======================================== -->
-
-<div class="controls">
-
-
-<button
-onclick="previousSentence()">
-⬅ 上一句
-</button>
-
-
-<button
-onclick="speak()">
-🔊 播放
-</button>
-
-
-<button
-onclick="nextSentence()">
-下一句 ➡
-</button>
-
-
-</div>
-
-
-<!-- ========================================
-     暫停 / 停止
-======================================== -->
-
-<div class="playback-controls">
-
-
-<button
-id="pauseButton"
-onclick="togglePause()">
-⏸ 暫停
-</button>
-
-
-<button
-id="stopButton"
-onclick="stopAllPlayback()">
-⏹ 停止
-</button>
-
-
-</div>
-
-
-<!-- ========================================
-     播放狀態
-======================================== -->
-
-<div id="playbackStatus">
-</div>
-
-
-<!-- ========================================
-     播放速度
-======================================== -->
-
-<div class="speed-control">
-
-<div class="speed-title">
-播放速度
-</div>
-
-
-<div class="speed-buttons">
-
-
-<button
-class="speed-button"
-data-rate="0.3"
-onclick="setSpeechRate(0.3)">
-0.3x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.4"
-onclick="setSpeechRate(0.4)">
-0.4x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.5"
-onclick="setSpeechRate(0.5)">
-0.5x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.6"
-onclick="setSpeechRate(0.6)">
-0.6x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.7"
-onclick="setSpeechRate(0.7)">
-0.7x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.8"
-onclick="setSpeechRate(0.8)">
-0.8x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="0.9"
-onclick="setSpeechRate(0.9)">
-0.9x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="1.0"
-onclick="setSpeechRate(1.0)">
-1.0x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="1.1"
-onclick="setSpeechRate(1.1)">
-1.1x
-</button>
-
-
-<button
-class="speed-button"
-data-rate="1.2"
-onclick="setSpeechRate(1.2)">
-1.2x
-</button>
-
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     連續播放
-======================================== -->
-
-<div class="continuous-control">
-
-<button
-onclick="startContinuousPlay()">
-▶️ 連續播放
-</button>
-
-</div>
-
-
-<!-- ========================================
-     隨機播放
-======================================== -->
-
-<div class="random-control">
-
-<button
-onclick="startRandomPlay()">
-🔀 隨機播放
-</button>
-
-</div>
-
-
-<!-- ========================================
-     句子間隔
-======================================== -->
-
-<div class="interval-control">
-
-<div class="interval-title">
-句子間隔
-</div>
-
-
-<div class="interval-buttons">
-
-
-<button
-class="interval-button"
-data-interval="1000"
-onclick="setPlaybackInterval(1000)">
-1秒
-</button>
-
-
-<button
-class="interval-button"
-data-interval="2000"
-onclick="setPlaybackInterval(2000)">
-2秒
-</button>
-
-
-<button
-class="interval-button"
-data-interval="3000"
-onclick="setPlaybackInterval(3000)">
-3秒
-</button>
-
-
-<button
-class="interval-button"
-data-interval="5000"
-onclick="setPlaybackInterval(5000)">
-5秒
-</button>
-
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     新增英文句子
-======================================== -->
-
-<div class="add-section">
-
-
-<button
-onclick="showAddForm()">
-➕ 新增句子
-</button>
-
-
-<div
-id="addForm"
-style="display:none;">
-
-
-<div class="form-title">
-新增英文句子
-</div>
-
-
-<input
-id="newEnglish"
-type="text"
-placeholder="請輸入英文句子">
-
-
-<input
-id="newChinese"
-type="text"
-placeholder="請輸入中文翻譯">
-
-
-<div class="form-buttons">
-
-
-<button
-onclick="addSentence()">
-💾 儲存
-</button>
-
-
-<button
-onclick="hideAddForm()">
-取消
-</button>
-
-
-</div>
-
-
-<div
-id="addMessage">
-</div>
-
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     錯誤訊息
-======================================== -->
-
-<div id="errorMessage">
-</div>
-
-
-</div>
-
-
-<script
-src="app.js">
-</script>
-
-
+  <div class="container">
+
+    <h1>📚 English Library</h1>
+
+    <!-- ========================================
+         1. 個人資料庫與使用者資訊 (V2 新增)
+    ======================================== -->
+    <div id="userProfile" class="user-profile-section" style="display: none;">
+      <div class="user-info">
+        <span id="userName">👤 載入中...</span>
+      </div>
+    </div>
+
+    <!-- ========================================
+         2. 資料筆數與學習統計儀表板 (V2 擴充)
+    ======================================== -->
+    <div id="count" class="stats-dashboard">
+      資料載入中...
+    </div>
+
+    <!-- ========================================
+         3. 顯示模式
+    ======================================== -->
+    <div class="toolbar">
+      <button onclick="changeShow('en')">英文</button>
+      <button onclick="changeShow('zh')">中文</button>
+      <button onclick="changeShow('both')">英＋中</button>
+      <button onclick="blindMode()">盲聽</button>
+    </div>
+
+    <!-- ========================================
+         4. 目前句子卡片 (含 AI 分類與相似句 V2)
+    ======================================== -->
+    <div id="card">
+      <!-- AI 情境分類標籤 -->
+      <div id="categoryBadge" class="category-badge"></div>
+
+      <div id="english">Loading...</div>
+      <div id="chinese"></div>
+
+      <!-- AI 相似句推薦區塊 (V2 新增) -->
+      <div id="similarSentences" class="similar-sentences-box" style="display: none;">
+        <div class="similar-title">💡 AI 相似句推薦：</div>
+        <ul id="similarList"></ul>
+      </div>
+    </div>
+
+    <!-- ========================================
+         5. 播放控制 (新增單句重播)
+    ======================================== -->
+    <div class="controls">
+      <button onclick="previousSentence()">⬅ 上一句</button>
+      <button onclick="speak()">🔊 播放</button>
+      <button onclick="repeatSentence()" id="repeatBtn">🔂 重播</button>
+      <button onclick="nextSentence()">下一句 ➡</button>
+    </div>
+
+    <!-- ========================================
+         6. 暫停 / 停止
+    ======================================== -->
+    <div class="playback-controls">
+      <button id="pauseButton" onclick="togglePause()">⏸ 暫停</button>
+      <button id="stopButton" onclick="stopAllPlayback()">⏹ 停止</button>
+    </div>
+
+    <!-- ========================================
+         7. 播放狀態
+    ======================================== -->
+    <div id="playbackStatus"></div>
+
+    <!-- ========================================
+         8. 播放速度
+    ======================================== -->
+    <div class="speed-control">
+      <div class="speed-title">播放速度</div>
+      <div class="speed-buttons">
+        <button class="speed-button" data-rate="0.3" onclick="setSpeechRate(0.3)">0.3x</button>
+        <button class="speed-button" data-rate="0.4" onclick="setSpeechRate(0.4)">0.4x</button>
+        <button class="speed-button" data-rate="0.5" onclick="setSpeechRate(0.5)">0.5x</button>
+        <button class="speed-button" data-rate="0.6" onclick="setSpeechRate(0.6)">0.6x</button>
+        <button class="speed-button" data-rate="0.7" onclick="setSpeechRate(0.7)">0.7x</button>
+        <button class="speed-button" data-rate="0.8" onclick="setSpeechRate(0.8)">0.8x</button>
+        <button class="speed-button" data-rate="0.9" onclick="setSpeechRate(0.9)">0.9x</button>
+        <button class="speed-button" data-rate="1.0" onclick="setSpeechRate(1.0)">1.0x</button>
+        <button class="speed-button" data-rate="1.1" onclick="setSpeechRate(1.1)">1.1x</button>
+        <button class="speed-button" data-rate="1.2" onclick="setSpeechRate(1.2)">1.2x</button>
+      </div>
+    </div>
+
+    <!-- ========================================
+         9. 連續 / 隨機播放
+    ======================================== -->
+    <div class="continuous-control">
+      <button onclick="startContinuousPlay()">▶️ 連續播放</button>
+    </div>
+
+    <div class="random-control">
+      <button onclick="startRandomPlay()">🔀 隨機播放</button>
+    </div>
+
+    <!-- ========================================
+         10. 句子間隔
+    ======================================== -->
+    <div class="interval-control">
+      <div class="interval-title">句子間隔</div>
+      <div class="interval-buttons">
+        <button class="interval-button" data-interval="1000" onclick="setPlaybackInterval(1000)">1秒</button>
+        <button class="interval-button" data-interval="2000" onclick="setPlaybackInterval(2000)">2秒</button>
+        <button class="interval-button" data-interval="3000" onclick="setPlaybackInterval(3000)">3秒</button>
+        <button class="interval-button" data-interval="5000" onclick="setPlaybackInterval(5000)">5秒</button>
+      </div>
+    </div>
+
+    <!-- ========================================
+         11. 新增英文句子 (含重複提醒 V2)
+    ======================================== -->
+    <div class="add-section">
+      <button onclick="showAddForm()">➕ 新增句子</button>
+
+      <div id="addForm" style="display:none;">
+        <div class="form-title">新增英文句子</div>
+        
+        <input id="newEnglish" type="text" placeholder="請輸入英文句子" oninput="checkDuplicateOnInput()">
+        <!-- 重複句子即時提示區 -->
+        <div id="duplicateWarning" class="warning-text" style="display:none; color: #e67e22; font-size: 0.9em; margin-top: 4px;"></div>
+
+        <input id="newChinese" type="text" placeholder="請輸入中文翻譯">
+
+        <div class="form-buttons">
+          <button onclick="addSentence()">💾 儲存</button>
+          <button onclick="hideAddForm()">取消</button>
+        </div>
+
+        <div id="addMessage"></div>
+      </div>
+    </div>
+
+    <!-- ========================================
+         12. 錯誤訊息
+    ======================================== -->
+    <div id="errorMessage"></div>
+
+  </div>
+
+  <script src="app.js"></script>
 </body>
 
 </html>
