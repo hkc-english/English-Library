@@ -81,19 +81,20 @@ async function loadData() {
 function applyFilter() {
   const filterValue = document.getElementById("statusFilter") ? document.getElementById("statusFilter").value : "all";
 
+  // 取得熟悉度（預設值為 1）
+  const getStatus = (item) => {
+    const rawVal = item["熟悉度"] !== undefined ? item["熟悉度"] : item["熟悉度 "];
+    const parsed = Number(rawVal);
+    return isNaN(parsed) || rawVal === "" ? 1 : parsed;
+  };
+
   if (filterValue === "all") {
     filteredSentences = [...allSentences];
   } else if (filterValue === "lte3") {
-    filteredSentences = allSentences.filter(item => {
-      const val = Number(item["熟悉度"]) || 1;
-      return val <= 3;
-    });
+    filteredSentences = allSentences.filter(item => getStatus(item) <= 3);
   } else {
     const targetVal = Number(filterValue);
-    filteredSentences = allSentences.filter(item => {
-      const val = Number(item["熟悉度"]) || 1;
-      return val === targetVal;
-    });
+    filteredSentences = allSentences.filter(item => getStatus(item) === targetVal);
   }
 
   currentIndex = 0;
@@ -128,7 +129,10 @@ function renderSentence() {
   const zh = String(item["中文"] || "");
   const type = String(item["類型"] || "句子");
   const tag = String(item["標籤(情境分類)"] || item["標籤"] || "");
-  const status = Number(item["熟悉度"]) || 1;
+  
+  // 安全讀取熟悉度
+  const statusRaw = item["熟悉度"] !== undefined ? item["熟悉度"] : item["熟悉度 "];
+  const status = Number(statusRaw) || 1;
 
   english.textContent = "";
   chinese.textContent = "";
@@ -167,22 +171,38 @@ function renderStars(rating) {
   });
 }
 
-// 點擊星星改分數並同步寫回 Google Sheet
+// 點擊星星改分數並同步寫回 Google Sheet（已修正 ID 抓取問題）
 async function updateCurrentRating(newRating) {
   if (filteredSentences.length === 0) return;
 
   const currentItem = filteredSentences[currentIndex];
-  currentItem["熟悉度"] = newRating; // 立即改本地狀態
+  
+  // 安全取得 ID（相容 "ID" 或 "id"）
+  const itemID = currentItem["ID"] !== undefined ? currentItem["ID"] : currentItem["id"];
 
-  // 找尋原完整陣列中的項目一併改寫
-  const targetInAll = allSentences.find(i => String(i.ID) === String(currentItem.ID));
+  if (itemID === undefined || itemID === "") {
+    console.error("無法取得當前資料的 ID！", currentItem);
+    updatePlaybackStatus(`❌ 錯誤：無法取得資料 ID`);
+    return;
+  }
+
+  // 1. 立即修改本地當前資料
+  currentItem["熟悉度"] = newRating; 
+
+  // 2. 正確比對全域陣列中的 ID 併改寫
+  const targetInAll = allSentences.find(i => {
+    const rawID = i["ID"] !== undefined ? i["ID"] : i["id"];
+    return String(rawID) === String(itemID);
+  });
   if (targetInAll) targetInAll["熟悉度"] = newRating;
 
+  // 3. 重新渲染 UI
   renderStars(newRating);
   updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
 
+  // 4. 發送 API 請求給 Google Sheet
   try {
-    const url = `${API_URL}?action=updateStatus&id=${encodeURIComponent(currentItem.ID)}&status=${newRating}&t=${Date.now()}`;
+    const url = `${API_URL}?action=updateStatus&id=${encodeURIComponent(itemID)}&status=${newRating}&t=${Date.now()}`;
     const response = await fetch(url, { method: "GET", cache: "no-store" });
     const result = await response.json();
 
