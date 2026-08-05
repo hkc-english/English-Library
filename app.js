@@ -1,5 +1,5 @@
 /* =========================================================
-   English Library - app.js (V3.2 完整對齊版)
+   English Library - app.js (完整防重複 + 全欄位對齊版)
 ========================================================= */
 
 const API_URL =
@@ -22,6 +22,7 @@ let remainingWait = 0;
 let waitStartedAt = 0;
 let selectedVoice = null;
 let currentGeneratedTags = [];
+let isSubmitting = false; // 全域防重複發送鎖定開關
 
 document.addEventListener("DOMContentLoaded", function () {
   loadVoices();
@@ -93,6 +94,8 @@ function renderSentence() {
   const item = sentences[currentIndex];
   const en = String(item["英文"] || "");
   const zh = String(item["中文"] || "");
+  const tag = String(item["標籤(情境分類)"] || item["標籤"] || "");
+  const status = item["熟悉度"] !== undefined ? item["熟悉度"] : "";
 
   english.textContent = "";
   chinese.textContent = "";
@@ -110,8 +113,10 @@ function renderSentence() {
   }
 
   if (count) {
-    count.textContent =
-      "第 " + (currentIndex + 1) + " / " + sentences.length + " 筆";
+    let extraInfo = "第 " + (currentIndex + 1) + " / " + sentences.length + " 筆";
+    if (status !== "") extraInfo += " | 熟悉度: " + status;
+    if (tag) extraInfo += " | #" + tag;
+    count.textContent = extraInfo;
   }
 
   updateShowHighlight();
@@ -447,7 +452,7 @@ function showError(message) {
 }
 
 /* =========================================================
-   新增表單與 logic
+   新增單字/句子功能邏輯
 ========================================================= */
 function showAddForm() {
   const form = document.getElementById("addForm");
@@ -551,15 +556,15 @@ async function translateNewSentence() {
 
     await fetchAITags(english);
 
-    if (message) message.textContent = "✅ 翻譯與標籤已生成";
+    if (message) message.textContent = "✅ 翻譯與標籤完成，可點擊儲存";
   } catch (err) {
-    console.error("翻譯或標籤產生失敗：", err);
-    if (message) message.textContent = "❌ 處理失敗：" + err.message;
-  }
-
-  if (button) {
-    button.disabled = false;
-    button.textContent = "✨ 自動翻譯";
+    console.error("翻譯失敗：", err);
+    if (message) message.textContent = "❌ 翻譯失敗：" + err.message;
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "✨ 自動翻譯";
+    }
   }
 }
 
@@ -594,6 +599,8 @@ function renderTags(tags) {
 }
 
 async function addSentence() {
+  if (isSubmitting) return; // 防重複觸發鎖定
+
   const englishInput = document.getElementById("newEnglish");
   const chineseInput = document.getElementById("newChinese");
   const message = document.getElementById("addMessage");
@@ -614,8 +621,9 @@ async function addSentence() {
     return;
   }
 
+  isSubmitting = true;
   if (addBtn) addBtn.disabled = true;
-  if (message) message.textContent = "正在儲存...";
+  if (message) message.textContent = "正在儲存中...";
 
   try {
     const tagsString = currentGeneratedTags.join(",");
@@ -646,11 +654,12 @@ async function addSentence() {
       renderSentence();
     }
 
-    setTimeout(hideAddForm, 800);
+    setTimeout(hideAddForm, 600);
   } catch (err) {
     console.error("新增句子失敗：", err);
     if (message) message.textContent = "❌ 新增失敗：" + err.message;
   } finally {
+    isSubmitting = false;
     if (addBtn) addBtn.disabled = false;
   }
 }
