@@ -171,45 +171,58 @@ function renderStars(rating) {
   });
 }
 
-// 點擊星星改分數並同步寫回 Google Sheet（已修正 ID 抓取問題）
+// 點擊星星改分數並同步寫回 Google Sheet（完整安全修復版）
 async function updateCurrentRating(newRating) {
-  if (filteredSentences.length === 0) return;
+  if (!filteredSentences || filteredSentences.length === 0) return;
 
   const currentItem = filteredSentences[currentIndex];
   
-  // 安全取得 ID（相容 "ID" 或 "id"）
-  const itemID = currentItem["ID"] !== undefined ? currentItem["ID"] : currentItem["id"];
+  // 1. 強制轉為字串並去除空白，確保 ID 一定是合法的純字串
+  let rawID = currentItem["ID"] !== undefined ? currentItem["ID"] : currentItem["id"];
+  if (rawID === undefined || rawID === null) rawID = "";
+  const itemID = String(rawID).trim();
 
-  if (itemID === undefined || itemID === "") {
+  if (!itemID) {
     console.error("無法取得當前資料的 ID！", currentItem);
     updatePlaybackStatus(`❌ 錯誤：無法取得資料 ID`);
     return;
   }
 
-  // 1. 立即修改本地當前資料
+  // 2. 立即修改本地當前資料與原始陣列
   currentItem["熟悉度"] = newRating; 
-
-  // 2. 正確比對全域陣列中的 ID 併改寫
   const targetInAll = allSentences.find(i => {
-    const rawID = i["ID"] !== undefined ? i["ID"] : i["id"];
-    return String(rawID) === String(itemID);
+    let idCheck = i["ID"] !== undefined ? i["ID"] : i["id"];
+    return String(idCheck).trim() === itemID;
   });
   if (targetInAll) targetInAll["熟悉度"] = newRating;
 
-  // 3. 重新渲染 UI
+  // 3. 重新渲染星星 UI
   renderStars(newRating);
   updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
 
-  // 4. 發送 API 請求給 Google Sheet
+  // 4. 建立安全的 URL 並發送請求
   try {
-    const url = `${API_URL}?action=updateStatus&id=${encodeURIComponent(itemID)}&status=${newRating}&t=${Date.now()}`;
-    const response = await fetch(url, { method: "GET", cache: "no-store" });
+    const baseUrl = String(API_URL).trim();
+    const cleanId = encodeURIComponent(itemID);
+    const cleanStatus = encodeURIComponent(String(newRating));
+    const timestamp = Date.now();
+    
+    // 安全組合 URL
+    const fullUrl = `${baseUrl}?action=updateStatus&id=${cleanId}&status=${cleanStatus}&t=${timestamp}`;
+
+    const response = await fetch(fullUrl, { 
+      method: "GET", 
+      cache: "no-store" 
+    });
+
+    if (!response.ok) throw new Error("HTTP " + response.status);
+
     const result = await response.json();
 
-    if (result.success) {
+    if (result && result.success) {
       updatePlaybackStatus(`✅ 熟悉度 ${newRating} 星已儲存至 Sheet`);
     } else {
-      throw new Error(result.error || "儲存失敗");
+      throw new Error((result && result.error) || "儲存失敗");
     }
   } catch (err) {
     console.error("更新熟悉度失敗：", err);
