@@ -18,7 +18,7 @@
     .toolbar, .control-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
     button { border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
     button:active { transform: scale(0.96); }
-    button.active, button.active-speed, button.active-interval, button.active-mode { background: #2563eb; color: white; }
+    button.active, button.active-speed, button.active-interval, button.active-repeat { background: #2563eb; color: white; }
 
     .btn-primary { background: #2563eb; color: white; }
     .btn-warning { background: #f59e0b; color: white; }
@@ -44,11 +44,12 @@
   <div class="header">📚 英文學習資料庫</div>
   <div id="count" class="count">資料載入中...</div>
 
+  <!-- 按鈕簡潔名稱修正 -->
   <div class="toolbar">
-    <button onclick="changeShow('en')">僅英文</button>
-    <button onclick="changeShow('zh')">僅中文</button>
-    <button onclick="changeShow('both')">中英對照</button>
-    <button onclick="blindMode()">遮蔽模式</button>
+    <button onclick="changeShow('en')">英文</button>
+    <button onclick="changeShow('zh')">中文</button>
+    <button onclick="changeShow('both')">英＋中</button>
+    <button onclick="blindMode()">盲聽</button>
   </div>
 
   <div class="card">
@@ -60,14 +61,24 @@
 
   <div class="control-row">
     <button onclick="previousSentence()">⬅️ 上一句</button>
-    <button class="btn-primary" onclick="speak()">🔊 播放</button>
-    <button id="repeatBtn" onclick="toggleRepeatMode()">🔂 單句重播：關</button>
+    <button class="btn-primary" onclick="startSinglePlay()">🔊 播放</button>
     <button onclick="nextSentence()">下一句 ➡️</button>
   </div>
 
   <div class="control-row">
     <button id="pauseButton" class="btn-warning" onclick="togglePause()">⏸ 暫停</button>
     <button class="btn-danger" onclick="stopAllPlayback()">⏹ 停止</button>
+  </div>
+
+  <!-- 重播次數設定區域 -->
+  <div class="section-title">單句重複次數</div>
+  <div class="control-row">
+    <button class="repeat-button" data-repeat="1" onclick="setRepeatTimes(1)">1次</button>
+    <button class="repeat-button" data-repeat="2" onclick="setRepeatTimes(2)">2次</button>
+    <button class="repeat-button" data-repeat="3" onclick="setRepeatTimes(3)">3次</button>
+    <button class="repeat-button" data-repeat="4" onclick="setRepeatTimes(4)">4次</button>
+    <button class="repeat-button" data-repeat="5" onclick="setRepeatTimes(5)">5次</button>
+    <button class="repeat-button" data-repeat="999" onclick="setRepeatTimes(999)">無限</button>
   </div>
 
   <div class="section-title">播放速度</div>
@@ -83,7 +94,7 @@
     <button class="speed-button" data-rate="1.2" onclick="setSpeechRate(1.2)">1.2x</button>
   </div>
 
-  <div class="control-row">
+  <div class="control-row" style="margin-top: 16px;">
     <button class="btn-success" onclick="startContinuousPlay()">▶️ 連續播放</button>
     <button class="btn-success" onclick="startRandomPlay()">🔀 隨機播放</button>
   </div>
