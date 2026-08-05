@@ -3,160 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英文單字與句子發音複習</title>
+  <title>英文學習資料庫</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f3f4f6;
-      color: #1f2937;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 16px;
-      color: #111827;
-      font-size: 1.25rem;
-    }
-    .card {
-      background-color: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 20px;
-      min-height: 140px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    .card-en {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 8px;
-    }
-    .card-zh {
-      font-size: 1rem;
-      color: #4b5563;
-      margin-bottom: 8px;
-    }
-    .card-meta {
-      font-size: 0.85rem;
-      color: #6b7280;
-    }
-    .control-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s, color 0.2s;
-    }
-    .btn-primary {
-      background-color: #3b82f6;
-      color: white;
-    }
-    .btn-secondary {
-      background-color: #6b7280;
-      color: white;
-    }
-    .btn-success {
-      background-color: #10b981;
-      color: white;
-    }
-    .btn-warning {
-      background-color: #ef4444;
-      color: white;
-    }
-    .setting-group {
-      margin-top: 16px;
-      background: #f9fafb;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-    .setting-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .setting-item:last-child {
-      margin-bottom: 0;
-    }
-    select, input[type="range"] {
-      padding: 4px;
-      border-radius: 4px;
-      border: 1px solid #d1d5db;
-    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f4f6f9; margin: 0; padding: 16px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 600px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .header { text-align: center; font-weight: bold; font-size: 1.2rem; margin-bottom: 12px; color: #333; }
+    .count { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 16px; }
+
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin-bottom: 20px; position: relative; }
+    .english-text { font-size: 1.4rem; font-weight: 600; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
+    .chinese-text { font-size: 1.1rem; color: #475569; line-height: 1.4; word-break: break-word; }
+
+    .toolbar, .control-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+    button { border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
+    button:active { transform: scale(0.96); }
+    button.active, button.active-speed, button.active-interval, button.active-repeat { background: #2563eb; color: white; }
+
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-warning { background: #f59e0b; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-success { background: #10b981; color: white; }
+
+    .status-text { text-align: center; font-size: 0.85rem; color: #2563eb; font-weight: bold; min-height: 20px; margin-bottom: 12px; }
+    .section-title { text-align: center; font-size: 0.9rem; font-weight: bold; color: #64748b; margin: 16px 0 8px 0; }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 480px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.85rem; color: #475569; margin-bottom: 4px; font-weight: bold; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    .error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 4px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>📖 英文單字/句子卡片</h2>
+  <div class="header">📚 英文學習資料庫</div>
+  <div id="count" class="count">資料載入中...</div>
 
-  <!-- 內容卡片 -->
+  <div class="toolbar">
+    <button onclick="changeShow('en')">英文</button>
+    <button onclick="changeShow('zh')">中文</button>
+    <button onclick="changeShow('both')">英＋中</button>
+    <button onclick="blindMode()">盲聽</button>
+  </div>
+
   <div class="card">
-    <div id="cardEn" class="card-en">載入中...</div>
-    <div id="cardZh" class="card-zh"></div>
-    <div id="cardMeta" class="card-meta"></div>
+    <div id="english" class="english-text">--</div>
+    <div id="chinese" class="chinese-text">--</div>
   </div>
 
-  <!-- 主要操控按鈕 -->
+  <div class="status-text" id="playbackStatus"></div>
+
   <div class="control-row">
-    <button class="btn-secondary" onclick="prevSentence()">⬅️ 上一句</button>
-    <button class="btn-primary" onclick="startSinglePlay()">🔊 播放單次</button>
-    <button class="btn-secondary" onclick="nextSentence()">下一句 ➡️</button>
+    <button onclick="previousSentence()">⬅️ 上一句</button>
+    <button class="btn-primary" onclick="startSinglePlay()">🔊 播放</button>
+    <button onclick="nextSentence()">下一句 ➡️</button>
   </div>
 
   <div class="control-row">
+    <button id="pauseButton" class="btn-warning" onclick="togglePause()">⏸ 暫停</button>
+    <button class="btn-danger" onclick="stopAllPlayback()">⏹ 停止</button>
+  </div>
+
+  <div class="section-title">單句重複次數</div>
+  <div class="control-row">
+    <button class="repeat-button" data-repeat="1" onclick="setRepeatTimes(1)">1次</button>
+    <button class="repeat-button" data-repeat="2" onclick="setRepeatTimes(2)">2次</button>
+    <button class="repeat-button" data-repeat="3" onclick="setRepeatTimes(3)">3次</button>
+    <button class="repeat-button" data-repeat="4" onclick="setRepeatTimes(4)">4次</button>
+    <button class="repeat-button" data-repeat="5" onclick="setRepeatTimes(5)">5次</button>
+    <button class="repeat-button" data-repeat="999" onclick="setRepeatTimes(999)">無限</button>
+  </div>
+
+  <div class="section-title">播放速度</div>
+  <div class="control-row">
+    <button class="speed-button" data-rate="0.3" onclick="setSpeechRate(0.3)">0.3x</button>
+    <button class="speed-button" data-rate="0.4" onclick="setSpeechRate(0.4)">0.4x</button>
+    <button class="speed-button" data-rate="0.5" onclick="setSpeechRate(0.5)">0.5x</button>
+    <button class="speed-button" data-rate="0.6" onclick="setSpeechRate(0.6)">0.6x</button>
+    <button class="speed-button" data-rate="0.7" onclick="setSpeechRate(0.7)">0.7x</button>
+    <button class="speed-button" data-rate="0.8" onclick="setSpeechRate(0.8)">0.8x</button>
+    <button class="speed-button" data-rate="0.9" onclick="setSpeechRate(0.9)">0.9x</button>
+    <button class="speed-button" data-rate="1.0" onclick="setSpeechRate(1.0)">1.0x</button>
+    <button class="speed-button" data-rate="1.2" onclick="setSpeechRate(1.2)">1.2x</button>
+  </div>
+
+  <div class="control-row" style="margin-top: 16px;">
     <button id="btnContinuous" class="btn-success" onclick="startContinuousPlay()">▶️ 連續播放</button>
     <button id="btnRandom" class="btn-success" onclick="startRandomPlay()">🔀 隨機播放</button>
   </div>
 
+  <div class="section-title">播放間隔（句/字之間）</div>
   <div class="control-row">
-    <button class="btn-warning" onclick="stopPlay()">⏹️ 停止播放</button>
+    <button class="interval-button" data-interval="1000" onclick="setPlaybackInterval(1000)">1秒</button>
+    <button class="interval-button" data-interval="2000" onclick="setPlaybackInterval(2000)">2秒</button>
+    <button class="interval-button" data-interval="3000" onclick="setPlaybackInterval(3000)">3秒</button>
+    <button class="interval-button" data-interval="5000" onclick="setPlaybackInterval(5000)">5秒</button>
   </div>
 
-  <!-- 設定區塊 -->
-  <div class="setting-group">
-    <div class="setting-item">
-      <label for="repeatSelect">每句重複次數：</label>
-      <select id="repeatSelect" onchange="updateSettings()">
-        <option value="1">1 次</option>
-        <option value="2" selected>2 次</option>
-        <option value="3">3 次</option>
-        <option value="5">5 次</option>
-      </select>
+  <div style="text-align: center; margin-top: 20px;">
+    <button class="btn-primary" onclick="showAddForm()">➕ 新增項目（單字/片語/句子）</button>
+  </div>
+  <div id="errorMessage" class="error-msg" style="text-align:center; margin-top:8px;"></div>
+</div>
+
+<!-- 新增彈窗 -->
+<div id="addForm" class="modal">
+  <div class="modal-content">
+    <h3 style="margin-top:0;">新增學習項目</h3>
+    <div class="form-group">
+      <label>英文 (單字/片語/句子)</label>
+      <input type="text" id="newEnglish" placeholder="輸入英文..." oninput="autoDetectTypeAndCheckDuplicate()">
+      <div id="duplicateWarning" class="error-msg" style="display:none;"></div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>項目類型</label>
+        <select id="newType">
+          <option value="單字">單字</option>
+          <option value="片語">片語</option>
+          <option value="句子">句子</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>初始熟悉度</label>
+        <select id="newStatus">
+          <option value="1">1 (不熟悉)</option>
+          <option value="2">2</option>
+          <option value="3">3 (中等)</option>
+          <option value="4">4</option>
+          <option value="5">5 (完全掌握)</option>
+        </select>
+      </div>
     </div>
 
-    <div class="setting-item">
-      <label for="rateRange">語速 (<span id="rateVal">0.9</span>x)：</label>
-      <input type="range" id="rateRange" min="0.5" max="1.5" step="0.1" value="0.9" onchange="updateSettings()">
+    <div class="form-group">
+      <label>中文翻譯</label>
+      <input type="text" id="newChinese" placeholder="自動翻譯或手動輸入...">
+    </div>
+
+    <div class="form-group">
+      <label>AI 自動分類標籤</label>
+      <div id="aiTagsContainer" style="min-height: 24px;"></div>
+    </div>
+
+    <div id="addMessage" class="status-text"></div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+      <button onclick="hideAddForm()">取消</button>
+      <button class="btn-primary" onclick="addSentence()">儲存</button>
     </div>
   </div>
 </div>
