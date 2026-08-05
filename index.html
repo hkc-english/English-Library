@@ -9,11 +9,22 @@
     body { background-color: #f4f6f9; margin: 0; padding: 16px; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 600px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .header { text-align: center; font-weight: bold; font-size: 1.2rem; margin-bottom: 12px; color: #333; }
-    .count { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 16px; }
+    .count { text-align: center; color: #666; font-size: 0.88rem; margin-bottom: 12px; }
 
-    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px 16px; min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin-bottom: 20px; position: relative; }
+    /* 篩選下拉選單樣式 */
+    .filter-box { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; background: #eff6ff; padding: 8px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
+    .filter-box label { font-size: 0.85rem; font-weight: bold; color: #1e40af; }
+    .filter-box select { padding: 6px 10px; border-radius: 6px; border: 1px solid #93c5fd; font-size: 0.9rem; background: white; cursor: pointer; font-weight: bold; }
+
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 16px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin-bottom: 20px; position: relative; }
     .english-text { font-size: 1.4rem; font-weight: 600; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
-    .chinese-text { font-size: 1.1rem; color: #475569; line-height: 1.4; word-break: break-word; }
+    .chinese-text { font-size: 1.1rem; color: #475569; line-height: 1.4; word-break: break-word; margin-bottom: 12px; }
+
+    /* 5星評分樣式 */
+    .star-rating { display: flex; gap: 4px; justify-content: center; margin-top: 8px; }
+    .star-rating .star { font-size: 1.6rem; cursor: pointer; color: #cbd5e1; transition: color 0.15s, transform 0.1s; user-select: none; }
+    .star-rating .star.filled { color: #f59e0b; }
+    .star-rating .star:hover { transform: scale(1.2); }
 
     .toolbar, .control-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
     button { border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
@@ -42,6 +53,21 @@
 
 <div class="container">
   <div class="header">📚 英文學習資料庫</div>
+
+  <!-- 熟悉度篩選器 -->
+  <div class="filter-box">
+    <label for="statusFilter">🎯 播放範圍：</label>
+    <select id="statusFilter" onchange="onFilterChange()">
+      <option value="all">全部顯示</option>
+      <option value="lte3">★ 1~3星（重點複習）</option>
+      <option value="1">★ 1星（亟需複習）</option>
+      <option value="2">★ 2星</option>
+      <option value="3">★ 3星</option>
+      <option value="4">★ 4星</option>
+      <option value="5">★ 5星（完全掌握）</option>
+    </select>
+  </div>
+
   <div id="count" class="count">資料載入中...</div>
 
   <div class="toolbar">
@@ -54,6 +80,15 @@
   <div class="card">
     <div id="english" class="english-text">--</div>
     <div id="chinese" class="chinese-text">--</div>
+    
+    <!-- 5顆星動態評分區 -->
+    <div id="starContainer" class="star-rating">
+      <span class="star" onclick="updateCurrentRating(1)">★</span>
+      <span class="star" onclick="updateCurrentRating(2)">★</span>
+      <span class="star" onclick="updateCurrentRating(3)">★</span>
+      <span class="star" onclick="updateCurrentRating(4)">★</span>
+      <span class="star" onclick="updateCurrentRating(5)">★</span>
+    </div>
   </div>
 
   <div class="status-text" id="playbackStatus"></div>
