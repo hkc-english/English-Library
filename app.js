@@ -1,5 +1,5 @@
 /* =========================================================
-   English Library - app.js (全功能包含單句重複次數與連續播放結合版)
+   English Library - app.js (修正播放模式按鈕獨立高亮)
 ========================================================= */
 
 const API_URL =
@@ -12,9 +12,9 @@ let speechRate = 0.7;
 let playbackInterval = 2000;
 
 // 播放控制器狀態
-let repeatTimesTarget = 1; // 預設單句唸 1 次 (可選 1~5, 999無限)
-let currentRepeatCount = 0; // 當前已唸次數
-let playMode = "single"; // "single" (單句模式), "continuous" (連續模式), "random" (隨機模式)
+let repeatTimesTarget = 1;
+let currentRepeatCount = 0;
+let playMode = "single"; // "single", "continuous", "random"
 
 let isPaused = false;
 let isSpeaking = false;
@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateSpeedHighlight();
   updateIntervalHighlight();
   updateRepeatHighlight();
+  updateModeHighlight();
   updatePauseButton();
   setupTranslationButton();
   loadData();
@@ -174,7 +175,6 @@ function loadVoices() {
   selectedVoice = englishVoices[0];
 }
 
-// 核心發音邏輯
 function speak() {
   if (sentences.length === 0) return;
 
@@ -241,17 +241,13 @@ function speak() {
 
     currentRepeatCount++;
 
-    // 判斷當前句子的播放次數是否已達目標
     if (repeatTimesTarget === 999 || currentRepeatCount < repeatTimesTarget) {
-      // 繼續重複播放同一句
       scheduleNext(true);
     } else {
-      // 當前句子重複完成，重置計數
       currentRepeatCount = 0;
       if (playMode === "single") {
         updatePlaybackStatus("播放完成");
       } else {
-        // 連續或隨機模式：準備跳下一句
         scheduleNext(false);
       }
     }
@@ -277,10 +273,10 @@ function speak() {
   }, 80);
 }
 
-// 播放模式發動點
 function startSinglePlay() {
   playMode = "single";
   currentRepeatCount = 0;
+  updateModeHighlight();
   speak();
 }
 
@@ -288,6 +284,7 @@ function startContinuousPlay() {
   if (sentences.length === 0) return;
   playMode = "continuous";
   currentRepeatCount = 0;
+  updateModeHighlight();
   speak();
 }
 
@@ -295,9 +292,23 @@ function startRandomPlay() {
   if (sentences.length === 0) return;
   playMode = "random";
   currentRepeatCount = 0;
+  updateModeHighlight();
   currentIndex = Math.floor(Math.random() * sentences.length);
   renderSentence();
   speak();
+}
+
+// 獨立管理「連續播放」與「隨機播放」的高亮按鈕
+function updateModeHighlight() {
+  const btnContinuous = document.getElementById("btnContinuous");
+  const btnRandom = document.getElementById("btnRandom");
+
+  if (btnContinuous) {
+    btnContinuous.classList.toggle("active-mode", playMode === "continuous");
+  }
+  if (btnRandom) {
+    btnRandom.classList.toggle("active-mode", playMode === "random");
+  }
 }
 
 function setRepeatTimes(times) {
@@ -383,6 +394,7 @@ function stopAutoPlayback() {
 function stopAllPlayback() {
   stopAutoPlayback();
   playMode = "single";
+  updateModeHighlight();
   updatePlaybackStatus("⏹ 已停止");
 }
 
@@ -405,7 +417,7 @@ function finishWaiting(repeatSame = false) {
   if (isPaused) return;
 
   if (repeatSame) {
-    speak(); // 同句重複
+    speak();
   } else {
     if (playMode === "random") {
       currentIndex = Math.floor(Math.random() * sentences.length);
