@@ -18,7 +18,7 @@
     .toolbar, .control-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
     button { border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
     button:active { transform: scale(0.96); }
-    button.active, button.active-speed, button.active-interval, button.active-repeat { background: #2563eb; color: white; }
+    button.active, button.active-speed, button.active-interval, button.active-repeat, button.active-mode { background: #2563eb; color: white; }
 
     .btn-primary { background: #2563eb; color: white; }
     .btn-warning { background: #f59e0b; color: white; }
@@ -44,7 +44,6 @@
   <div class="header">📚 英文學習資料庫</div>
   <div id="count" class="count">資料載入中...</div>
 
-  <!-- 按鈕簡潔名稱修正 -->
   <div class="toolbar">
     <button onclick="changeShow('en')">英文</button>
     <button onclick="changeShow('zh')">中文</button>
@@ -70,7 +69,6 @@
     <button class="btn-danger" onclick="stopAllPlayback()">⏹ 停止</button>
   </div>
 
-  <!-- 重播次數設定區域 -->
   <div class="section-title">單句重複次數</div>
   <div class="control-row">
     <button class="repeat-button" data-repeat="1" onclick="setRepeatTimes(1)">1次</button>
@@ -95,8 +93,9 @@
   </div>
 
   <div class="control-row" style="margin-top: 16px;">
-    <button class="btn-success" onclick="startContinuousPlay()">▶️ 連續播放</button>
-    <button class="btn-success" onclick="startRandomPlay()">🔀 隨機播放</button>
+    <!-- 為兩個按鈕加入獨立 ID 避免高亮混淆 -->
+    <button id="btnContinuous" class="btn-success" onclick="startContinuousPlay()">▶️ 連續播放</button>
+    <button id="btnRandom" class="btn-success" onclick="startRandomPlay()">🔀 隨機播放</button>
   </div>
 
   <div class="section-title">播放間隔（句/字之間）</div>
