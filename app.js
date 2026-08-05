@@ -1,13 +1,15 @@
 /* =========================================================
    English Library - app.js
-   包含正確 API 連結 + 按鈕獨立高亮 logic
+   包含：真實 API + 獨立按鈕高亮 + 5星試算表連動 + 熟悉度篩選
 ========================================================= */
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec";
 
-let sentences = [];
+let allSentences = [];      // 原始完整資料
+let filteredSentences = []; // 篩選後的資料
 let currentIndex = 0;
+
 let currentShowMode = "en";
 let speechRate = 0.7;
 let playbackInterval = 2000;
@@ -15,7 +17,7 @@ let playbackInterval = 2000;
 // 播放控制器狀態
 let repeatTimesTarget = 1;
 let currentRepeatCount = 0;
-let playMode = "single"; // "single", "continuous", "random"
+let playMode = "single";
 
 let isPaused = false;
 let isSpeaking = false;
@@ -63,26 +65,44 @@ async function loadData() {
     const data = await response.json();
     if (!Array.isArray(data)) throw new Error(data.error || "資料格式錯誤");
 
-    sentences = data.filter(function (item) {
+    allSentences = data.filter(function (item) {
       return item && String(item["英文"] || "").trim() !== "";
     });
 
-    if (sentences.length === 0) {
-      currentIndex = 0;
-      renderSentence();
-      if (count) count.textContent = "目前沒有英文資料";
-      return;
-    }
-
-    if (currentIndex >= sentences.length) currentIndex = sentences.length - 1;
-    if (currentIndex < 0) currentIndex = 0;
-
-    renderSentence();
+    applyFilter();
   } catch (err) {
     console.error("資料載入失敗：", err);
     if (count) count.textContent = "資料載入失敗";
     showError("資料載入失敗：" + err.message);
   }
+}
+
+// 根據選單條件篩選資料庫
+function applyFilter() {
+  const filterValue = document.getElementById("statusFilter") ? document.getElementById("statusFilter").value : "all";
+
+  if (filterValue === "all") {
+    filteredSentences = [...allSentences];
+  } else if (filterValue === "lte3") {
+    filteredSentences = allSentences.filter(item => {
+      const val = Number(item["熟悉度"]) || 1;
+      return val <= 3;
+    });
+  } else {
+    const targetVal = Number(filterValue);
+    filteredSentences = allSentences.filter(item => {
+      const val = Number(item["熟悉度"]) || 1;
+      return val === targetVal;
+    });
+  }
+
+  currentIndex = 0;
+  renderSentence();
+}
+
+function onFilterChange() {
+  stopAllPlayback();
+  applyFilter();
 }
 
 function renderSentence() {
@@ -92,18 +112,23 @@ function renderSentence() {
 
   if (!english || !chinese) return;
 
-  if (sentences.length === 0) {
-    english.textContent = "目前沒有英文資料";
+  if (filteredSentences.length === 0) {
+    english.textContent = "沒有符合該篩選條件的資料";
     chinese.textContent = "";
+    if (count) count.textContent = "無資料";
+    renderStars(0);
     return;
   }
 
-  const item = sentences[currentIndex];
+  if (currentIndex >= filteredSentences.length) currentIndex = filteredSentences.length - 1;
+  if (currentIndex < 0) currentIndex = 0;
+
+  const item = filteredSentences[currentIndex];
   const en = String(item["英文"] || "");
   const zh = String(item["中文"] || "");
   const type = String(item["類型"] || "句子");
   const tag = String(item["標籤(情境分類)"] || item["標籤"] || "");
-  const status = item["熟悉度"] !== undefined ? item["熟悉度"] : "";
+  const status = Number(item["熟悉度"]) || 1;
 
   english.textContent = "";
   chinese.textContent = "";
@@ -121,13 +146,55 @@ function renderSentence() {
   }
 
   if (count) {
-    let extraInfo = `第 ${currentIndex + 1} / ${sentences.length} 筆 [${type}]`;
-    if (status !== "") extraInfo += ` | 熟悉度: ${status}`;
+    let extraInfo = `第 ${currentIndex + 1} / ${filteredSentences.length} 筆 [${type}]`;
     if (tag) extraInfo += ` | #${tag}`;
     count.textContent = extraInfo;
   }
 
+  renderStars(status);
   updateShowHighlight();
+}
+
+// 繪製 5 顆星狀態
+function renderStars(rating) {
+  const stars = document.querySelectorAll("#starContainer .star");
+  stars.forEach((star, index) => {
+    if (index < rating) {
+      star.classList.add("filled");
+    } else {
+      star.classList.remove("filled");
+    }
+  });
+}
+
+// 點擊星星改分數並同步寫回 Google Sheet
+async function updateCurrentRating(newRating) {
+  if (filteredSentences.length === 0) return;
+
+  const currentItem = filteredSentences[currentIndex];
+  currentItem["熟悉度"] = newRating; // 立即改本地狀態
+
+  // 找尋原完整陣列中的項目一併改寫
+  const targetInAll = allSentences.find(i => String(i.ID) === String(currentItem.ID));
+  if (targetInAll) targetInAll["熟悉度"] = newRating;
+
+  renderStars(newRating);
+  updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
+
+  try {
+    const url = `${API_URL}?action=updateStatus&id=${encodeURIComponent(currentItem.ID)}&status=${newRating}&t=${Date.now()}`;
+    const response = await fetch(url, { method: "GET", cache: "no-store" });
+    const result = await response.json();
+
+    if (result.success) {
+      updatePlaybackStatus(`✅ 熟悉度 ${newRating} 星已儲存至 Sheet`);
+    } else {
+      throw new Error(result.error || "儲存失敗");
+    }
+  } catch (err) {
+    console.error("更新熟悉度失敗：", err);
+    updatePlaybackStatus(`❌ 儲存失敗：${err.message}`);
+  }
 }
 
 function changeShow(mode) {
@@ -177,9 +244,9 @@ function loadVoices() {
 }
 
 function speak() {
-  if (sentences.length === 0) return;
+  if (filteredSentences.length === 0) return;
 
-  const text = String(sentences[currentIndex]["英文"] || "").trim();
+  const text = String(filteredSentences[currentIndex]["英文"] || "").trim();
   if (!text) return;
 
   clearPlaybackTimer();
@@ -282,7 +349,7 @@ function startSinglePlay() {
 }
 
 function startContinuousPlay() {
-  if (sentences.length === 0) return;
+  if (filteredSentences.length === 0) return;
   playMode = "continuous";
   currentRepeatCount = 0;
   updateModeHighlight();
@@ -290,36 +357,35 @@ function startContinuousPlay() {
 }
 
 function startRandomPlay() {
-  if (sentences.length === 0) return;
+  if (filteredSentences.length === 0) return;
   playMode = "random";
   currentRepeatCount = 0;
   updateModeHighlight();
-  currentIndex = Math.floor(Math.random() * sentences.length);
+  currentIndex = Math.floor(Math.random() * filteredSentences.length);
   renderSentence();
   speak();
 }
 
-// 獨立且精準控制連續與隨機按鈕高亮
 function updateModeHighlight() {
   const btnContinuous = document.getElementById("btnContinuous");
   const btnRandom = document.getElementById("btnRandom");
 
   if (btnContinuous) {
     if (playMode === "continuous") {
-      btnContinuous.style.backgroundColor = "#2563eb"; // 藍色高亮
+      btnContinuous.style.backgroundColor = "#2563eb";
       btnContinuous.style.color = "#ffffff";
     } else {
-      btnContinuous.style.backgroundColor = "#10b981"; // 預設綠色
+      btnContinuous.style.backgroundColor = "#10b981";
       btnContinuous.style.color = "#ffffff";
     }
   }
 
   if (btnRandom) {
     if (playMode === "random") {
-      btnRandom.style.backgroundColor = "#2563eb"; // 藍色高亮
+      btnRandom.style.backgroundColor = "#2563eb";
       btnRandom.style.color = "#ffffff";
     } else {
-      btnRandom.style.backgroundColor = "#10b981"; // 預設綠色
+      btnRandom.style.backgroundColor = "#10b981";
       btnRandom.style.color = "#ffffff";
     }
   }
@@ -338,17 +404,17 @@ function updateRepeatHighlight() {
 }
 
 function previousSentence() {
-  if (sentences.length === 0) return;
+  if (filteredSentences.length === 0) return;
   stopAutoPlayback();
-  currentIndex = currentIndex - 1 < 0 ? sentences.length - 1 : currentIndex - 1;
+  currentIndex = currentIndex - 1 < 0 ? filteredSentences.length - 1 : currentIndex - 1;
   renderSentence();
   startSinglePlay();
 }
 
 function nextSentence() {
-  if (sentences.length === 0) return;
+  if (filteredSentences.length === 0) return;
   stopAutoPlayback();
-  currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
+  currentIndex = currentIndex + 1 >= filteredSentences.length ? 0 : currentIndex + 1;
   renderSentence();
   startSinglePlay();
 }
@@ -434,9 +500,9 @@ function finishWaiting(repeatSame = false) {
     speak();
   } else {
     if (playMode === "random") {
-      currentIndex = Math.floor(Math.random() * sentences.length);
+      currentIndex = Math.floor(Math.random() * filteredSentences.length);
     } else if (playMode === "continuous") {
-      currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
+      currentIndex = currentIndex + 1 >= filteredSentences.length ? 0 : currentIndex + 1;
     }
     renderSentence();
     speak();
@@ -562,7 +628,7 @@ function autoDetectTypeAndCheckDuplicate() {
     return;
   }
 
-  const match = sentences.find((item) => {
+  const match = allSentences.find((item) => {
     const en = String(item["英文"] || "").trim().toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
     return en === cleanText;
   });
@@ -715,17 +781,9 @@ async function addSentence() {
     const result = await response.json();
     if (!result.success) throw new Error(result.error || "新增失敗");
 
-    const newId = Number(result.id);
     if (message) message.textContent = "✅ 新增成功！";
 
     await loadData();
-
-    const newIndex = sentences.findIndex((item) => Number(item.ID) === newId);
-    if (newIndex !== -1) {
-      currentIndex = newIndex;
-      renderSentence();
-    }
-
     setTimeout(hideAddForm, 600);
   } catch (err) {
     console.error("新增失敗：", err);
@@ -743,6 +801,7 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+// 暴露全域函式供 HTML 呼叫
 window.changeShow = changeShow;
 window.blindMode = blindMode;
 window.previousSentence = previousSentence;
@@ -760,3 +819,5 @@ window.hideAddForm = hideAddForm;
 window.autoDetectTypeAndCheckDuplicate = autoDetectTypeAndCheckDuplicate;
 window.addSentence = addSentence;
 window.translateNewSentence = translateNewSentence;
+window.updateCurrentRating = updateCurrentRating;
+window.onFilterChange = onFilterChange;
