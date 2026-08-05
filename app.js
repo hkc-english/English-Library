@@ -1,5 +1,5 @@
 /* =========================================================
-   English Library - app.js (完整防重複 + 全欄位對齊版)
+   English Library - app.js (全功能包含單句無限重播與類型自動判斷版)
 ========================================================= */
 
 const API_URL =
@@ -12,6 +12,7 @@ let speechRate = 0.7;
 let playbackInterval = 2000;
 let isContinuousPlaying = false;
 let isRandomPlaying = false;
+let isSingleRepeat = false; // 單句無限重播模式
 let isPaused = false;
 let isSpeaking = false;
 let isWaiting = false;
@@ -22,7 +23,7 @@ let remainingWait = 0;
 let waitStartedAt = 0;
 let selectedVoice = null;
 let currentGeneratedTags = [];
-let isSubmitting = false; // 全域防重複發送鎖定開關
+let isSubmitting = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   loadVoices();
@@ -94,6 +95,7 @@ function renderSentence() {
   const item = sentences[currentIndex];
   const en = String(item["英文"] || "");
   const zh = String(item["中文"] || "");
+  const type = String(item["類型"] || "句子");
   const tag = String(item["標籤(情境分類)"] || item["標籤"] || "");
   const status = item["熟悉度"] !== undefined ? item["熟悉度"] : "";
 
@@ -113,9 +115,9 @@ function renderSentence() {
   }
 
   if (count) {
-    let extraInfo = "第 " + (currentIndex + 1) + " / " + sentences.length + " 筆";
-    if (status !== "") extraInfo += " | 熟悉度: " + status;
-    if (tag) extraInfo += " | #" + tag;
+    let extraInfo = `第 ${currentIndex + 1} / ${sentences.length} 筆 [${type}]`;
+    if (status !== "") extraInfo += ` | 熟悉度: ${status}`;
+    if (tag) extraInfo += ` | #${tag}`;
     count.textContent = extraInfo;
   }
 
@@ -202,11 +204,12 @@ function speak() {
     isSpeaking = true;
     isPaused = false;
     updatePauseButton();
-    updatePlaybackStatus(
-      isContinuousPlaying
-        ? isRandomPlaying ? "🔀 隨機播放中" : "▶️ 連續播放中"
-        : "🔊 播放中"
-    );
+
+    let statusMsg = "🔊 播放中";
+    if (isSingleRepeat) statusMsg = "🔂 單句重播中...";
+    else if (isContinuousPlaying) statusMsg = isRandomPlaying ? "🔀 隨機播放中" : "▶️ 連續播放中";
+
+    updatePlaybackStatus(statusMsg);
   };
 
   utterance.onpause = function () {
@@ -220,7 +223,7 @@ function speak() {
     if (token !== playbackToken) return;
     isPaused = false;
     updatePauseButton();
-    updatePlaybackStatus(isContinuousPlaying ? "▶️ 播放中" : "🔊 播放中");
+    updatePlaybackStatus("🔊 播放中");
   };
 
   utterance.onend = function () {
@@ -229,8 +232,14 @@ function speak() {
     isPaused = false;
     currentUtterance = null;
     updatePauseButton();
-    if (isContinuousPlaying) scheduleNext();
-    else updatePlaybackStatus("播放完成");
+
+    if (isSingleRepeat) {
+      scheduleNext(true); // 單句重播：重複同句
+    } else if (isContinuousPlaying) {
+      scheduleNext(false); // 連續播放：切換下一句
+    } else {
+      updatePlaybackStatus("播放完成");
+    }
   };
 
   utterance.onerror = function (event) {
@@ -240,7 +249,7 @@ function speak() {
     currentUtterance = null;
     isPaused = false;
     updatePauseButton();
-    if (isContinuousPlaying) scheduleNext();
+    if (isSingleRepeat || isContinuousPlaying) scheduleNext(isSingleRepeat);
     else updatePlaybackStatus("播放錯誤");
   };
 
@@ -254,12 +263,17 @@ function speak() {
   }, 80);
 }
 
-function repeatSentence() {
-  if (sentences.length === 0) return;
-  isContinuousPlaying = false;
-  isRandomPlaying = false;
-  updatePlaybackStatus("🔂 單句重播");
-  speak();
+// 單句重播開關切換
+function toggleRepeatMode() {
+  isSingleRepeat = !isSingleRepeat;
+  const btn = document.getElementById("repeatBtn");
+  if (btn) {
+    btn.textContent = isSingleRepeat ? "🔂 單句重播：開" : "🔂 單句重播：關";
+    btn.classList.toggle("btn-primary", isSingleRepeat);
+  }
+  if (isSingleRepeat && !isSpeaking) {
+    speak();
+  }
 }
 
 function previousSentence() {
@@ -324,9 +338,7 @@ function stopAutoPlayback() {
   clearPlaybackTimer();
   try {
     window.speechSynthesis.cancel();
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) {}
   isSpeaking = false;
   isPaused = false;
   currentUtterance = null;
@@ -334,6 +346,12 @@ function stopAutoPlayback() {
 }
 
 function stopAllPlayback() {
+  isSingleRepeat = false;
+  const btn = document.getElementById("repeatBtn");
+  if (btn) {
+    btn.textContent = "🔂 單句重播：關";
+    btn.classList.remove("btn-primary");
+  }
   stopAutoPlayback();
   updatePlaybackStatus("⏹ 已停止");
 }
@@ -360,31 +378,35 @@ function startRandomPlay() {
   speak();
 }
 
-function scheduleNext() {
+function scheduleNext(repeatSame = false) {
   clearPlaybackTimer();
-  if (!isContinuousPlaying) return;
   isWaiting = true;
   isPaused = false;
   remainingWait = playbackInterval;
   waitStartedAt = Date.now();
-  updatePlaybackStatus("⏳ 等待 " + playbackInterval / 1000 + " 秒");
-  playbackTimer = setTimeout(finishWaiting, remainingWait);
+  updatePlaybackStatus(`⏳ 等待 ${playbackInterval / 1000} 秒`);
+  
+  playbackTimer = setTimeout(() => finishWaiting(repeatSame), remainingWait);
 }
 
-function finishWaiting() {
+function finishWaiting(repeatSame = false) {
   playbackTimer = null;
   isWaiting = false;
   remainingWait = 0;
   waitStartedAt = 0;
-  if (!isContinuousPlaying || isPaused) return;
+  if (isPaused) return;
 
-  if (isRandomPlaying) {
-    currentIndex = Math.floor(Math.random() * sentences.length);
-  } else {
-    currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
+  if (repeatSame) {
+    speak(); // 重複播放同句
+  } else if (isContinuousPlaying) {
+    if (isRandomPlaying) {
+      currentIndex = Math.floor(Math.random() * sentences.length);
+    } else {
+      currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
+    }
+    renderSentence();
+    speak();
   }
-  renderSentence();
-  speak();
 }
 
 function clearPlaybackTimer() {
@@ -452,11 +474,11 @@ function showError(message) {
 }
 
 /* =========================================================
-   新增單字/句子功能邏輯
+   新增項目與自動判定邏輯
 ========================================================= */
 function showAddForm() {
   const form = document.getElementById("addForm");
-  if (form) form.style.display = "block";
+  if (form) form.style.display = "flex";
   const input = document.getElementById("newEnglish");
   if (input) input.focus();
 }
@@ -482,14 +504,32 @@ function hideAddForm() {
   currentGeneratedTags = [];
 }
 
-function checkDuplicateOnInput() {
+// 輸入時自動判定「單字/片語/句子」與檢查重複
+function autoDetectTypeAndCheckDuplicate() {
   const input = document.getElementById("newEnglish");
+  const typeSelect = document.getElementById("newType");
   const warning = document.getElementById("duplicateWarning");
-  if (!input || !warning) return;
+  if (!input) return;
 
-  const text = input.value.trim().toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
+  const rawText = input.value.trim();
+  const words = rawText.split(/\s+/).filter(Boolean);
 
-  if (!text) {
+  // 自動判斷類型
+  if (typeSelect) {
+    if (words.length <= 1) {
+      typeSelect.value = "單字";
+    } else if (words.length <= 4) {
+      typeSelect.value = "片語";
+    } else {
+      typeSelect.value = "句子";
+    }
+  }
+
+  // 重複判定
+  if (!warning) return;
+  const cleanText = rawText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
+
+  if (!cleanText) {
     warning.textContent = "";
     warning.style.display = "none";
     return;
@@ -497,11 +537,11 @@ function checkDuplicateOnInput() {
 
   const match = sentences.find((item) => {
     const en = String(item["英文"] || "").trim().toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
-    return en === text;
+    return en === cleanText;
   });
 
   if (match) {
-    warning.textContent = "⚠️ 資料庫已有相似句子：" + match["英文"];
+    warning.textContent = "⚠️ 資料庫已有相似項目：" + match["英文"];
     warning.style.display = "block";
   } else {
     warning.textContent = "";
@@ -519,7 +559,8 @@ function setupTranslationButton() {
   const button = document.createElement("button");
   button.id = "translateButton";
   button.type = "button";
-  button.textContent = "✨ 自動翻譯";
+  button.textContent = "✨ 自動翻譯與產生標籤";
+  button.style.cssText = "margin-bottom: 8px; width: 100%;";
   button.onclick = translateNewSentence;
 
   chineseInput.parentNode.insertBefore(button, chineseInput);
@@ -535,15 +576,15 @@ async function translateNewSentence() {
   const english = englishInput.value.trim();
 
   if (!english) {
-    if (message) message.textContent = "請先輸入英文句子";
+    if (message) message.textContent = "請先輸入英文內容";
     return;
   }
 
   if (button) {
     button.disabled = true;
-    button.textContent = "⏳ 翻譯中...";
+    button.textContent = "⏳ 分析與翻譯中...";
   }
-  if (message) message.textContent = "正在翻譯與產生標籤...";
+  if (message) message.textContent = "正在翻譯與產生 AI 標籤...";
 
   try {
     const urlTrans = API_URL + "?action=translate&英文=" + encodeURIComponent(english) + "&t=" + Date.now();
@@ -556,14 +597,14 @@ async function translateNewSentence() {
 
     await fetchAITags(english);
 
-    if (message) message.textContent = "✅ 翻譯與標籤完成，可點擊儲存";
+    if (message) message.textContent = "✅ 翻譯與標籤完成";
   } catch (err) {
     console.error("翻譯失敗：", err);
     if (message) message.textContent = "❌ 翻譯失敗：" + err.message;
   } finally {
     if (button) {
       button.disabled = false;
-      button.textContent = "✨ 自動翻譯";
+      button.textContent = "✨ 自動翻譯與產生標籤";
     }
   }
 }
@@ -599,10 +640,12 @@ function renderTags(tags) {
 }
 
 async function addSentence() {
-  if (isSubmitting) return; // 防重複觸發鎖定
+  if (isSubmitting) return;
 
   const englishInput = document.getElementById("newEnglish");
   const chineseInput = document.getElementById("newChinese");
+  const typeSelect = document.getElementById("newType");
+  const statusSelect = document.getElementById("newStatus");
   const message = document.getElementById("addMessage");
   const addBtn = document.querySelector("#addForm button[onclick*='addSentence']");
 
@@ -610,20 +653,22 @@ async function addSentence() {
 
   const english = englishInput.value.trim();
   const chinese = chineseInput.value.trim();
+  const type = typeSelect ? typeSelect.value : "句子";
+  const status = statusSelect ? statusSelect.value : "1";
 
   if (!english) {
-    if (message) message.textContent = "請輸入英文句子";
+    if (message) message.textContent = "請輸入英文內容";
     return;
   }
 
   if (!chinese) {
-    if (message) message.textContent = "請先自動翻譯或輸入中文";
+    if (message) message.textContent = "請先翻譯或輸入中文";
     return;
   }
 
   isSubmitting = true;
   if (addBtn) addBtn.disabled = true;
-  if (message) message.textContent = "正在儲存中...";
+  if (message) message.textContent = "正在儲存至 Google Sheet...";
 
   try {
     const tagsString = currentGeneratedTags.join(",");
@@ -632,8 +677,8 @@ async function addSentence() {
       "?action=add" +
       "&英文=" + encodeURIComponent(english) +
       "&中文=" + encodeURIComponent(chinese) +
-      "&類型=" + encodeURIComponent("句子") +
-      "&熟悉度=1" +
+      "&類型=" + encodeURIComponent(type) +
+      "&熟悉度=" + encodeURIComponent(status) +
       "&標籤=" + encodeURIComponent(tagsString) +
       "&t=" + Date.now();
 
@@ -644,7 +689,7 @@ async function addSentence() {
     if (!result.success) throw new Error(result.error || "新增失敗");
 
     const newId = Number(result.id);
-    if (message) message.textContent = "✅ 新增成功";
+    if (message) message.textContent = "✅ 新增成功！";
 
     await loadData();
 
@@ -656,7 +701,7 @@ async function addSentence() {
 
     setTimeout(hideAddForm, 600);
   } catch (err) {
-    console.error("新增句子失敗：", err);
+    console.error("新增失敗：", err);
     if (message) message.textContent = "❌ 新增失敗：" + err.message;
   } finally {
     isSubmitting = false;
@@ -676,7 +721,7 @@ window.blindMode = blindMode;
 window.previousSentence = previousSentence;
 window.nextSentence = nextSentence;
 window.speak = speak;
-window.repeatSentence = repeatSentence;
+window.toggleRepeatMode = toggleRepeatMode;
 window.togglePause = togglePause;
 window.stopAllPlayback = stopAllPlayback;
 window.setSpeechRate = setSpeechRate;
@@ -685,6 +730,6 @@ window.startRandomPlay = startRandomPlay;
 window.setPlaybackInterval = setPlaybackInterval;
 window.showAddForm = showAddForm;
 window.hideAddForm = hideAddForm;
-window.checkDuplicateOnInput = checkDuplicateOnInput;
+window.autoDetectTypeAndCheckDuplicate = autoDetectTypeAndCheckDuplicate;
 window.addSentence = addSentence;
 window.translateNewSentence = translateNewSentence;
