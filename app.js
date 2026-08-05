@@ -1,16 +1,10 @@
 /* =========================================================
-   English Library - app.js V3 完整整合版
+   English Library - app.js (V3.2 完整對齊版)
 ========================================================= */
 
-/* =========================================================
-   Google Apps Script Web App URL
-========================================================= */
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec";
 
-/* =========================================================
-   全域變數
-========================================================= */
 let sentences = [];
 let currentIndex = 0;
 let currentShowMode = "en";
@@ -27,10 +21,8 @@ let playbackToken = 0;
 let remainingWait = 0;
 let waitStartedAt = 0;
 let selectedVoice = null;
+let currentGeneratedTags = [];
 
-/* =========================================================
-   初始化
-========================================================= */
 document.addEventListener("DOMContentLoaded", function () {
   loadVoices();
   updateShowHighlight();
@@ -45,9 +37,6 @@ if ("speechSynthesis" in window) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-/* =========================================================
-   載入 Google Sheet 資料
-========================================================= */
 async function loadData() {
   const count = document.getElementById("count");
   const error = document.getElementById("errorMessage");
@@ -88,9 +77,6 @@ async function loadData() {
   }
 }
 
-/* =========================================================
-   顯示目前句子
-========================================================= */
 function renderSentence() {
   const english = document.getElementById("english");
   const chinese = document.getElementById("chinese");
@@ -131,9 +117,6 @@ function renderSentence() {
   updateShowHighlight();
 }
 
-/* =========================================================
-   顯示模式與切換
-========================================================= */
 function changeShow(mode) {
   currentShowMode = mode;
   renderSentence();
@@ -153,9 +136,6 @@ function updateShowHighlight() {
   if (buttons[index]) buttons[index].classList.add("active");
 }
 
-/* =========================================================
-   載入與設定英文語音
-========================================================= */
 function loadVoices() {
   if (!("speechSynthesis" in window)) return;
 
@@ -183,9 +163,6 @@ function loadVoices() {
   selectedVoice = englishVoices[0];
 }
 
-/* =========================================================
-   語音播放控制
-========================================================= */
 function speak() {
   if (sentences.length === 0) return;
 
@@ -470,7 +447,7 @@ function showError(message) {
 }
 
 /* =========================================================
-   新增與比對介面邏輯
+   新增表單與 logic
 ========================================================= */
 function showAddForm() {
   const form = document.getElementById("addForm");
@@ -497,6 +474,7 @@ function hideAddForm() {
     duplicateWarning.style.display = "none";
   }
   if (tagContainer) tagContainer.innerHTML = "";
+  currentGeneratedTags = [];
 }
 
 function checkDuplicateOnInput() {
@@ -526,9 +504,6 @@ function checkDuplicateOnInput() {
   }
 }
 
-/* =========================================================
-   自動翻譯與 AI 分類（Gemini API）
-========================================================= */
 function setupTranslationButton() {
   const englishInput = document.getElementById("newEnglish");
   const chineseInput = document.getElementById("newChinese");
@@ -566,7 +541,6 @@ async function translateNewSentence() {
   if (message) message.textContent = "正在翻譯與產生標籤...";
 
   try {
-    // 1. 自動翻譯
     const urlTrans = API_URL + "?action=translate&英文=" + encodeURIComponent(english) + "&t=" + Date.now();
     const resTrans = await fetch(urlTrans, { method: "GET", cache: "no-store" });
     const resultTrans = await resTrans.json();
@@ -575,7 +549,6 @@ async function translateNewSentence() {
       chineseInput.value = resultTrans.chinese || "";
     }
 
-    // 2. 自動產生 AI 標籤
     await fetchAITags(english);
 
     if (message) message.textContent = "✅ 翻譯與標籤已生成";
@@ -591,15 +564,13 @@ async function translateNewSentence() {
 }
 
 async function fetchAITags(englishText) {
-  const tagContainer = document.getElementById("aiTagsContainer");
-  if (!tagContainer) return;
-
   try {
     const url = API_URL + "?action=autoTag&英文=" + encodeURIComponent(englishText) + "&t=" + Date.now();
     const response = await fetch(url, { method: "GET", cache: "no-store" });
     const result = await response.json();
 
     if (result.success && result.tags) {
+      currentGeneratedTags = result.tags;
       renderTags(result.tags);
     }
   } catch (err) {
@@ -622,13 +593,11 @@ function renderTags(tags) {
   });
 }
 
-/* =========================================================
-   新增句子到後端
-========================================================= */
 async function addSentence() {
   const englishInput = document.getElementById("newEnglish");
   const chineseInput = document.getElementById("newChinese");
   const message = document.getElementById("addMessage");
+  const addBtn = document.querySelector("#addForm button[onclick*='addSentence']");
 
   if (!englishInput || !chineseInput) return;
 
@@ -645,15 +614,19 @@ async function addSentence() {
     return;
   }
 
+  if (addBtn) addBtn.disabled = true;
   if (message) message.textContent = "正在儲存...";
 
   try {
+    const tagsString = currentGeneratedTags.join(",");
     const url =
       API_URL +
       "?action=add" +
       "&英文=" + encodeURIComponent(english) +
       "&中文=" + encodeURIComponent(chinese) +
-      "&熟悉度=" + encodeURIComponent("陌生") +
+      "&類型=" + encodeURIComponent("句子") +
+      "&熟悉度=1" +
+      "&標籤=" + encodeURIComponent(tagsString) +
       "&t=" + Date.now();
 
     const response = await fetch(url, { method: "GET", cache: "no-store" });
@@ -677,12 +650,11 @@ async function addSentence() {
   } catch (err) {
     console.error("新增句子失敗：", err);
     if (message) message.textContent = "❌ 新增失敗：" + err.message;
+  } finally {
+    if (addBtn) addBtn.disabled = false;
   }
 }
 
-/* =========================================================
-   事件監聽與全域匯出
-========================================================= */
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter" && event.target && event.target.id === "newEnglish") {
     event.preventDefault();
