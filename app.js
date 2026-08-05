@@ -1,5 +1,5 @@
 /* =========================================================
-   English Library - app.js (全功能包含單句無限重播與類型自動判斷版)
+   English Library - app.js (全功能包含單句重複次數與連續播放結合版)
 ========================================================= */
 
 const API_URL =
@@ -10,9 +10,12 @@ let currentIndex = 0;
 let currentShowMode = "en";
 let speechRate = 0.7;
 let playbackInterval = 2000;
-let isContinuousPlaying = false;
-let isRandomPlaying = false;
-let isSingleRepeat = false; // 單句無限重播模式
+
+// 播放控制器狀態
+let repeatTimesTarget = 1; // 預設單句唸 1 次 (可選 1~5, 999無限)
+let currentRepeatCount = 0; // 當前已唸次數
+let playMode = "single"; // "single" (單句模式), "continuous" (連續模式), "random" (隨機模式)
+
 let isPaused = false;
 let isSpeaking = false;
 let isWaiting = false;
@@ -30,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
   updateShowHighlight();
   updateSpeedHighlight();
   updateIntervalHighlight();
+  updateRepeatHighlight();
   updatePauseButton();
   setupTranslationButton();
   loadData();
@@ -170,6 +174,7 @@ function loadVoices() {
   selectedVoice = englishVoices[0];
 }
 
+// 核心發音邏輯
 function speak() {
   if (sentences.length === 0) return;
 
@@ -205,11 +210,12 @@ function speak() {
     isPaused = false;
     updatePauseButton();
 
-    let statusMsg = "🔊 播放中";
-    if (isSingleRepeat) statusMsg = "🔂 單句重播中...";
-    else if (isContinuousPlaying) statusMsg = isRandomPlaying ? "🔀 隨機播放中" : "▶️ 連續播放中";
+    let repText = repeatTimesTarget === 999 ? "無限" : `${currentRepeatCount + 1}/${repeatTimesTarget}`;
+    let modeText = "🔊 單句播放";
+    if (playMode === "continuous") modeText = "▶️ 連續播放";
+    if (playMode === "random") modeText = "🔀 隨機播放";
 
-    updatePlaybackStatus(statusMsg);
+    updatePlaybackStatus(`${modeText} (${repText})`);
   };
 
   utterance.onpause = function () {
@@ -233,12 +239,21 @@ function speak() {
     currentUtterance = null;
     updatePauseButton();
 
-    if (isSingleRepeat) {
-      scheduleNext(true); // 單句重播：重複同句
-    } else if (isContinuousPlaying) {
-      scheduleNext(false); // 連續播放：切換下一句
+    currentRepeatCount++;
+
+    // 判斷當前句子的播放次數是否已達目標
+    if (repeatTimesTarget === 999 || currentRepeatCount < repeatTimesTarget) {
+      // 繼續重複播放同一句
+      scheduleNext(true);
     } else {
-      updatePlaybackStatus("播放完成");
+      // 當前句子重複完成，重置計數
+      currentRepeatCount = 0;
+      if (playMode === "single") {
+        updatePlaybackStatus("播放完成");
+      } else {
+        // 連續或隨機模式：準備跳下一句
+        scheduleNext(false);
+      }
     }
   };
 
@@ -249,8 +264,7 @@ function speak() {
     currentUtterance = null;
     isPaused = false;
     updatePauseButton();
-    if (isSingleRepeat || isContinuousPlaying) scheduleNext(isSingleRepeat);
-    else updatePlaybackStatus("播放錯誤");
+    updatePlaybackStatus("播放錯誤");
   };
 
   setTimeout(function () {
@@ -263,17 +277,39 @@ function speak() {
   }, 80);
 }
 
-// 單句重播開關切換
-function toggleRepeatMode() {
-  isSingleRepeat = !isSingleRepeat;
-  const btn = document.getElementById("repeatBtn");
-  if (btn) {
-    btn.textContent = isSingleRepeat ? "🔂 單句重播：開" : "🔂 單句重播：關";
-    btn.classList.toggle("btn-primary", isSingleRepeat);
-  }
-  if (isSingleRepeat && !isSpeaking) {
-    speak();
-  }
+// 播放模式發動點
+function startSinglePlay() {
+  playMode = "single";
+  currentRepeatCount = 0;
+  speak();
+}
+
+function startContinuousPlay() {
+  if (sentences.length === 0) return;
+  playMode = "continuous";
+  currentRepeatCount = 0;
+  speak();
+}
+
+function startRandomPlay() {
+  if (sentences.length === 0) return;
+  playMode = "random";
+  currentRepeatCount = 0;
+  currentIndex = Math.floor(Math.random() * sentences.length);
+  renderSentence();
+  speak();
+}
+
+function setRepeatTimes(times) {
+  repeatTimesTarget = Number(times);
+  updateRepeatHighlight();
+}
+
+function updateRepeatHighlight() {
+  document.querySelectorAll(".repeat-button").forEach((button) => {
+    const times = Number(button.dataset.repeat);
+    button.classList.toggle("active-repeat", times === repeatTimesTarget);
+  });
 }
 
 function previousSentence() {
@@ -281,7 +317,7 @@ function previousSentence() {
   stopAutoPlayback();
   currentIndex = currentIndex - 1 < 0 ? sentences.length - 1 : currentIndex - 1;
   renderSentence();
-  setTimeout(speak, 100);
+  startSinglePlay();
 }
 
 function nextSentence() {
@@ -289,7 +325,7 @@ function nextSentence() {
   stopAutoPlayback();
   currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
   renderSentence();
-  setTimeout(speak, 100);
+  startSinglePlay();
 }
 
 function togglePause() {
@@ -332,8 +368,6 @@ function resumeWaiting() {
 }
 
 function stopAutoPlayback() {
-  isContinuousPlaying = false;
-  isRandomPlaying = false;
   playbackToken++;
   clearPlaybackTimer();
   try {
@@ -342,40 +376,14 @@ function stopAutoPlayback() {
   isSpeaking = false;
   isPaused = false;
   currentUtterance = null;
+  currentRepeatCount = 0;
   updatePauseButton();
 }
 
 function stopAllPlayback() {
-  isSingleRepeat = false;
-  const btn = document.getElementById("repeatBtn");
-  if (btn) {
-    btn.textContent = "🔂 單句重播：關";
-    btn.classList.remove("btn-primary");
-  }
   stopAutoPlayback();
+  playMode = "single";
   updatePlaybackStatus("⏹ 已停止");
-}
-
-function startContinuousPlay() {
-  if (sentences.length === 0) return;
-  isContinuousPlaying = true;
-  isRandomPlaying = false;
-  isPaused = false;
-  playbackToken++;
-  clearPlaybackTimer();
-  speak();
-}
-
-function startRandomPlay() {
-  if (sentences.length === 0) return;
-  isRandomPlaying = true;
-  isContinuousPlaying = true;
-  isPaused = false;
-  playbackToken++;
-  clearPlaybackTimer();
-  currentIndex = Math.floor(Math.random() * sentences.length);
-  renderSentence();
-  speak();
 }
 
 function scheduleNext(repeatSame = false) {
@@ -397,11 +405,11 @@ function finishWaiting(repeatSame = false) {
   if (isPaused) return;
 
   if (repeatSame) {
-    speak(); // 重複播放同句
-  } else if (isContinuousPlaying) {
-    if (isRandomPlaying) {
+    speak(); // 同句重複
+  } else {
+    if (playMode === "random") {
       currentIndex = Math.floor(Math.random() * sentences.length);
-    } else {
+    } else if (playMode === "continuous") {
       currentIndex = currentIndex + 1 >= sentences.length ? 0 : currentIndex + 1;
     }
     renderSentence();
@@ -424,14 +432,10 @@ function setSpeechRate(rate) {
   updateSpeedHighlight();
 
   if (isSpeaking && !isPaused) {
-    const keepContinuous = isContinuousPlaying;
-    const keepRandom = isRandomPlaying;
     playbackToken++;
     try { window.speechSynthesis.cancel(); } catch (e) {}
     isSpeaking = false;
     currentUtterance = null;
-    isContinuousPlaying = keepContinuous;
-    isRandomPlaying = keepRandom;
     setTimeout(speak, 120);
   }
 }
@@ -504,7 +508,6 @@ function hideAddForm() {
   currentGeneratedTags = [];
 }
 
-// 輸入時自動判定「單字/片語/句子」與檢查重複
 function autoDetectTypeAndCheckDuplicate() {
   const input = document.getElementById("newEnglish");
   const typeSelect = document.getElementById("newType");
@@ -514,7 +517,6 @@ function autoDetectTypeAndCheckDuplicate() {
   const rawText = input.value.trim();
   const words = rawText.split(/\s+/).filter(Boolean);
 
-  // 自動判斷類型
   if (typeSelect) {
     if (words.length <= 1) {
       typeSelect.value = "單字";
@@ -525,7 +527,6 @@ function autoDetectTypeAndCheckDuplicate() {
     }
   }
 
-  // 重複判定
   if (!warning) return;
   const cleanText = rawText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "");
 
@@ -720,8 +721,8 @@ window.changeShow = changeShow;
 window.blindMode = blindMode;
 window.previousSentence = previousSentence;
 window.nextSentence = nextSentence;
-window.speak = speak;
-window.toggleRepeatMode = toggleRepeatMode;
+window.startSinglePlay = startSinglePlay;
+window.setRepeatTimes = setRepeatTimes;
 window.togglePause = togglePause;
 window.stopAllPlayback = stopAllPlayback;
 window.setSpeechRate = setSpeechRate;
