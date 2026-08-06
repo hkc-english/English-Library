@@ -6,403 +6,322 @@
   <title>英文學習資料庫</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f1f5f9; margin: 0; padding: 12px; color: #1e293b; }
-    .container { max-width: 720px; margin: 0 auto; background: #ffffff; padding: 16px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    body { background-color: #f0f4f8; margin: 0; padding: 20px; color: #333; display: flex; justify-content: center; }
+    .container { max-width: 800px; width: 100%; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h1 { text-align: center; color: #1e293b; font-size: 24px; margin-bottom: 20px; }
     
-    header { text-align: center; margin-bottom: 12px; }
-    h1 { font-size: 1.4rem; margin: 0 0 8px 0; color: #0f172a; }
+    .tab-group { display: flex; gap: 12px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; padding: 12px; font-size: 16px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #2563eb; color: #fff; }
 
-    /* 模式切換按鈕 */
-    .mode-switcher { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
-    .mode-btn { flex: 1; padding: 8px 12px; border: 2px solid #2563eb; background: #fff; color: #2563eb; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.95rem; }
+    .filter-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .filter-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; font-weight: 600; }
+    select, input[type="text"] { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+    input[type="text"] { flex: 1; min-width: 180px; }
+
+    .content-box { min-height: 200px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .text-en { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 12px; line-height: 1.4; }
+    .text-zh { font-size: 16px; color: #64748b; margin-bottom: 12px; }
+    .star-rating { color: #f59e0b; font-size: 20px; }
+
+    .display-mode-btns { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+    .mode-btn { padding: 8px 16px; border: none; background: #e2e8f0; color: #475569; font-radius: 8px; font-weight: bold; cursor: pointer; border-radius: 8px; }
     .mode-btn.active { background: #2563eb; color: #fff; }
 
-    /* 篩選控制面板 */
-    .filter-panel { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
-    .filter-group { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: bold; color: #475569; }
-    select, input[type="text"] { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 0.85rem; }
-    input[type="text"] { flex: 1; min-width: 140px; }
+    .control-group { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px; }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-warning { background: #eab308; color: #fff; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* 卡片（聽力模式） */
-    .card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px 16px; text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; }
-    .card-en { font-size: 1.25rem; font-weight: bold; color: #1e293b; margin-bottom: 8px; line-height: 1.4; }
-    .card-zh { font-size: 1.05rem; color: #475569; margin-top: 4px; line-height: 1.4; }
-    .count-info { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; text-align: center; }
+    .repeat-group { display: flex; justify-content: center; align-items: center; gap: 6px; background: #f1f5f9; padding: 12px; border-radius: 10px; }
+    .repeat-label { font-size: 13px; font-weight: bold; color: #475569; margin-right: 6px; }
+    .repeat-btn { padding: 6px 10px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .repeat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 星星打分 */
-    .stars { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
-    .star { font-size: 1.4rem; color: #cbd5e1; cursor: pointer; transition: color 0.1s; }
-    .star.active { color: #f59e0b; }
-
-    /* 控制按鈕專區 */
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 12px; }
-    .btn { padding: 8px 14px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; background: #e2e8f0; color: #334155; }
-    .btn-primary { background: #2563eb; color: white; }
-    .btn-warning { background: #eab308; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-active { background: #000; color: white; }
-
-    /* 重複次數面板 */
-    .repeat-panel { background: #f1f5f9; padding: 8px; border-radius: 10px; text-align: center; font-size: 0.8rem; font-weight: bold; color: #475569; margin-bottom: 12px; }
-    .repeat-btns { display: flex; gap: 4px; justify-content: center; margin-top: 6px; }
-    .btn-sm { padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; font-size: 0.8rem; cursor: pointer; }
-    .btn-sm.active { background: #2563eb; color: white; border-color: #2563eb; }
-
-    /* 閱讀模式專屬清單 */
-    .read-list { display: flex; flex-direction: column; gap: 10px; max-height: 65vh; overflow-y: auto; padding-right: 4px; }
-    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .read-content { flex: 1; }
-    .read-en { font-size: 1rem; font-weight: bold; color: #1e293b; margin-bottom: 2px; }
-    .read-zh { font-size: 0.9rem; color: #475569; }
-    .read-star-btn { font-size: 1.2rem; color: #cbd5e1; cursor: pointer; border: none; background: none; }
-    .read-star-btn.active { color: #f59e0b; }
-
+    /* 閱讀模式列表 */
+    .read-list { display: flex; flex-direction: column; gap: 12px; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: left; }
+    .read-item .en { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 6px; }
+    .read-item .zh { font-size: 14px; color: #64748b; }
+    
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <header>
-    <h1>📚 英文學習資料庫</h1>
-    <!-- 模式切換按鈕 -->
-    <div class="mode-switcher">
-      <button id="btnModeAudio" class="mode-btn active" onclick="switchMode('audio')">🎧 聽力模式</button>
-      <button id="btnModeRead" class="mode-btn" onclick="switchMode('read')">📖 閱讀模式</button>
-    </div>
-  </header>
+  <h1>📚 英文學習資料庫</h1>
 
-  <!-- 篩選控制面板 -->
-  <div class="filter-panel">
-    <div class="filter-group">
-      <label>🎯 範圍：</label>
-      <select id="filterScope" onchange="applyFilters()">
-        <option value="all">全部顯示</option>
-        <option value="star1">1 星以上</option>
-        <option value="star2">2 星以上</option>
-        <option value="star3">3 星以上</option>
-        <option value="star4">4 星以上</option>
-        <option value="star5">5 星（已精通）</option>
-        <option value="unrated">未評分</option>
+  <!-- 模式分頁按鈕 -->
+  <div class="tab-group">
+    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
+    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+  </div>
+
+  <!-- 篩選卡片 -->
+  <div class="filter-card">
+    <div class="filter-item">
+      🎯 範圍：
+      <select id="categorySelect" onchange="applyFilters()">
+        <option value="全部顯示">全部顯示</option>
       </select>
     </div>
-
-    <div class="filter-group" style="flex:1;">
-      <label>🔍 搜尋：</label>
+    <div class="filter-item" style="flex: 1;">
+      🔍 搜尋：
       <input type="text" id="searchInput" placeholder="輸入英/中文關鍵字..." oninput="applyFilters()">
     </div>
   </div>
 
-  <!-- 【聽力模式區域】 -->
-  <div id="audioSection">
-    <div class="count-info" id="countInfo">載入中...</div>
+  <div id="loadingText" style="text-align:center; padding: 20px; color: #64748b;">正在連線連動 Google Sheet 資料中...</div>
 
-    <div class="controls">
-      <button class="btn" id="btnDisplayEn" onclick="setDisplayMode('en')">英文</button>
-      <button class="btn" id="btnDisplayZh" onclick="setDisplayMode('zh')">中文</button>
-      <button class="btn" id="btnDisplayBoth" onclick="setDisplayMode('both')">英＋中</button>
-      <button class="btn" id="btnDisplayBlind" onclick="setDisplayMode('blind')">盲聽</button>
+  <!-- 聽力模式區塊 -->
+  <div id="listenSection">
+    <div class="display-mode-btns">
+      <button class="mode-btn active" id="disp-all" onclick="setDisplayMode('all')">英文 + 中文</button>
+      <button class="mode-btn" id="disp-en" onclick="setDisplayMode('en')">僅英文</button>
+      <button class="mode-btn" id="disp-zh" onclick="setDisplayMode('zh')">僅中文</button>
+      <button class="mode-btn" id="disp-blind" onclick="setDisplayMode('blind')">盲聽 (隱藏)</button>
     </div>
 
-    <div class="card">
-      <div id="cardEn" class="card-en">--</div>
-      <div id="cardZh" class="card-zh">--</div>
-      <div class="stars" id="starContainer">
-        <span class="star" onclick="setRating(1)">★</span>
-        <span class="star" onclick="setRating(2)">★</span>
-        <span class="star" onclick="setRating(3)">★</span>
-        <span class="star" onclick="setRating(4)">★</span>
-        <span class="star" onclick="setRating(5)">★</span>
-      </div>
+    <div class="content-box">
+      <div class="text-en" id="textEn">--</div>
+      <div class="text-zh" id="textZh">--</div>
+      <div class="star-rating" id="textStar">★★★★★</div>
     </div>
 
-    <div class="controls">
-      <button class="btn" onclick="prevCard()">⇦ 上一句</button>
-      <button class="btn btn-primary" id="btnPlay" onclick="playAudio()">🔊 播放</button>
-      <button class="btn" onclick="nextCard()">下一句 ⇨</button>
+    <div class="control-group">
+      <button class="btn btn-secondary" onclick="prevSentence()">⇐ 上一句</button>
+      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">🔊 播放</button>
+      <button class="btn btn-secondary" onclick="nextSentence()">下一句 ⇒</button>
     </div>
 
-    <div class="controls">
+    <div class="control-group">
       <button class="btn btn-warning" onclick="pauseAudio()">⏸ 暫停</button>
-      <button class="btn btn-danger" onclick="stopAudio()">⏹ 停止</button>
+      <button class="btn btn-danger" onclick="stopAudio()">■ 停止</button>
     </div>
 
-    <div class="repeat-panel">
-      單句重複次數
-      <div class="repeat-btns">
-        <button class="btn-sm active" id="rep1" onclick="setRepeat(1)">1次</button>
-        <button class="btn-sm" id="rep2" onclick="setRepeat(2)">2次</button>
-        <button class="btn-sm" id="rep3" onclick="setRepeat(3)">3次</button>
-        <button class="btn-sm" id="rep4" onclick="setRepeat(4)">4次</button>
-        <button class="btn-sm" id="rep5" onclick="setRepeat(5)">5次</button>
-        <button class="btn-sm" id="repInf" onclick="setRepeat(999)">無限</button>
-      </div>
+    <div class="repeat-group">
+      <span class="repeat-label">單句重複次數：</span>
+      <button class="repeat-btn active" onclick="setRepeat(1, this)">1次</button>
+      <button class="repeat-btn" onclick="setRepeat(2, this)">2次</button>
+      <button class="repeat-btn" onclick="setRepeat(3, this)">3次</button>
+      <button class="repeat-btn" onclick="setRepeat(5, this)">5次</button>
+      <button class="repeat-btn" onclick="setRepeat(999, this)">無限</button>
     </div>
   </div>
 
-  <!-- 【閱讀模式區域】 -->
+  <!-- 閱讀模式區塊 -->
   <div id="readSection" class="hidden">
-    <div class="count-info" id="readCountInfo">共 0 筆</div>
+    <div id="readCount" style="margin-bottom: 12px; font-weight: bold; color: #475569;">共 0 筆</div>
     <div class="read-list" id="readList"></div>
   </div>
+
 </div>
 
 <script>
-  let allData = [];
+  const API_URL = 'https://script.google.com/macros/s/AQ.Ab8RN6KgyUgZLWVCZyKrP0QbBK1Iszxkoz0-XFr3-WxG1R5OAQ/exec';
+
+  let rawData = [];
   let filteredData = [];
   let currentIndex = 0;
-  let currentDisplay = 'en'; // en, zh, both, blind
+  let displayMode = 'all'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
   let isPlaying = false;
-  let currentMode = 'audio'; // audio, read
 
-  // 載入 localStorage 星星紀錄
-  let ratings = JSON.parse(localStorage.getItem('english_ratings') || '{}');
+  const synth = window.speechSynthesis;
+  let utterance = null;
 
-  // 初始化載入 JSON
-  fetch('data.json')
-    .then(res => {
-      if(!res.ok) throw new Error('網路錯誤');
-      return res.json();
-    })
-    .then(data => {
-      allData = data;
+  async function loadSheetData() {
+    try {
+      const res = await fetch(API_URL);
+      rawData = await res.json();
+      document.getElementById('loadingText').classList.add('hidden');
+      
+      initCategories();
       applyFilters();
-    })
-    .catch(err => {
-      document.getElementById('countInfo').innerText = '資料載入失敗，請確認 data.json 檔案是否存在';
+    } catch (err) {
+      document.getElementById('loadingText').innerText = '❌ 資料載入失敗，請確認 Google Sheet API 存取權是否設定為「所有人」。';
       console.error(err);
-    });
-
-  // 模式切換
-  function switchMode(mode) {
-    currentMode = mode;
-    stopAudio();
-    if(mode === 'audio') {
-      document.getElementById('btnModeAudio').classList.add('active');
-      document.getElementById('btnModeRead').classList.remove('active');
-      document.getElementById('audioSection').classList.remove('hidden');
-      document.getElementById('readSection').classList.add('hidden');
-      updateCard();
-    } else {
-      document.getElementById('btnModeRead').classList.add('active');
-      document.getElementById('btnModeAudio').classList.remove('active');
-      document.getElementById('readSection').classList.remove('hidden');
-      document.getElementById('audioSection').classList.add('hidden');
-      renderReadList();
     }
   }
 
-  // 篩選邏輯
+  function initCategories() {
+    const categories = new Set();
+    rawData.forEach(item => {
+      if (item.category || item.分類) categories.add(item.category || item.分類);
+    });
+
+    const select = document.getElementById('categorySelect');
+    select.innerHTML = '<option value="全部顯示">全部顯示</option>';
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.innerText = cat;
+      select.appendChild(opt);
+    });
+  }
+
   function applyFilters() {
-    const scope = document.getElementById('filterScope').value;
+    const selectedCat = document.getElementById('categorySelect').value;
     const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
 
-    filteredData = allData.filter(item => {
-      const star = ratings[item.id] || 0;
-      
-      // 依星級篩選
-      if(scope === 'star1' && star < 1) return false;
-      if(scope === 'star2' && star < 2) return false;
-      if(scope === 'star3' && star < 3) return false;
-      if(scope === 'star4' && star < 4) return false;
-      if(scope === 'star5' && star !== 5) return false;
-      if(scope === 'unrated' && star !== 0) return false;
+    filteredData = rawData.filter(item => {
+      const cat = item.category || item.分類 || '';
+      const en = item.english || item.英文 || '';
+      const zh = item.chinese || item.中文 || '';
 
-      // 依關鍵字搜尋
-      if(keyword) {
-        const matchEn = item.en && item.en.toLowerCase().includes(keyword);
-        const matchZh = item.zh && item.zh.toLowerCase().includes(keyword);
-        if(!matchEn && !matchZh) return false;
-      }
+      const matchCat = (selectedCat === '全部顯示') || (cat === selectedCat);
+      const matchKey = !keyword || en.toLowerCase().includes(keyword) || zh.includes(keyword);
 
-      return true;
+      return matchCat && matchKey;
     });
 
     currentIndex = 0;
-    if(currentMode === 'audio') {
-      updateCard();
-    } else {
-      renderReadList();
-    }
+    renderCurrentSentence();
+    renderReadList();
   }
 
-  // 更新聽力模式卡片
-  function updateCard() {
-    const total = filteredData.length;
-    const countInfo = document.getElementById('countInfo');
-
-    if(total === 0) {
-      countInfo.innerText = '沒有符合條件的項目';
-      document.getElementById('cardEn').innerText = '--';
-      document.getElementById('cardZh').innerText = '--';
-      renderStars(0);
+  function renderCurrentSentence() {
+    if (filteredData.length === 0) {
+      document.getElementById('textEn').innerText = '沒有符合條件的資料';
+      document.getElementById('textZh').innerText = '';
+      document.getElementById('textStar').innerText = '';
       return;
     }
 
-    countInfo.innerText = `第 ${currentIndex + 1} / ${total} 筆 [${filteredData[currentIndex].type || '句子'}]`;
     const item = filteredData[currentIndex];
+    const en = item.english || item.英文 || '';
+    const zh = item.chinese || item.中文 || '';
+    const star = parseInt(item.star || item.星級 || item.評價 || 0);
 
-    const cardEn = document.getElementById('cardEn');
-    const cardZh = document.getElementById('cardZh');
+    const enEl = document.getElementById('textEn');
+    const zhEl = document.getElementById('textZh');
 
-    cardEn.innerText = (currentDisplay === 'zh') ? '🙈 (隱藏英文)' : item.en;
-    cardZh.innerText = (currentDisplay === 'en' || currentDisplay === 'blind') ? '' : item.zh;
-
-    renderStars(ratings[item.id] || 0);
-    updateDisplayButtons();
+    enEl.innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
+    zhEl.innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
+    document.getElementById('textStar').innerText = star > 0 ? '★'.repeat(star) + '☆'.repeat(5 - star) : '';
   }
 
-  // 渲染星級打分
-  function renderStars(rating) {
-    const stars = document.querySelectorAll('#starContainer .star');
-    stars.forEach((star, idx) => {
-      if(idx < rating) {
-        star.classList.add('active');
-      } else {
-        star.classList.remove('active');
-      }
-    });
-  }
-
-  function setRating(rating) {
-    if(filteredData.length === 0) return;
-    const item = filteredData[currentIndex];
-    ratings[item.id] = rating;
-    localStorage.setItem('english_ratings', JSON.stringify(ratings));
-    renderStars(rating);
-  }
-
-  // 顯示模式切換（英文、中文、英+中、盲聽）
-  function setDisplayMode(mode) {
-    currentDisplay = mode;
-    updateCard();
-  }
-
-  function updateDisplayButtons() {
-    ['en', 'zh', 'both', 'blind'].forEach(m => {
-      const btn = document.getElementById('btnDisplay' + m.charAt(0).toUpperCase() + m.slice(1));
-      if(btn) {
-        if(currentDisplay === m) btn.classList.add('btn-active');
-        else btn.classList.remove('btn-active');
-      }
-    });
-  }
-
-  // 重複播放設置
-  function setRepeat(times) {
-    repeatTimes = times;
-    ['1','2','3','4','5','Inf'].forEach(t => {
-      const id = 'rep' + t;
-      const el = document.getElementById(id);
-      if(el) el.classList.remove('active');
-    });
-    const activeId = times === 999 ? 'repInf' : 'rep' + times;
-    document.getElementById(activeId).classList.add('active');
-  }
-
-  // 語音播放控制 (Web Speech API)
-  function playAudio() {
-    if(filteredData.length === 0) return;
-    stopAudio();
-
-    const item = filteredData[currentIndex];
-    const utterance = new SpeechSynthesisUtterance(item.en);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.9;
-
-    isPlaying = true;
-
-    utterance.onend = () => {
-      currentRepeatCount++;
-      if(currentRepeatCount < repeatTimes) {
-        window.speechSynthesis.speak(utterance);
-      } else {
-        isPlaying = false;
-        currentRepeatCount = 0;
-      }
-    };
-
-    currentRepeatCount = 0;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function pauseAudio() {
-    if(window.speechSynthesis.speaking) {
-      window.speechSynthesis.pause();
-    }
-  }
-
-  function stopAudio() {
-    window.speechSynthesis.cancel();
-    isPlaying = false;
-    currentRepeatCount = 0;
-  }
-
-  function nextCard() {
-    if(filteredData.length === 0) return;
-    stopAudio();
-    if(currentIndex < filteredData.length - 1) {
-      currentIndex++;
-      updateCard();
-    }
-  }
-
-  function prevCard() {
-    if(filteredData.length === 0) return;
-    stopAudio();
-    if(currentIndex > 0) {
-      currentIndex--;
-      updateCard();
-    }
-  }
-
-  // 渲染閱讀模式列表
   function renderReadList() {
-    const listEl = document.getElementById('readList');
-    const countInfo = document.getElementById('readCountInfo');
-    listEl.innerHTML = '';
+    const listContainer = document.getElementById('readList');
+    document.getElementById('readCount').innerText = `共 ${filteredData.length} 筆`;
+    listContainer.innerHTML = '';
 
-    countInfo.innerText = `共 ${filteredData.length} 筆`;
-
-    if(filteredData.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">沒有符合條件的內容</div>';
+    if (filteredData.length === 0) {
+      listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8;">沒有符合條件的內容</div>';
       return;
     }
 
     filteredData.forEach(item => {
+      const en = item.english || item.英文 || '';
+      const zh = item.chinese || item.中文 || '';
+      
       const div = document.createElement('div');
       div.className = 'read-item';
-      const star = ratings[item.id] || 0;
-
-      div.innerHTML = `
-        <div class="read-content">
-          <div class="read-en">${item.en}</div>
-          <div class="read-zh">${item.zh}</div>
-        </div>
-        <button class="read-star-btn ${star > 0 ? 'active' : ''}" onclick="toggleReadStar('${item.id}', this)">
-          ★
-        </button>
-      `;
-      listEl.appendChild(div);
+      div.innerHTML = `<div class="en">${en}</div><div class="zh">${zh}</div>`;
+      listContainer.appendChild(div);
     });
   }
 
-  function toggleReadStar(id, btn) {
-    let current = ratings[id] || 0;
-    let next = current >= 5 ? 0 : current + 1;
-    ratings[id] = next;
-    localStorage.setItem('english_ratings', JSON.stringify(ratings));
-    if(next > 0) {
-      btn.classList.add('active');
+  function switchTab(tab) {
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+
+    if (tab === 'read') stopAudio();
+  }
+
+  function setDisplayMode(mode) {
+    displayMode = mode;
+    ['all', 'en', 'zh', 'blind'].forEach(m => {
+      document.getElementById(`disp-${m}`).classList.toggle('active', m === mode);
+    });
+    renderCurrentSentence();
+  }
+
+  function setRepeat(times, btn) {
+    repeatTimes = times;
+    document.querySelectorAll('.repeat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function speakCurrent() {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const en = item.english || item.英文 || '';
+
+    synth.cancel();
+    utterance = new SpeechSynthesisUtterance(en);
+    utterance.lang = 'en-US';
+
+    utterance.onend = () => {
+      currentRepeatCount++;
+      if (currentRepeatCount < repeatTimes && isPlaying) {
+        speakCurrent();
+      } else if (isPlaying) {
+        nextSentence(true);
+      }
+    };
+
+    synth.speak(utterance);
+  }
+
+  function togglePlay() {
+    if (isPlaying) {
+      pauseAudio();
     } else {
-      btn.classList.remove('active');
+      isPlaying = true;
+      currentRepeatCount = 0;
+      document.getElementById('playBtn').innerText = '⏸ 播放中...';
+      speakCurrent();
     }
   }
-  
+
+  function pauseAudio() {
+    isPlaying = false;
+    synth.pause();
+    document.getElementById('playBtn').innerText = '🔊 播放';
+  }
+
+  function stopAudio() {
+    isPlaying = false;
+    synth.cancel();
+    currentRepeatCount = 0;
+    document.getElementById('playBtn').innerText = '🔊 播放';
+  }
+
+  function nextSentence(auto = false) {
+    if (filteredData.length === 0) return;
+    if (currentIndex < filteredData.length - 1) {
+      currentIndex++;
+    } else {
+      currentIndex = 0; // 循環到開頭
+    }
+    currentRepeatCount = 0;
+    renderCurrentSentence();
+    if (auto && isPlaying) speakCurrent();
+  }
+
+  function prevSentence() {
+    if (filteredData.length === 0) return;
+    if (currentIndex > 0) {
+      currentIndex--;
+    } else {
+      currentIndex = filteredData.length - 1;
+    }
+    currentRepeatCount = 0;
+    renderCurrentSentence();
+    if (isPlaying) speakCurrent();
+  }
+
+  loadSheetData();
 </script>
+
 </body>
 </html>
-
-
