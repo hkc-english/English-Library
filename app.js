@@ -92,7 +92,6 @@ function populateTagFilter() {
   allSentences.forEach((item) => {
     const rawTag = String(item["標籤(情境分類)"] || item["標籤"] || "");
     if (rawTag) {
-      // 支援逗號隔開的多標籤
       const tags = rawTag.split(/[,，]/);
       tags.forEach(t => {
         const clean = t.trim();
@@ -101,7 +100,6 @@ function populateTagFilter() {
     }
   });
 
-  // 保留「全部分類」，清空舊項目
   tagSelect.innerHTML = '<option value="all">全部分類</option>';
   tagSet.forEach((tag) => {
     const opt = document.createElement("option");
@@ -142,7 +140,7 @@ function applyFilter() {
       return false;
     }
 
-    // 3. 情境標籤篩選 (包含多重標籤判斷)
+    // 3. 情境標籤篩選
     if (tagVal !== "all") {
       const tags = rawTag.split(/[,，]/).map(t => t.trim());
       if (!tags.includes(tagVal)) return false;
@@ -242,14 +240,12 @@ function renderReadList() {
     div.className = "read-item";
     div.id = `read-item-${index}`;
 
-    // 處理標籤 Badge
     let tagHtml = "";
     if (rawTag) {
       const tags = rawTag.split(/[,，]/).map(t => t.trim()).filter(Boolean);
       tagHtml = tags.map(t => `<span class="tag-badge">#${t}</span>`).join("");
     }
 
-    // 產生 5 星星 HTML
     let starsHtml = "";
     for (let s = 1; s <= 5; s++) {
       const filled = s <= status ? "filled" : "";
@@ -296,7 +292,7 @@ function toggleAllChineseReadView() {
   });
 }
 
-// 閱讀模式：點擊任何一列直接發音並亮起背景
+// 閱讀模式：發音與背景高亮
 function speakItemText(text, index) {
   if (!text) return;
   stopAllPlayback();
@@ -327,7 +323,7 @@ function speakItemText(text, index) {
   window.speechSynthesis.speak(utterance);
 }
 
-// 閱讀模式：清單內點擊星星改分數同步
+// 閱讀模式：點擊星星改分數同步
 async function updateRatingInList(itemID, newRating) {
   if (!itemID) return;
 
@@ -338,7 +334,7 @@ async function updateRatingInList(itemID, newRating) {
 
   if (targetItem) targetItem["熟悉度"] = newRating;
 
-  applyFilter(); // 重新渲染列表
+  applyFilter();
   updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
 
   try {
@@ -427,7 +423,6 @@ function renderStars(rating) {
   });
 }
 
-// 聽力模式改星級同步
 async function updateCurrentRating(newRating) {
   if (!filteredSentences || filteredSentences.length === 0) return;
 
