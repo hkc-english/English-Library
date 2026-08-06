@@ -1,14 +1,18 @@
 /* =========================================================
    English Library - app.js
-   包含：真實 API + 獨立按鈕高亮 + 5星試算表連動 + 熟悉度篩選
+   包含：聽力卡片播放 + 閱讀模式清單 + 關鍵字搜尋 + 標籤/類型過濾
+        + 排序機制 + 5星連動同步
 ========================================================= */
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec";
 
 let allSentences = [];      // 原始完整資料
-let filteredSentences = []; // 篩選後的資料
+let filteredSentences = []; // 篩選與排序後的資料
 let currentIndex = 0;
+
+let currentViewMode = "audio"; // "audio" 或 "read"
+let isChineseHiddenInRead = false; // 閱讀模式中文隱藏狀態
 
 let currentShowMode = "en";
 let speechRate = 0.7;
@@ -47,6 +51,7 @@ if ("speechSynthesis" in window) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
+// 載入資料並初始化情境選單
 async function loadData() {
   const count = document.getElementById("count");
   const error = document.getElementById("errorMessage");
@@ -69,6 +74,7 @@ async function loadData() {
       return item && String(item["英文"] || "").trim() !== "";
     });
 
+    populateTagFilter();
     applyFilter();
   } catch (err) {
     console.error("資料載入失敗：", err);
@@ -77,28 +83,98 @@ async function loadData() {
   }
 }
 
-// 根據選單條件篩選資料庫
-function applyFilter() {
-  const filterValue = document.getElementById("statusFilter") ? document.getElementById("statusFilter").value : "all";
+// 動態建立情境標籤下拉選單（自動拆解逗號隔開的多重標籤）
+function populateTagFilter() {
+  const tagSelect = document.getElementById("tagFilter");
+  if (!tagSelect) return;
 
-  // 取得熟悉度（預設值為 1）
+  const tagSet = new Set();
+  allSentences.forEach((item) => {
+    const rawTag = String(item["標籤(情境分類)"] || item["標籤"] || "");
+    if (rawTag) {
+      // 支援逗號隔開的多標籤
+      const tags = rawTag.split(/[,，]/);
+      tags.forEach(t => {
+        const clean = t.trim();
+        if (clean) tagSet.add(clean);
+      });
+    }
+  });
+
+  // 保留「全部分類」，清空舊項目
+  tagSelect.innerHTML = '<option value="all">全部分類</option>';
+  tagSet.forEach((tag) => {
+    const opt = document.createElement("option");
+    opt.value = tag;
+    opt.textContent = tag;
+    tagSelect.appendChild(opt);
+  });
+}
+
+// 綜合篩選與排序邏輯
+function applyFilter() {
+  const searchVal = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+  const typeVal = document.getElementById("typeFilter")?.value || "all";
+  const tagVal = document.getElementById("tagFilter")?.value || "all";
+  const statusVal = document.getElementById("statusFilter")?.value || "all";
+  const sortVal = document.getElementById("sortOrder")?.value || "default";
+
   const getStatus = (item) => {
     const rawVal = item["熟悉度"] !== undefined ? item["熟悉度"] : item["熟悉度 "];
     const parsed = Number(rawVal);
     return isNaN(parsed) || rawVal === "" ? 1 : parsed;
   };
 
-  if (filterValue === "all") {
-    filteredSentences = [...allSentences];
-  } else if (filterValue === "lte3") {
-    filteredSentences = allSentences.filter(item => getStatus(item) <= 3);
-  } else {
-    const targetVal = Number(filterValue);
-    filteredSentences = allSentences.filter(item => getStatus(item) === targetVal);
+  filteredSentences = allSentences.filter((item) => {
+    const en = String(item["英文"] || "").toLowerCase();
+    const zh = String(item["中文"] || "").toLowerCase();
+    const type = String(item["類型"] || "句子");
+    const rawTag = String(item["標籤(情境分類)"] || item["標籤"] || "");
+    const status = getStatus(item);
+
+    // 1. 搜尋框篩選
+    if (searchVal && !en.includes(searchVal) && !zh.includes(searchVal)) {
+      return false;
+    }
+
+    // 2. 類型篩選
+    if (typeVal !== "all" && type !== typeVal) {
+      return false;
+    }
+
+    // 3. 情境標籤篩選 (包含多重標籤判斷)
+    if (tagVal !== "all") {
+      const tags = rawTag.split(/[,，]/).map(t => t.trim());
+      if (!tags.includes(tagVal)) return false;
+    }
+
+    // 4. 熟悉度篩選
+    if (statusVal === "lte3" && status > 3) return false;
+    if (statusVal !== "all" && statusVal !== "lte3" && status !== Number(statusVal)) return false;
+
+    return true;
+  });
+
+  // 排序機制
+  if (sortVal === "az") {
+    filteredSentences.sort((a, b) => String(a["英文"] || "").localeCompare(String(b["英文"] || "")));
+  } else if (sortVal === "za") {
+    filteredSentences.sort((a, b) => String(b["英文"] || "").localeCompare(String(a["英文"] || "")));
+  } else if (sortVal === "statusAsc") {
+    filteredSentences.sort((a, b) => getStatus(a) - getStatus(b));
+  } else if (sortVal === "statusDesc") {
+    filteredSentences.sort((a, b) => getStatus(b) - getStatus(a));
+  } else if (sortVal === "random") {
+    filteredSentences.sort(() => Math.random() - 0.5);
   }
 
   currentIndex = 0;
-  renderSentence();
+
+  if (currentViewMode === "audio") {
+    renderSentence();
+  } else {
+    renderReadList();
+  }
 }
 
 function onFilterChange() {
@@ -106,6 +182,188 @@ function onFilterChange() {
   applyFilter();
 }
 
+// 切換 聽力模式 / 閱讀模式
+function switchViewMode(mode) {
+  currentViewMode = mode;
+  stopAllPlayback();
+
+  const btnAudio = document.getElementById("btnModeAudio");
+  const btnRead = document.getElementById("btnModeRead");
+  const audioContainer = document.getElementById("audioModeContainer");
+  const readContainer = document.getElementById("readModeContainer");
+  const sortGroup = document.getElementById("sortGroup");
+
+  if (mode === "audio") {
+    btnAudio.classList.add("active");
+    btnRead.classList.remove("active");
+    audioContainer.style.display = "block";
+    readContainer.style.display = "none";
+    if (sortGroup) sortGroup.style.display = "none";
+    renderSentence();
+  } else {
+    btnRead.classList.add("active");
+    btnAudio.classList.remove("active");
+    audioContainer.style.display = "none";
+    readContainer.style.display = "block";
+    if (sortGroup) sortGroup.style.display = "flex";
+    renderReadList();
+  }
+}
+
+/* =========================================================
+   閱讀模式渲染與互動邏輯
+========================================================= */
+function renderReadList() {
+  const container = document.getElementById("readList");
+  const countInfo = document.getElementById("readCountInfo");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (countInfo) {
+    countInfo.textContent = `共 ${filteredSentences.length} 筆資料`;
+  }
+
+  if (filteredSentences.length === 0) {
+    container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px;">沒有符合條件的資料</div>`;
+    return;
+  }
+
+  filteredSentences.forEach((item, index) => {
+    const en = String(item["英文"] || "");
+    const zh = String(item["中文"] || "");
+    const type = String(item["類型"] || "句子");
+    const rawTag = String(item["標籤(情境分類)"] || item["標籤"] || "");
+    const statusRaw = item["熟悉度"] !== undefined ? item["熟悉度"] : item["熟悉度 "];
+    const status = Number(statusRaw) || 1;
+    const itemID = String(item["ID"] !== undefined ? item["ID"] : item["id"] || "").trim();
+
+    const div = document.createElement("div");
+    div.className = "read-item";
+    div.id = `read-item-${index}`;
+
+    // 處理標籤 Badge
+    let tagHtml = "";
+    if (rawTag) {
+      const tags = rawTag.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+      tagHtml = tags.map(t => `<span class="tag-badge">#${t}</span>`).join("");
+    }
+
+    // 產生 5 星星 HTML
+    let starsHtml = "";
+    for (let s = 1; s <= 5; s++) {
+      const filled = s <= status ? "filled" : "";
+      starsHtml += `<span class="star ${filled}" onclick="updateRatingInList('${itemID}', ${s})">★</span>`;
+    }
+
+    const zhClass = isChineseHiddenInRead ? "read-zh hidden-text" : "read-zh";
+
+    div.innerHTML = `
+      <div class="read-content">
+        <div class="read-en" onclick="speakItemText('${en.replace(/'/g, "\\'")}', ${index})">${en}</div>
+        <div class="${zhClass}" id="zh-text-${index}">${zh}</div>
+        <div class="read-tags">
+          <span class="tag-badge" style="background:#f1f5f9; color:#475569;">[${type}]</span>
+          ${tagHtml}
+        </div>
+      </div>
+      <div class="read-actions">
+        <button class="speak-icon-btn" onclick="speakItemText('${en.replace(/'/g, "\\'")}', ${index})">🔊</button>
+        <div class="star-container" style="font-size:1.1rem; gap:2px;">
+          ${starsHtml}
+        </div>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// 閱讀模式：切換全頁中文隱藏/顯示
+function toggleAllChineseReadView() {
+  isChineseHiddenInRead = !isChineseHiddenInRead;
+  const btn = document.getElementById("btnToggleChinese");
+  if (btn) {
+    btn.textContent = isChineseHiddenInRead ? "👁️ 顯示中文" : "👁️ 隱藏中文";
+  }
+
+  document.querySelectorAll(".read-zh").forEach((el) => {
+    if (isChineseHiddenInRead) {
+      el.classList.add("hidden-text");
+    } else {
+      el.classList.remove("hidden-text");
+    }
+  });
+}
+
+// 閱讀模式：點擊任何一列直接發音並亮起背景
+function speakItemText(text, index) {
+  if (!text) return;
+  stopAllPlayback();
+
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  utterance.rate = speechRate;
+  if (selectedVoice) utterance.voice = selectedVoice;
+
+  const itemElem = document.getElementById(`read-item-${index}`);
+
+  utterance.onstart = function () {
+    if (itemElem) itemElem.classList.add("speaking");
+    updatePlaybackStatus(`🔊 播放中: ${text}`);
+  };
+
+  utterance.onend = function () {
+    if (itemElem) itemElem.classList.remove("speaking");
+    updatePlaybackStatus("播放完成");
+  };
+
+  utterance.onerror = function () {
+    if (itemElem) itemElem.classList.remove("speaking");
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+// 閱讀模式：清單內點擊星星改分數同步
+async function updateRatingInList(itemID, newRating) {
+  if (!itemID) return;
+
+  const targetItem = allSentences.find(i => {
+    let idCheck = i["ID"] !== undefined ? i["ID"] : i["id"];
+    return String(idCheck).trim() === itemID;
+  });
+
+  if (targetItem) targetItem["熟悉度"] = newRating;
+
+  applyFilter(); // 重新渲染列表
+  updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
+
+  try {
+    const baseUrl = String(API_URL).trim();
+    const cleanId = encodeURIComponent(itemID);
+    const cleanStatus = encodeURIComponent(String(newRating));
+
+    const fullUrl = `${baseUrl}?action=updateStatus&id=${cleanId}&status=${cleanStatus}&t=${Date.now()}`;
+    const response = await fetch(fullUrl, { method: "GET", cache: "no-store" });
+    const result = await response.json();
+
+    if (result && result.success) {
+      updatePlaybackStatus(`✅ 熟悉度 ${newRating} 星已儲存至 Sheet`);
+    } else {
+      throw new Error((result && result.error) || "儲存失敗");
+    }
+  } catch (err) {
+    console.error("更新熟悉度失敗：", err);
+    updatePlaybackStatus(`❌ 儲存失敗：${err.message}`);
+  }
+}
+
+/* =========================================================
+   聽力模式卡片渲染邏輯
+========================================================= */
 function renderSentence() {
   const english = document.getElementById("english");
   const chinese = document.getElementById("chinese");
@@ -114,7 +372,7 @@ function renderSentence() {
   if (!english || !chinese) return;
 
   if (filteredSentences.length === 0) {
-    english.textContent = "沒有符合該篩選條件的資料";
+    english.textContent = "沒有符合條件的資料";
     chinese.textContent = "";
     if (count) count.textContent = "無資料";
     renderStars(0);
@@ -130,7 +388,6 @@ function renderSentence() {
   const type = String(item["類型"] || "句子");
   const tag = String(item["標籤(情境分類)"] || item["標籤"] || "");
   
-  // 安全讀取熟悉度
   const statusRaw = item["熟悉度"] !== undefined ? item["熟悉度"] : item["熟悉度 "];
   const status = Number(statusRaw) || 1;
 
@@ -159,7 +416,6 @@ function renderSentence() {
   updateShowHighlight();
 }
 
-// 繪製 5 顆星狀態
 function renderStars(rating) {
   const stars = document.querySelectorAll("#starContainer .star");
   stars.forEach((star, index) => {
@@ -171,24 +427,20 @@ function renderStars(rating) {
   });
 }
 
-// 點擊星星改分數並同步寫回 Google Sheet（完整安全修復版）
+// 聽力模式改星級同步
 async function updateCurrentRating(newRating) {
   if (!filteredSentences || filteredSentences.length === 0) return;
 
   const currentItem = filteredSentences[currentIndex];
-  
-  // 1. 強制轉為字串並去除空白，確保 ID 一定是合法的純字串
   let rawID = currentItem["ID"] !== undefined ? currentItem["ID"] : currentItem["id"];
   if (rawID === undefined || rawID === null) rawID = "";
   const itemID = String(rawID).trim();
 
   if (!itemID) {
-    console.error("無法取得當前資料的 ID！", currentItem);
     updatePlaybackStatus(`❌ 錯誤：無法取得資料 ID`);
     return;
   }
 
-  // 2. 立即修改本地當前資料與原始陣列
   currentItem["熟悉度"] = newRating; 
   const targetInAll = allSentences.find(i => {
     let idCheck = i["ID"] !== undefined ? i["ID"] : i["id"];
@@ -196,27 +448,16 @@ async function updateCurrentRating(newRating) {
   });
   if (targetInAll) targetInAll["熟悉度"] = newRating;
 
-  // 3. 重新渲染星星 UI
   renderStars(newRating);
   updatePlaybackStatus(`✨ 已將熟悉度改為 ${newRating} 星 (同步中...)`);
 
-  // 4. 建立安全的 URL 並發送請求
   try {
     const baseUrl = String(API_URL).trim();
     const cleanId = encodeURIComponent(itemID);
     const cleanStatus = encodeURIComponent(String(newRating));
-    const timestamp = Date.now();
-    
-    // 安全組合 URL
-    const fullUrl = `${baseUrl}?action=updateStatus&id=${cleanId}&status=${cleanStatus}&t=${timestamp}`;
+    const fullUrl = `${baseUrl}?action=updateStatus&id=${cleanId}&status=${cleanStatus}&t=${Date.now()}`;
 
-    const response = await fetch(fullUrl, { 
-      method: "GET", 
-      cache: "no-store" 
-    });
-
-    if (!response.ok) throw new Error("HTTP " + response.status);
-
+    const response = await fetch(fullUrl, { method: "GET", cache: "no-store" });
     const result = await response.json();
 
     if (result && result.success) {
@@ -284,11 +525,7 @@ function speak() {
 
   clearPlaybackTimer();
 
-  try {
-    window.speechSynthesis.cancel();
-  } catch (error) {
-    console.error("取消舊語音失敗：", error);
-  }
+  try { window.speechSynthesis.cancel(); } catch (error) {}
 
   isSpeaking = false;
   isPaused = false;
@@ -356,7 +593,6 @@ function speak() {
 
   utterance.onerror = function (event) {
     if (token !== playbackToken) return;
-    console.error("語音播放錯誤：", event);
     isSpeaking = false;
     currentUtterance = null;
     isPaused = false;
@@ -366,11 +602,7 @@ function speak() {
 
   setTimeout(function () {
     if (token !== playbackToken) return;
-    try {
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.error("開始語音失敗：", error);
-    }
+    try { window.speechSynthesis.speak(utterance); } catch (error) {}
   }, 80);
 }
 
@@ -404,23 +636,13 @@ function updateModeHighlight() {
   const btnRandom = document.getElementById("btnRandom");
 
   if (btnContinuous) {
-    if (playMode === "continuous") {
-      btnContinuous.style.backgroundColor = "#2563eb";
-      btnContinuous.style.color = "#ffffff";
-    } else {
-      btnContinuous.style.backgroundColor = "#10b981";
-      btnContinuous.style.color = "#ffffff";
-    }
+    btnContinuous.style.backgroundColor = playMode === "continuous" ? "#2563eb" : "#10b981";
+    btnContinuous.style.color = "#ffffff";
   }
 
   if (btnRandom) {
-    if (playMode === "random") {
-      btnRandom.style.backgroundColor = "#2563eb";
-      btnRandom.style.color = "#ffffff";
-    } else {
-      btnRandom.style.backgroundColor = "#10b981";
-      btnRandom.style.color = "#ffffff";
-    }
+    btnRandom.style.backgroundColor = playMode === "random" ? "#2563eb" : "#10b981";
+    btnRandom.style.color = "#ffffff";
   }
 }
 
@@ -494,9 +716,7 @@ function resumeWaiting() {
 function stopAutoPlayback() {
   playbackToken++;
   clearPlaybackTimer();
-  try {
-    window.speechSynthesis.cancel();
-  } catch (error) {}
+  try { window.speechSynthesis.cancel(); } catch (error) {}
   isSpeaking = false;
   isPaused = false;
   currentUtterance = null;
@@ -758,8 +978,6 @@ function renderTags(tags) {
   tags.forEach((tag) => {
     const badge = document.createElement("span");
     badge.className = "tag-badge";
-    badge.style.cssText =
-      "background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 6px; display: inline-block; margin-top: 4px;";
     badge.textContent = "# " + tag;
     tagContainer.appendChild(badge);
   });
@@ -835,6 +1053,7 @@ document.addEventListener("keydown", function (event) {
 });
 
 // 暴露全域函式供 HTML 呼叫
+window.switchViewMode = switchViewMode;
 window.changeShow = changeShow;
 window.blindMode = blindMode;
 window.previousSentence = previousSentence;
@@ -853,4 +1072,7 @@ window.autoDetectTypeAndCheckDuplicate = autoDetectTypeAndCheckDuplicate;
 window.addSentence = addSentence;
 window.translateNewSentence = translateNewSentence;
 window.updateCurrentRating = updateCurrentRating;
+window.updateRatingInList = updateRatingInList;
+window.speakItemText = speakItemText;
+window.toggleAllChineseReadView = toggleAllChineseReadView;
 window.onFilterChange = onFilterChange;
