@@ -5,193 +5,243 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英文學習資料庫</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f4f6f9; margin: 0; padding: 16px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 600px; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .header { text-align: center; font-weight: bold; font-size: 1.2rem; margin-bottom: 12px; color: #333; }
-    .count { text-align: center; color: #666; font-size: 0.88rem; margin-bottom: 12px; }
-
-    /* 篩選下拉選單樣式 */
-    .filter-box { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; background: #eff6ff; padding: 8px 12px; border-radius: 8px; border: 1px solid #bfdbfe; }
-    .filter-box label { font-size: 0.85rem; font-weight: bold; color: #1e40af; }
-    .filter-box select { padding: 6px 10px; border-radius: 6px; border: 1px solid #93c5fd; font-size: 0.9rem; background: white; cursor: pointer; font-weight: bold; }
-
-    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 16px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin-bottom: 20px; position: relative; }
-    .english-text { font-size: 1.4rem; font-weight: 600; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; }
-    .chinese-text { font-size: 1.1rem; color: #475569; line-height: 1.4; word-break: break-word; margin-bottom: 12px; }
-
-    /* 5星評分樣式 */
-    .star-rating { display: flex; gap: 4px; justify-content: center; margin-top: 8px; }
-    .star-rating .star { font-size: 1.6rem; cursor: pointer; color: #cbd5e1; transition: color 0.15s, transform 0.1s; user-select: none; }
-    .star-rating .star.filled { color: #f59e0b; }
-    .star-rating .star:hover { transform: scale(1.2); }
-
-    .toolbar, .control-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
-    button { border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #e2e8f0; color: #334155; }
-    button:active { transform: scale(0.96); }
-    button.active, button.active-speed, button.active-interval, button.active-repeat { background: #2563eb; color: white; }
-
-    .btn-primary { background: #2563eb; color: white; }
-    .btn-warning { background: #f59e0b; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-success { background: #10b981; color: white; }
-
-    .status-text { text-align: center; font-size: 0.85rem; color: #2563eb; font-weight: bold; min-height: 20px; margin-bottom: 12px; }
-    .section-title { text-align: center; font-size: 0.9rem; font-weight: bold; color: #64748b; margin: 16px 0 8px 0; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f1f5f9; margin: 0; padding: 12px; color: #1e293b; }
+    .container { max-width: 720px; margin: 0 auto; background: #ffffff; padding: 16px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     
+    header { text-align: center; margin-bottom: 12px; }
+    h1 { font-size: 1.4rem; margin: 0 0 8px 0; color: #0f172a; }
+    
+    /* 模式切換按鈕 */
+    .mode-switcher { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .mode-btn { flex: 1; padding: 8px 12px; border: 2px solid #2563eb; background: #fff; color: #2563eb; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .mode-btn.active { background: #2563eb; color: #fff; }
+
+    /* 控制控制面板 */
+    .filter-panel { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .filter-group { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: bold; color: #475569; }
+    select, input[type="text"] { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 0.85rem; }
+    input[type="text"] { flex: 1; min-width: 140px; }
+
+    /* 卡片（聽力模式） */
+    .card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px 16px; text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; }
+    .card-en { font-size: 1.25rem; font-weight: bold; color: #1e293b; margin-bottom: 8px; }
+    .card-zh { font-size: 1.05rem; color: #475569; margin-top: 4px; }
+    .count-info { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; text-align: center; }
+
+    /* 星星按鈕 */
+    .star-container { margin-top: 10px; display: flex; gap: 4px; justify-content: center; }
+    .star { font-size: 1.5rem; color: #cbd5e1; cursor: pointer; user-select: none; transition: color 0.15s; }
+    .star.filled { color: #f59e0b; }
+
+    /* 工具按鈕與播放面板 */
+    .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+    button { border: none; padding: 8px 10px; border-radius: 8px; background: #e2e8f0; color: #334155; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    button:active { opacity: 0.8; }
+    button.active { background: #2563eb; color: #fff; }
+    
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-warning { background: #f59e0b; color: #fff; }
+
+    /* 閱讀模式（清單視圖） */
+    #readModeContainer { display: none; }
+    .read-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .read-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 8px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .read-item.speaking { background: #fef3c7; border-color: #f59e0b; }
+    .read-content { flex: 1; }
+    .read-en { font-weight: bold; font-size: 1rem; color: #0f172a; margin-bottom: 4px; cursor: pointer; }
+    .read-zh { font-size: 0.9rem; color: #475569; }
+    .read-zh.hidden-text { display: none; }
+    .read-tags { margin-top: 4px; }
+    .tag-badge { background-color: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; margin-right: 4px; display: inline-block; }
+    .read-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .speak-icon-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 4px 8px; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+
+    /* 語音與間隔高亮標籤 */
+    .speed-button.active-speed, .interval-button.active-interval, .repeat-button.active-repeat { background: #2563eb !important; color: #ffffff !important; }
+
+    /* 新增面板 Modal */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
-    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 480px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.85rem; color: #475569; margin-bottom: 4px; font-weight: bold; }
-    .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-group { flex: 1; }
-    .error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 4px; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
+    .modal-content input, .modal-content select { width: 100%; margin-bottom: 10px; }
+
+    .status-bar { text-align: center; font-size: 0.8rem; color: #64748b; min-height: 1.2em; margin-top: 4px; }
+    .error-msg { color: #ef4444; text-align: center; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="header">📚 英文學習資料庫</div>
+  <header>
+    <h1>📚 英文學習資料庫</h1>
+  </header>
 
-  <!-- 熟悉度篩選器 -->
-  <div class="filter-box">
-    <label for="statusFilter">🎯 播放範圍：</label>
-    <select id="statusFilter" onchange="onFilterChange()">
-      <option value="all">全部顯示</option>
-      <option value="lte3">★ 1~3星（重點複習）</option>
-      <option value="1">★ 1星（亟需複習）</option>
-      <option value="2">★ 2星</option>
-      <option value="3">★ 3星</option>
-      <option value="4">★ 4星</option>
-      <option value="5">★ 5星（完全掌握）</option>
-    </select>
+  <!-- 模式切換 -->
+  <div class="mode-switcher">
+    <button class="mode-btn active" id="btnModeAudio" onclick="switchViewMode('audio')">🎧 聽力模式</button>
+    <button class="mode-btn" id="btnModeRead" onclick="switchViewMode('read')">📖 閱讀模式</button>
   </div>
 
-  <div id="count" class="count">資料載入中...</div>
-
-  <div class="toolbar">
-    <button onclick="changeShow('en')">英文</button>
-    <button onclick="changeShow('zh')">中文</button>
-    <button onclick="changeShow('both')">英＋中</button>
-    <button onclick="blindMode()">盲聽</button>
-  </div>
-
-  <div class="card">
-    <div id="english" class="english-text">--</div>
-    <div id="chinese" class="chinese-text">--</div>
-    
-    <!-- 5顆星動態評分區 -->
-    <div id="starContainer" class="star-rating">
-      <span class="star" onclick="updateCurrentRating(1)">★</span>
-      <span class="star" onclick="updateCurrentRating(2)">★</span>
-      <span class="star" onclick="updateCurrentRating(3)">★</span>
-      <span class="star" onclick="updateCurrentRating(4)">★</span>
-      <span class="star" onclick="updateCurrentRating(5)">★</span>
+  <!-- 綜合篩選與搜尋列 -->
+  <div class="filter-panel">
+    <div class="filter-group">
+      🔍 <input type="text" id="searchInput" placeholder="搜尋中英文..." oninput="onFilterChange()">
+    </div>
+    <div class="filter-group">
+      🎯 類型:
+      <select id="typeFilter" onchange="onFilterChange()">
+        <option value="all">全部</option>
+        <option value="單字">單字</option>
+        <option value="片語">片語</option>
+        <option value="句子">句子</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      🏷️ 情境:
+      <select id="tagFilter" onchange="onFilterChange()">
+        <option value="all">全部分類</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      ⭐ 熟悉度:
+      <select id="statusFilter" onchange="onFilterChange()">
+        <option value="all">全部</option>
+        <option value="lte3">1 ~ 3 星</option>
+        <option value="1">1 星</option>
+        <option value="2">2 星</option>
+        <option value="3">3 星</option>
+        <option value="4">4 星</option>
+        <option value="5">5 星</option>
+      </select>
+    </div>
+    <!-- 閱讀模式專用排序選單 -->
+    <div class="filter-group" id="sortGroup" style="display:none;">
+      🔀 排序:
+      <select id="sortOrder" onchange="onFilterChange()">
+        <option value="default">預設順序</option>
+        <option value="az">A ➔ Z</option>
+        <option value="za">Z ➔ A</option>
+        <option value="statusAsc">熟悉度 (低 ➔ 高)</option>
+        <option value="statusDesc">熟悉度 (高 ➔ 低)</option>
+        <option value="random">隨機洗牌</option>
+      </select>
     </div>
   </div>
 
-  <div class="status-text" id="playbackStatus"></div>
+  <!-- ==================== 聽力模式區塊 ==================== -->
+  <div id="audioModeContainer">
+    <div class="count-info" id="count">資料載入中...</div>
 
-  <div class="control-row">
-    <button onclick="previousSentence()">⬅️ 上一句</button>
-    <button class="btn-primary" onclick="startSinglePlay()">🔊 播放</button>
-    <button onclick="nextSentence()">下一句 ➡️</button>
+    <div class="toolbar btn-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <button onclick="changeShow('en')" class="active">英文</button>
+      <button onclick="changeShow('zh')">中文</button>
+      <button onclick="changeShow('both')">英＋中</button>
+      <button onclick="blindMode()">盲聽</button>
+    </div>
+
+    <div class="card">
+      <div id="english" class="card-en"></div>
+      <div id="chinese" class="card-zh"></div>
+      <div class="star-container" id="starContainer">
+        <span class="star" onclick="updateCurrentRating(1)">★</span>
+        <span class="star" onclick="updateCurrentRating(2)">★</span>
+        <span class="star" onclick="updateCurrentRating(3)">★</span>
+        <span class="star" onclick="updateCurrentRating(4)">★</span>
+        <span class="star" onclick="updateCurrentRating(5)">★</span>
+      </div>
+    </div>
+
+    <div class="btn-grid">
+      <button onclick="previousSentence()">⬅ 上一句</button>
+      <button onclick="startSinglePlay()" class="btn-primary">🔊 單句發音</button>
+      <button id="pauseButton" onclick="togglePause()">⏸ 暫停</button>
+      <button onclick="nextSentence()">下一句 ➔</button>
+    </div>
+
+    <div class="btn-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <button id="btnContinuous" onclick="startContinuousPlay()" class="btn-success">▶️ 順序播放</button>
+      <button id="btnRandom" onclick="startRandomPlay()" class="btn-success">🔀 隨機播放</button>
+      <button onclick="stopAllPlayback()" class="btn-warning">⏹ 停止</button>
+    </div>
+
+    <!-- 語速、重複與間隔設定 -->
+    <div style="font-size: 0.8rem; font-weight: bold; margin-top: 8px; color: #475569;">語速設定：</div>
+    <div class="btn-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 8px;">
+      <button class="speed-button" data-rate="0.5" onclick="setSpeechRate(0.5)">0.5x</button>
+      <button class="speed-button" data-rate="0.7" onclick="setSpeechRate(0.7)">0.7x</button>
+      <button class="speed-button" data-rate="0.9" onclick="setSpeechRate(0.9)">0.9x</button>
+      <button class="speed-button" data-rate="1.0" onclick="setSpeechRate(1.0)">1.0x</button>
+    </div>
+
+    <div style="font-size: 0.8rem; font-weight: bold; color: #475569;">單句重複：</div>
+    <div class="btn-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 8px;">
+      <button class="repeat-button" data-repeat="1" onclick="setRepeatTimes(1)">1 次</button>
+      <button class="repeat-button" data-repeat="2" onclick="setRepeatTimes(2)">2 次</button>
+      <button class="repeat-button" data-repeat="3" onclick="setRepeatTimes(3)">3 次</button>
+      <button class="repeat-button" data-repeat="999" onclick="setRepeatTimes(999)">無限</button>
+    </div>
+
+    <div style="font-size: 0.8rem; font-weight: bold; color: #475569;">播放間隔：</div>
+    <div class="btn-grid" style="grid-template-columns: repeat(4, 1fr);">
+      <button class="interval-button" data-interval="1000" onclick="setPlaybackInterval(1000)">1 秒</button>
+      <button class="interval-button" data-interval="2000" onclick="setPlaybackInterval(2000)">2 秒</button>
+      <button class="interval-button" data-interval="3000" onclick="setPlaybackInterval(3000)">3 秒</button>
+      <button class="interval-button" data-interval="5000" onclick="setPlaybackInterval(5000)">5 秒</button>
+    </div>
   </div>
 
-  <div class="control-row">
-    <button id="pauseButton" class="btn-warning" onclick="togglePause()">⏸ 暫停</button>
-    <button class="btn-danger" onclick="stopAllPlayback()">⏹ 停止</button>
+  <!-- ==================== 閱讀模式區塊 ==================== -->
+  <div id="readModeContainer">
+    <div class="read-list-header">
+      <div id="readCountInfo" style="font-size: 0.85rem; font-weight: bold; color: #475569;">共 0 筆資料</div>
+      <button onclick="toggleAllChineseReadView()" id="btnToggleChinese" class="btn-primary" style="padding: 4px 10px;">👁️ 隱藏中文</button>
+    </div>
+    
+    <!-- 閱讀模式清單產生處 -->
+    <div id="readList"></div>
   </div>
 
-  <div class="section-title">單句重複次數</div>
-  <div class="control-row">
-    <button class="repeat-button" data-repeat="1" onclick="setRepeatTimes(1)">1次</button>
-    <button class="repeat-button" data-repeat="2" onclick="setRepeatTimes(2)">2次</button>
-    <button class="repeat-button" data-repeat="3" onclick="setRepeatTimes(3)">3次</button>
-    <button class="repeat-button" data-repeat="4" onclick="setRepeatTimes(4)">4次</button>
-    <button class="repeat-button" data-repeat="5" onclick="setRepeatTimes(5)">5次</button>
-    <button class="repeat-button" data-repeat="999" onclick="setRepeatTimes(999)">無限</button>
-  </div>
+  <!-- 狀態提示與新增按鈕 -->
+  <div class="status-bar" id="playbackStatus"></div>
+  <div class="error-msg" id="errorMessage"></div>
 
-  <div class="section-title">播放速度</div>
-  <div class="control-row">
-    <button class="speed-button" data-rate="0.3" onclick="setSpeechRate(0.3)">0.3x</button>
-    <button class="speed-button" data-rate="0.4" onclick="setSpeechRate(0.4)">0.4x</button>
-    <button class="speed-button" data-rate="0.5" onclick="setSpeechRate(0.5)">0.5x</button>
-    <button class="speed-button" data-rate="0.6" onclick="setSpeechRate(0.6)">0.6x</button>
-    <button class="speed-button" data-rate="0.7" onclick="setSpeechRate(0.7)">0.7x</button>
-    <button class="speed-button" data-rate="0.8" onclick="setSpeechRate(0.8)">0.8x</button>
-    <button class="speed-button" data-rate="0.9" onclick="setSpeechRate(0.9)">0.9x</button>
-    <button class="speed-button" data-rate="1.0" onclick="setSpeechRate(1.0)">1.0x</button>
-    <button class="speed-button" data-rate="1.2" onclick="setSpeechRate(1.2)">1.2x</button>
+  <div style="margin-top: 16px; text-align: center;">
+    <button onclick="showAddForm()" class="btn-primary" style="width: 100%; padding: 10px; font-size: 0.95rem;">➕ 新增單字 / 句子</button>
   </div>
-
-  <div class="control-row" style="margin-top: 16px;">
-    <button id="btnContinuous" class="btn-success" onclick="startContinuousPlay()">▶️ 連續播放</button>
-    <button id="btnRandom" class="btn-success" onclick="startRandomPlay()">🔀 隨機播放</button>
-  </div>
-
-  <div class="section-title">播放間隔（句/字之間）</div>
-  <div class="control-row">
-    <button class="interval-button" data-interval="1000" onclick="setPlaybackInterval(1000)">1秒</button>
-    <button class="interval-button" data-interval="2000" onclick="setPlaybackInterval(2000)">2秒</button>
-    <button class="interval-button" data-interval="3000" onclick="setPlaybackInterval(3000)">3秒</button>
-    <button class="interval-button" data-interval="5000" onclick="setPlaybackInterval(5000)">5秒</button>
-  </div>
-
-  <div style="text-align: center; margin-top: 20px;">
-    <button class="btn-primary" onclick="showAddForm()">➕ 新增項目（單字/片語/句子）</button>
-  </div>
-  <div id="errorMessage" class="error-msg" style="text-align:center; margin-top:8px;"></div>
 </div>
 
-<!-- 新增彈窗 -->
-<div id="addForm" class="modal">
+<!-- 新增視窗 -->
+<div class="modal" id="addForm">
   <div class="modal-content">
-    <h3 style="margin-top:0;">新增學習項目</h3>
-    <div class="form-group">
-      <label>英文 (單字/片語/句子)</label>
-      <input type="text" id="newEnglish" placeholder="輸入英文..." oninput="autoDetectTypeAndCheckDuplicate()">
-      <div id="duplicateWarning" class="error-msg" style="display:none;"></div>
-    </div>
+    <h3 style="margin-top:0;">新增英文項目</h3>
+    <input type="text" id="newEnglish" placeholder="請輸入英文..." oninput="autoDetectTypeAndCheckDuplicate()">
+    <div id="duplicateWarning" style="color:#d97706; font-size:0.8rem; display:none; margin-bottom:8px;"></div>
     
-    <div class="form-row">
-      <div class="form-group">
-        <label>項目類型</label>
-        <select id="newType">
-          <option value="單字">單字</option>
-          <option value="片語">片語</option>
-          <option value="句子">句子</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>初始熟悉度</label>
-        <select id="newStatus">
-          <option value="1">1 (不熟悉)</option>
-          <option value="2">2</option>
-          <option value="3">3 (中等)</option>
-          <option value="4">4</option>
-          <option value="5">5 (完全掌握)</option>
-        </select>
-      </div>
-    </div>
+    <input type="text" id="newChinese" placeholder="中文翻譯">
+    <div id="aiTagsContainer" style="margin-bottom: 8px;"></div>
 
-    <div class="form-group">
-      <label>中文翻譯</label>
-      <input type="text" id="newChinese" placeholder="自動翻譯或手動輸入...">
-    </div>
+    <label style="font-size:0.8rem;">類型：</label>
+    <select id="newType">
+      <option value="單字">單字</option>
+      <option value="片語">片語</option>
+      <option value="句子" selected>句子</option>
+    </select>
 
-    <div class="form-group">
-      <label>AI 自動分類標籤</label>
-      <div id="aiTagsContainer" style="min-height: 24px;"></div>
-    </div>
+    <label style="font-size:0.8rem;">初始熟悉度：</label>
+    <select id="newStatus">
+      <option value="1">1 星</option>
+      <option value="2">2 星</option>
+      <option value="3">3 星</option>
+      <option value="4">4 星</option>
+      <option value="5">5 星</option>
+    </select>
 
-    <div id="addMessage" class="status-text"></div>
+    <div id="addMessage" style="font-size:0.8rem; text-align:center; margin-bottom:8px;"></div>
 
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-      <button onclick="hideAddForm()">取消</button>
-      <button class="btn-primary" onclick="addSentence()">儲存</button>
+    <div style="display:flex; gap:8px;">
+      <button onclick="addSentence()" class="btn-primary" style="flex:1;">儲存</button>
+      <button onclick="hideAddForm()" style="flex:1;">取消</button>
     </div>
   </div>
 </div>
