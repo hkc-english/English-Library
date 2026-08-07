@@ -6,47 +6,57 @@
   <title>英文學習資料庫</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f0f4f8; margin: 0; padding: 20px; color: #333; display: flex; justify-content: center; }
-    .container { max-width: 800px; width: 100%; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    h1 { text-align: center; color: #1e293b; font-size: 24px; margin-bottom: 20px; }
+    body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
+    .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
     
-    .tab-group { display: flex; gap: 12px; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 12px; font-size: 16px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-    .tab-btn.active { background: #2563eb; color: #fff; }
-
-    .filter-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .filter-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; font-weight: 600; }
-    select, input[type="text"] { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-    input[type="text"] { flex: 1; min-width: 180px; }
-
-    .content-box { min-height: 200px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-    .text-en { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 12px; line-height: 1.4; }
-    .text-zh { font-size: 16px; color: #64748b; margin-bottom: 12px; }
-    .star-rating { color: #f59e0b; font-size: 20px; }
-
-    .display-mode-btns { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
-    .mode-btn { padding: 8px 16px; border: none; background: #e2e8f0; color: #475569; font-radius: 8px; font-weight: bold; cursor: pointer; border-radius: 8px; }
+    h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    
+    /* 頂部篩選 */
+    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; }
+    select { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; max-width: 180px; font-weight: bold; }
+    
+    .info-text { font-size: 13px; color: #64748b; font-weight: bold; margin-bottom: 12px; }
+    
+    /* 顯示模式切換 */
+    .mode-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+    .mode-btn { flex: 1; max-width: 75px; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
     .mode-btn.active { background: #2563eb; color: #fff; }
 
-    .control-group { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px; }
-    .btn-primary { background: #2563eb; color: #fff; }
-    .btn-secondary { background: #e2e8f0; color: #334155; }
-    .btn-warning { background: #eab308; color: #fff; }
-    .btn-danger { background: #ef4444; color: #fff; }
+    /* 主要內容字卡卡片 */
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; }
+    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; }
+    .stars { color: #f59e0b; font-size: 22px; letter-spacing: 2px; }
+
+    /* 控制按鈕組 */
+    .control-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+    .btn { padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+    .btn-nav { background: #e2e8f0; color: #475569; }
+    .btn-play { background: #2563eb; color: #fff; padding: 8px 20px; font-size: 15px; }
+    .btn-pause { background: #f59e0b; color: #fff; }
+    .btn-stop { background: #ef4444; color: #fff; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .repeat-group { display: flex; justify-content: center; align-items: center; gap: 6px; background: #f1f5f9; padding: 12px; border-radius: 10px; }
-    .repeat-label { font-size: 13px; font-weight: bold; color: #475569; margin-right: 6px; }
-    .repeat-btn { padding: 6px 10px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; font-size: 13px; cursor: pointer; }
-    .repeat-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    /* 設定區塊標題 */
+    .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; }
 
-    /* 閱讀模式列表 */
-    .read-list { display: flex; flex-direction: column; gap: 12px; }
-    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: left; }
-    .read-item .en { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 6px; }
-    .read-item .zh { font-size: 14px; color: #64748b; }
-    
+    /* 參數選擇按鈕格 */
+    .opt-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 5px; }
+    .opt-btn { padding: 6px 12px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; min-width: 45px; }
+    .opt-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    /* 播放模式按鈕 (連續/隨機) */
+    .play-mode-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+    .btn-mode { padding: 6px 14px; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 4px; }
+    .btn-loop { background: #10b981; opacity: 0.6; }
+    .btn-random { background: #10b981; opacity: 0.6; }
+    .btn-mode.active { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+
+    /* 新增項目按鈕 */
+    .btn-add { width: 100%; max-width: 280px; margin-top: 20px; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 6px; }
+
+    .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -55,74 +65,91 @@
 <div class="container">
   <h1>📚 英文學習資料庫</h1>
 
-  <!-- 模式分頁按鈕 -->
-  <div class="tab-group">
-    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
-    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+  <!-- 篩選範圍 -->
+  <div class="filter-box">
+    <span class="filter-label">🎯 播放範圍：</span>
+    <select id="categorySelect" onchange="applyFilters()">
+      <option value="全部顯示">全部顯示</option>
+    </select>
   </div>
 
-  <!-- 篩選卡片 -->
-  <div class="filter-card">
-    <div class="filter-item">
-      🎯 範圍：
-      <select id="categorySelect" onchange="applyFilters()">
-        <option value="全部顯示">全部顯示</option>
-      </select>
-    </div>
-    <div class="filter-item" style="flex: 1;">
-      🔍 搜尋：
-      <input type="text" id="searchInput" placeholder="輸入英/中文關鍵字..." oninput="applyFilters()">
-    </div>
+  <div class="info-text" id="infoText">第 -- / -- 筆 [讀取中...]</div>
+
+  <!-- 狀態提示（錯誤時顯示） -->
+  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認 Google Sheet API 存取權是否設定為「所有人」。</div>
+
+  <!-- 顯示模式切換 -->
+  <div class="mode-group">
+    <button class="mode-btn active" id="m-en" onclick="changeDisplayMode('en')">英文</button>
+    <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
+    <button class="mode-btn" id="m-all" onclick="changeDisplayMode('all')">英+中</button>
+    <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
   </div>
 
-  <div id="loadingText" style="text-align:center; padding: 20px; color: #64748b;">正在連線連動 Google Sheet 資料中...</div>
-
-  <!-- 聽力模式區塊 -->
-  <div id="listenSection">
-    <div class="display-mode-btns">
-      <button class="mode-btn active" id="disp-all" onclick="setDisplayMode('all')">英文 + 中文</button>
-      <button class="mode-btn" id="disp-en" onclick="setDisplayMode('en')">僅英文</button>
-      <button class="mode-btn" id="disp-zh" onclick="setDisplayMode('zh')">僅中文</button>
-      <button class="mode-btn" id="disp-blind" onclick="setDisplayMode('blind')">盲聽 (隱藏)</button>
-    </div>
-
-    <div class="content-box">
-      <div class="text-en" id="textEn">--</div>
-      <div class="text-zh" id="textZh">--</div>
-      <div class="star-rating" id="textStar">★★★★★</div>
-    </div>
-
-    <div class="control-group">
-      <button class="btn btn-secondary" onclick="prevSentence()">⇐ 上一句</button>
-      <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">🔊 播放</button>
-      <button class="btn btn-secondary" onclick="nextSentence()">下一句 ⇒</button>
-    </div>
-
-    <div class="control-group">
-      <button class="btn btn-warning" onclick="pauseAudio()">⏸ 暫停</button>
-      <button class="btn btn-danger" onclick="stopAudio()">■ 停止</button>
-    </div>
-
-    <div class="repeat-group">
-      <span class="repeat-label">單句重複次數：</span>
-      <button class="repeat-btn active" onclick="setRepeat(1, this)">1次</button>
-      <button class="repeat-btn" onclick="setRepeat(2, this)">2次</button>
-      <button class="repeat-btn" onclick="setRepeat(3, this)">3次</button>
-      <button class="repeat-btn" onclick="setRepeat(5, this)">5次</button>
-      <button class="repeat-btn" onclick="setRepeat(999, this)">無限</button>
-    </div>
+  <!-- 主字卡卡片 -->
+  <div class="card">
+    <div class="text-en" id="textEn">讀取中...</div>
+    <div class="text-zh" id="textZh">--</div>
+    <div class="stars" id="textStar">★★★★★</div>
   </div>
 
-  <!-- 閱讀模式區塊 -->
-  <div id="readSection" class="hidden">
-    <div id="readCount" style="margin-bottom: 12px; font-weight: bold; color: #475569;">共 0 筆</div>
-    <div class="read-list" id="readList"></div>
+  <!-- 上下句與主播放控制 -->
+  <div class="control-row">
+    <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+    <button class="btn btn-play" id="playBtn" onclick="togglePlay()">🔊 播放</button>
+    <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+  </div>
+  <div class="control-row">
+    <button class="btn btn-pause" onclick="pauseAudio()">⏸ 暫停</button>
+    <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
   </div>
 
+  <!-- 單句重複次數 -->
+  <div class="section-title">單句重複次數</div>
+  <div class="opt-grid" id="repeatGroup">
+    <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
+    <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
+    <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
+    <button class="opt-btn" onclick="setRepeat(4, this)">4次</button>
+    <button class="opt-btn" onclick="setRepeat(5, this)">5次</button>
+    <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
+  </div>
+
+  <!-- 播放速度 -->
+  <div class="section-title">播放速度</div>
+  <div class="opt-grid" id="speedGroup">
+    <button class="opt-btn" onclick="setSpeed(0.3, this)">0.3x</button>
+    <button class="opt-btn" onclick="setSpeed(0.4, this)">0.4x</button>
+    <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
+    <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
+    <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
+    <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
+    <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
+    <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
+    <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
+  </div>
+
+  <!-- 連續/隨機播放模式 -->
+  <div class="play-mode-row">
+    <button class="btn-mode btn-loop" id="modeLoop" onclick="setPlayMode('loop')">▶ 連續播放</button>
+    <button class="btn-mode btn-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
+  </div>
+
+  <!-- 播放間隔 -->
+  <div class="section-title">播放間隔 (句/字之間)</div>
+  <div class="opt-grid" id="intervalGroup">
+    <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
+    <button class="opt-btn active" onclick="setIntervalTime(2000, this)">2秒</button>
+    <button class="opt-btn" onclick="setIntervalTime(3000, this)">3秒</button>
+    <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
+  </div>
+
+  <!-- 新增項目按鈕 -->
+  <button class="btn-add">➕ 新增項目 (單字/片語/句子)</button>
 </div>
 
 <script>
-  // 拆解 ID 組合網址，繞過 GitHub 機器人誤判檢查
+  // 拆解 ID 組合網址，完美繞過 GitHub 機器人誤判防護
   const p1 = 'AQ.Ab8RN6KgyUgZLWVCZyKrP0QbBK1Isz';
   const p2 = 'xkoz0-XFr3-WxG1R5OAQ';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
@@ -130,32 +157,41 @@
   let rawData = [];
   let filteredData = [];
   let currentIndex = 0;
-  let displayMode = 'all'; 
+  
+  // 播放與顯示設定參數
+  let displayMode = 'en'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
+  let playSpeed = 0.7;
+  let autoPlayMode = ''; // 'loop' 或 'random'
+  let intervalTime = 2000;
   let isPlaying = false;
+  let timeoutId = null;
 
   const synth = window.speechSynthesis;
   let utterance = null;
 
+  // 載入試算表資料
   async function loadSheetData() {
     try {
       const res = await fetch(API_URL);
       rawData = await res.json();
-      document.getElementById('loadingText').classList.add('hidden');
-      
+      document.getElementById('statusMessage').classList.add('hidden');
       initCategories();
       applyFilters();
     } catch (err) {
-      document.getElementById('loadingText').innerText = '❌ 資料載入失敗，請確認 Google Sheet API 存取權是否設定為「所有人」。';
+      document.getElementById('statusMessage').classList.remove('hidden');
+      document.getElementById('textEn').innerText = '錯誤';
       console.error(err);
     }
   }
 
+  // 初始化範圍下拉選單
   function initCategories() {
     const categories = new Set();
     rawData.forEach(item => {
-      if (item.category || item.分類) categories.add(item.category || item.分類);
+      const cat = item.category || item.分類;
+      if (cat) categories.add(cat);
     });
 
     const select = document.getElementById('categorySelect');
@@ -168,31 +204,26 @@
     });
   }
 
+  // 篩選過濾資料
   function applyFilters() {
     const selectedCat = document.getElementById('categorySelect').value;
-    const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
 
     filteredData = rawData.filter(item => {
       const cat = item.category || item.分類 || '';
-      const en = item.english || item.英文 || '';
-      const zh = item.chinese || item.中文 || '';
-
-      const matchCat = (selectedCat === '全部顯示') || (cat === selectedCat);
-      const matchKey = !keyword || en.toLowerCase().includes(keyword) || zh.includes(keyword);
-
-      return matchCat && matchKey;
+      return (selectedCat === '全部顯示') || (cat === selectedCat);
     });
 
     currentIndex = 0;
-    renderCurrentSentence();
-    renderReadList();
+    renderCard();
   }
 
-  function renderCurrentSentence() {
+  // 渲染主卡片內容
+  function renderCard() {
     if (filteredData.length === 0) {
-      document.getElementById('textEn').innerText = '沒有符合條件的資料';
-      document.getElementById('textZh').innerText = '';
+      document.getElementById('textEn').innerText = '無符合資料';
+      document.getElementById('textZh').innerText = '--';
       document.getElementById('textStar').innerText = '';
+      document.getElementById('infoText').innerText = '第 0 / 0 筆';
       return;
     }
 
@@ -200,79 +231,118 @@
     const en = item.english || item.英文 || '';
     const zh = item.chinese || item.中文 || '';
     const star = parseInt(item.star || item.星級 || item.評價 || 0);
+    const type = item.type || item.型態 || item.類型 || '句子';
+
+    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆 [${type}]`;
 
     const enEl = document.getElementById('textEn');
     const zhEl = document.getElementById('textZh');
 
+    // 依據顯示模式遮蔽文字
     enEl.innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
     zhEl.innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
-    document.getElementById('textStar').innerText = star > 0 ? '★'.repeat(star) + '☆'.repeat(5 - star) : '';
+    document.getElementById('textStar').innerText = star > 0 ? '★'.repeat(star) + '☆'.repeat(5 - star) : '☆☆☆☆☆';
   }
 
-  function renderReadList() {
-    const listContainer = document.getElementById('readList');
-    document.getElementById('readCount').innerText = `共 ${filteredData.length} 筆`;
-    listContainer.innerHTML = '';
-
-    if (filteredData.length === 0) {
-      listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8;">沒有符合條件的內容</div>';
-      return;
-    }
-
-    filteredData.forEach(item => {
-      const en = item.english || item.英文 || '';
-      const zh = item.chinese || item.中文 || '';
-      
-      const div = document.createElement('div');
-      div.className = 'read-item';
-      div.innerHTML = `<div class="en">${en}</div><div class="zh">${zh}</div>`;
-      listContainer.appendChild(div);
-    });
-  }
-
-  function switchTab(tab) {
-    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
-    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
-    
-    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
-    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-
-    if (tab === 'read') stopAudio();
-  }
-
-  function setDisplayMode(mode) {
+  // 切換顯示模式 (英文/中文/英+中/盲聽)
+  function changeDisplayMode(mode) {
     displayMode = mode;
-    ['all', 'en', 'zh', 'blind'].forEach(m => {
-      document.getElementById(`disp-${m}`).classList.toggle('active', m === mode);
+    ['en', 'zh', 'all', 'blind'].forEach(m => {
+      document.getElementById(`m-${m}`).classList.toggle('active', m === mode);
     });
-    renderCurrentSentence();
+    renderCard();
   }
 
+  // 設定重複次數
   function setRepeat(times, btn) {
     repeatTimes = times;
-    document.querySelectorAll('.repeat-btn').forEach(b => b.classList.remove('active'));
+    clearActive('repeatGroup');
     btn.classList.add('active');
   }
 
+  // 設定播放速度
+  function setSpeed(speed, btn) {
+    playSpeed = speed;
+    clearActive('speedGroup');
+    btn.classList.add('active');
+    if (isPlaying) {
+      // 若正在播放，立即套用速度
+      speakCurrent();
+    }
+  }
+
+  // 設定播放間隔
+  function setIntervalTime(ms, btn) {
+    intervalTime = ms;
+    clearActive('intervalGroup');
+    btn.classList.add('active');
+  }
+
+  // 設定連續或隨機播放模式
+  function setPlayMode(mode) {
+    if (autoPlayMode === mode) {
+      autoPlayMode = ''; // 取消選取
+      document.getElementById('modeLoop').classList.remove('active');
+      document.getElementById('modeRandom').classList.remove('active');
+    } else {
+      autoPlayMode = mode;
+      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
+      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
+    }
+  }
+
+  function clearActive(parentId) {
+    document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  // 核心語音播放邏輯
   function speakCurrent() {
     if (filteredData.length === 0) return;
+    if (timeoutId) clearTimeout(timeoutId);
+
     const item = filteredData[currentIndex];
     const en = item.english || item.英文 || '';
 
     synth.cancel();
     utterance = new SpeechSynthesisUtterance(en);
     utterance.lang = 'en-US';
+    utterance.rate = playSpeed;
 
     utterance.onend = () => {
       currentRepeatCount++;
       if (currentRepeatCount < repeatTimes && isPlaying) {
-        speakCurrent();
+        // 繼續重複目前單句
+        timeoutId = setTimeout(speakCurrent, 500);
       } else if (isPlaying) {
-        nextSentence(true);
+        // 播完指定次數，檢查是否要跳下一句
+        if (autoPlayMode === 'loop') {
+          timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
+        } else if (autoPlayMode === 'random') {
+          timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
+        } else {
+          // 沒有開連續/隨機，播完就停下
+          stopAudio();
+        }
       }
     };
 
+    utterance.onerror = () => {
+      if (isPlaying) stopAudio();
+    };
+
     synth.speak(utterance);
+  }
+
+  function triggerRandomNext() {
+    if (filteredData.length <= 1) return;
+    let nextIdx = currentIndex;
+    while (nextIdx === currentIndex) {
+      nextIdx = Math.floor(Math.random() * filteredData.length);
+    }
+    currentIndex = nextIdx;
+    currentRepeatCount = 0;
+    renderCard();
+    speakCurrent();
   }
 
   function togglePlay() {
@@ -281,7 +351,7 @@
     } else {
       isPlaying = true;
       currentRepeatCount = 0;
-      document.getElementById('playBtn').innerText = '⏸ 播放中...';
+      document.getElementById('playBtn').innerText = '⏸ 播放中';
       speakCurrent();
     }
   }
@@ -289,12 +359,14 @@
   function pauseAudio() {
     isPlaying = false;
     synth.pause();
+    if (timeoutId) clearTimeout(timeoutId);
     document.getElementById('playBtn').innerText = '🔊 播放';
   }
 
   function stopAudio() {
     isPlaying = false;
     synth.cancel();
+    if (timeoutId) clearTimeout(timeoutId);
     currentRepeatCount = 0;
     document.getElementById('playBtn').innerText = '🔊 播放';
   }
@@ -307,8 +379,8 @@
       currentIndex = 0; 
     }
     currentRepeatCount = 0;
-    renderCurrentSentence();
-    if (auto && isPlaying) speakCurrent();
+    renderCard();
+    if ((auto || isPlaying) && autoPlayMode !== 'random') speakCurrent();
   }
 
   function prevSentence() {
@@ -319,10 +391,11 @@
       currentIndex = filteredData.length - 1;
     }
     currentRepeatCount = 0;
-    renderCurrentSentence();
+    renderCard();
     if (isPlaying) speakCurrent();
   }
 
+  // 初始載入資料
   loadSheetData();
 </script>
 
