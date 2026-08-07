@@ -113,12 +113,11 @@
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
-    <!-- 視覺顯示模式切換：這裡保留了「英 + 中」選項 -->
     <div class="mode-group">
       <button class="mode-btn active" id="m-mix" onclick="changeDisplayMode('mix')">英 + 中</button>
-      <button class="mode-btn" id="m-en" onclick="changeDisplayMode('en')">僅看英文</button>
-      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">僅看中文</button>
-      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
+      <button class="mode-btn" id="m-en" onclick="changeDisplayMode('en')">英文</button>
+      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
+      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
     </div>
 
     <div class="card">
@@ -134,7 +133,8 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <div class="section-title">重複朗讀次數</div>
+    <!-- 改回原本名稱：重複次數 -->
+    <div class="section-title">重複次數</div>
     <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
       <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
@@ -159,9 +159,9 @@
       <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
     </div>
 
-    <div class="section-title">思考留白時間（下一首前的間隔）</div>
-    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(4, 1fr);">
-      <button class="opt-btn" onclick="setIntervalTime(500, this)">0.5秒</button>
+    <!-- 改回原本名稱：播放間隔，並移除 0.5 秒 -->
+    <div class="section-title">播放間隔</div>
+    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
       <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
       <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
       <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
@@ -213,7 +213,7 @@
   let currentIndex = 0;
   
   let currentTab = 'listen';
-  let displayMode = 'mix'; // 預設改回英中並存
+  let displayMode = 'mix'; 
   let readDisplayMode = 'all'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
@@ -359,25 +359,6 @@
 
     if (stateChanged) {
       renderCardTextOnly();
-      
-      if (isEnRevealed || isZhRevealed) {
-        if (playStatus === 'playing') {
-          playStatus = 'paused';
-          synth.pause();
-          if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-          updatePlayButtonUI();
-        }
-      } else {
-        if (playStatus === 'paused') {
-          playStatus = 'playing';
-          updatePlayButtonUI();
-          if (synth.paused) {
-            synth.resume();
-          } else {
-            speakCurrent();
-          }
-        }
-      }
     }
   }
 
@@ -569,15 +550,9 @@
       playStatus = 'playing';
       updatePlayButtonUI();
       
-      if (isEnRevealed || isZhRevealed) {
-        resetRevealState();
-        renderCardTextOnly();
-      }
-
       if (synth.paused) {
         synth.resume();
-      }
-      if (!synth.speaking) {
+      } else {
         speakCurrent();
       }
     } else {
@@ -610,7 +585,6 @@
     updatePlayButtonUI();
   }
 
-  // 核心發音引擎：不論切到哪種視覺顯示模式，都只發出英文聲音
   function speakCurrent() {
     if (filteredData.length === 0 || playStatus !== 'playing') return;
     if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
