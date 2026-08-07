@@ -133,7 +133,6 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <!-- 改回原本名稱：重複次數 -->
     <div class="section-title">重複次數</div>
     <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
@@ -159,7 +158,6 @@
       <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
     </div>
 
-    <!-- 改回原本名稱：播放間隔，並移除 0.5 秒 -->
     <div class="section-title">播放間隔</div>
     <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
       <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
@@ -484,6 +482,32 @@
     renderReadList();
   }
 
+  /* 相似度算法 (Levenshtein Distance) 用於比對類似句子 */
+  function getSimilarity(s1, s2) {
+    s1 = s1.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
+    s2 = s2.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
+    
+    if (s1 === s2) return 1.0;
+    
+    const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+    for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
+    for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
+    
+    for (let j = 1; j <= s2.length; j += 1) {
+      for (let i = 1; i <= s1.length; i += 1) {
+        const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        track[j][i] = Math.min(
+          track[j][i - 1] + 1, 
+          track[j - 1][i] + 1, 
+          track[j - 1][i - 1] + indicator 
+        );
+      }
+    }
+    const distance = track[s2.length][s1.length];
+    const longest = Math.max(s1.length, s2.length);
+    return longest === 0 ? 1.0 : (longest - distance) / longest;
+  }
+
   async function submitNewEnglish() {
     const inputEl = document.getElementById('newEnglishInput');
     const btnEl = document.getElementById('submitAddBtn');
@@ -491,6 +515,34 @@
     const text = inputEl.value.trim();
 
     if (!text) return;
+
+    /* 檢查資料庫是否有重複或類似的句子 */
+    let exactMatch = false;
+    let similarMatch = null;
+
+    for (let item of rawData) {
+      const existingEn = (item.英文 || item.english || '').trim();
+      if (existingEn.toLowerCase() === text.toLowerCase()) {
+        exactMatch = true;
+        break;
+      }
+      
+      // 計算相似度，大於 70% 視為相似
+      let sim = getSimilarity(text, existingEn);
+      if (sim >= 0.7) {
+        similarMatch = existingEn;
+      }
+    }
+
+    if (exactMatch) {
+      alert(`⚠️ 該字句已存在於資料庫中，無法重複新增！`);
+      return;
+    }
+
+    if (similarMatch) {
+      const confirmAdd = confirm(`💡 發現類似的句子已存在：\n「${similarMatch}」\n\n您確定還要建立這筆新資料嗎？`);
+      if (!confirmAdd) return; // 使用者按取消，中斷送出
+    }
 
     inputEl.disabled = true;
     btnEl.disabled = true;
