@@ -11,6 +11,11 @@
     
     h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     
+    /* 模式分頁按鈕 */
+    .tab-group { display: flex; gap: 12px; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #2563eb; color: #fff; }
+
     /* 頂部篩選 */
     .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; }
@@ -53,6 +58,14 @@
     .btn-random { background: #10b981; opacity: 0.6; }
     .btn-mode.active { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
 
+    /* 閱讀模式列表樣式 */
+    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 60vh; overflow-y: auto; margin-top: 10px; padding-right: 4px; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; transition: 0.2s; }
+    .read-item:hover { background: #f1f5f9; }
+    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; }
+    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; }
+    .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; justify-content: space-between; }
+
     /* 新增項目按鈕 */
     .btn-add { width: 100%; max-width: 280px; margin-top: 20px; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 6px; }
 
@@ -65,6 +78,12 @@
 <div class="container">
   <h1>📚 英文學習資料庫</h1>
 
+  <!-- 模式分頁按鈕切換 -->
+  <div class="tab-group">
+    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
+    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+  </div>
+
   <!-- 篩選範圍 -->
   <div class="filter-box">
     <span class="filter-label">🎯 播放範圍：</span>
@@ -73,75 +92,84 @@
     </select>
   </div>
 
-  <div class="info-text" id="infoText">第 -- / -- 筆 [讀取中...]</div>
-
   <!-- 狀態提示（錯誤時顯示） -->
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認 Google Sheet API 存取權是否設定為「所有人」。</div>
 
-  <!-- 顯示模式切換 -->
-  <div class="mode-group">
-    <button class="mode-btn active" id="m-en" onclick="changeDisplayMode('en')">英文</button>
-    <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
-    <button class="mode-btn" id="m-all" onclick="changeDisplayMode('all')">英+中</button>
-    <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
+  <!-- ================= 聽力模式區塊 ================= -->
+  <div id="listenSection">
+    <div class="info-text" id="infoText">第 -- / -- 筆 [讀取中...]</div>
+
+    <!-- 顯示模式切換 -->
+    <div class="mode-group">
+      <button class="mode-btn active" id="m-en" onclick="changeDisplayMode('en')">英文</button>
+      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
+      <button class="mode-btn" id="m-all" onclick="changeDisplayMode('all')">英+中</button>
+      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
+    </div>
+
+    <!-- 主字卡卡片 -->
+    <div class="card">
+      <div class="text-en" id="textEn">讀取中...</div>
+      <div class="text-zh" id="textZh">--</div>
+      <div class="stars" id="textStar">★★★★★</div>
+    </div>
+
+    <!-- 上下句與主播放控制 -->
+    <div class="control-row">
+      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+      <button class="btn btn-play" id="playBtn" onclick="togglePlay()">🔊 播放</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+    </div>
+    <div class="control-row">
+      <button class="btn btn-pause" onclick="pauseAudio()">⏸ 暫停</button>
+      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+    </div>
+
+    <!-- 單句重複次數 -->
+    <div class="section-title">單句重複次數</div>
+    <div class="opt-grid" id="repeatGroup">
+      <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
+      <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
+      <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
+      <button class="opt-btn" onclick="setRepeat(4, this)">4次</button>
+      <button class="opt-btn" onclick="setRepeat(5, this)">5次</button>
+      <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
+    </div>
+
+    <!-- 播放速度 -->
+    <div class="section-title">播放速度</div>
+    <div class="opt-grid" id="speedGroup">
+      <button class="opt-btn" onclick="setSpeed(0.3, this)">0.3x</button>
+      <button class="opt-btn" onclick="setSpeed(0.4, this)">0.4x</button>
+      <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
+      <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
+      <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
+      <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
+      <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
+      <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
+      <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
+    </div>
+
+    <!-- 連續/隨機播放模式 -->
+    <div class="play-mode-row">
+      <button class="btn-mode btn-loop" id="modeLoop" onclick="setPlayMode('loop')">▶ 連續播放</button>
+      <button class="btn-mode btn-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
+    </div>
+
+    <!-- 播放間隔 -->
+    <div class="section-title">播放間隔 (句/字之間)</div>
+    <div class="opt-grid" id="intervalGroup">
+      <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
+      <button class="opt-btn active" onclick="setIntervalTime(2000, this)">2秒</button>
+      <button class="opt-btn" onclick="setIntervalTime(3000, this)">3秒</button>
+      <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
+    </div>
   </div>
 
-  <!-- 主字卡卡片 -->
-  <div class="card">
-    <div class="text-en" id="textEn">讀取中...</div>
-    <div class="text-zh" id="textZh">--</div>
-    <div class="stars" id="textStar">★★★★★</div>
-  </div>
-
-  <!-- 上下句與主播放控制 -->
-  <div class="control-row">
-    <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-    <button class="btn btn-play" id="playBtn" onclick="togglePlay()">🔊 播放</button>
-    <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
-  </div>
-  <div class="control-row">
-    <button class="btn btn-pause" onclick="pauseAudio()">⏸ 暫停</button>
-    <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
-  </div>
-
-  <!-- 單句重複次數 -->
-  <div class="section-title">單句重複次數</div>
-  <div class="opt-grid" id="repeatGroup">
-    <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
-    <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
-    <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
-    <button class="opt-btn" onclick="setRepeat(4, this)">4次</button>
-    <button class="opt-btn" onclick="setRepeat(5, this)">5次</button>
-    <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
-  </div>
-
-  <!-- 播放速度 -->
-  <div class="section-title">播放速度</div>
-  <div class="opt-grid" id="speedGroup">
-    <button class="opt-btn" onclick="setSpeed(0.3, this)">0.3x</button>
-    <button class="opt-btn" onclick="setSpeed(0.4, this)">0.4x</button>
-    <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
-    <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
-    <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
-    <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
-    <button class="opt-btn" onclick="setSpeed(0.9, this), this">0.9x</button>
-    <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
-    <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
-  </div>
-
-  <!-- 連續/隨機播放模式 -->
-  <div class="play-mode-row">
-    <button class="btn-mode btn-loop" id="modeLoop" onclick="setPlayMode('loop')">▶ 連續播放</button>
-    <button class="btn-mode btn-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
-  </div>
-
-  <!-- 播放間隔 -->
-  <div class="section-title">播放間隔 (句/字之間)</div>
-  <div class="opt-grid" id="intervalGroup">
-    <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
-    <button class="opt-btn active" onclick="setIntervalTime(2000, this)">2秒</button>
-    <button class="opt-btn" onclick="setIntervalTime(3000, this)">3秒</button>
-    <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
+  <!-- ================= 閱讀模式區塊 ================= -->
+  <div id="readSection" class="hidden">
+    <div id="readCount" style="margin-bottom: 10px; font-weight: bold; color: #475569; text-align: left; font-size: 14px;">共 0 筆資料</div>
+    <div class="read-list" id="readList"></div>
   </div>
 
   <!-- 新增項目按鈕 -->
@@ -215,9 +243,10 @@
 
     currentIndex = 0;
     renderCard();
+    renderReadList();
   }
 
-  // 渲染主卡片內容
+  // 渲染主卡片內容 (聽力模式)
   function renderCard() {
     if (filteredData.length === 0) {
       document.getElementById('textEn').innerText = '無符合資料';
@@ -238,10 +267,52 @@
     const enEl = document.getElementById('textEn');
     const zhEl = document.getElementById('textZh');
 
-    // 依據顯示模式遮蔽文字
     enEl.innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
     zhEl.innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
     document.getElementById('textStar').innerText = star > 0 ? '★'.repeat(star) + '☆'.repeat(5 - star) : '☆☆☆☆☆';
+  }
+
+  // 渲染閱讀模式清單
+  function renderReadList() {
+    const listContainer = document.getElementById('readList');
+    document.getElementById('readCount').innerText = `共 ${filteredData.length} 筆資料`;
+    listContainer.innerHTML = '';
+
+    if (filteredData.length === 0) {
+      listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px;">沒有符合條件的內容</div>';
+      return;
+    }
+
+    filteredData.forEach((item, index) => {
+      const en = item.english || item.英文 || '';
+      const zh = item.chinese || item.中文 || '';
+      const star = parseInt(item.star || item.星級 || item.評價 || 0);
+      const cat = item.category || item.分類 || '未分類';
+      const type = item.type || item.型態 || item.類型 || '句子';
+      
+      const div = document.createElement('div');
+      div.className = 'read-item';
+      div.innerHTML = `
+        <div class="en">${index + 1}. ${en}</div>
+        <div class="zh">${zh}</div>
+        <div class="meta">
+          <span>🏷️ ${cat} (${type})</span>
+          <span style="color: #f59e0b;">${star > 0 ? '★'.repeat(star) : ''}</span>
+        </div>
+      `;
+      listContainer.appendChild(div);
+    });
+  }
+
+  // 分頁切換邏輯 (聽力/閱讀)
+  function switchTab(tab) {
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+
+    if (tab === 'read') stopAudio();
   }
 
   // 切換顯示模式 (英文/中文/英+中/盲聽)
@@ -265,9 +336,7 @@
     playSpeed = speed;
     clearActive('speedGroup');
     btn.classList.add('active');
-    if (isPlaying) {
-      speakCurrent();
-    }
+    if (isPlaying) speakCurrent();
   }
 
   // 設定播放間隔
