@@ -27,8 +27,6 @@
     .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
     .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
 
-    .tool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 0 4px; text-align: left; }
-    
     .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin-bottom: 12px; }
     .sort-btn { padding: 8px 10px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
@@ -115,11 +113,12 @@
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
+    <!-- 視覺顯示模式切換：這裡保留了「英 + 中」選項 -->
     <div class="mode-group">
-      <button class="mode-btn active" id="m-en" onclick="changeDisplayMode('en')">英文</button>
-      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
-      <button class="mode-btn" id="m-all" onclick="changeDisplayMode('all')">英+中</button>
-      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
+      <button class="mode-btn active" id="m-mix" onclick="changeDisplayMode('mix')">英 + 中</button>
+      <button class="mode-btn" id="m-en" onclick="changeDisplayMode('en')">僅看英文</button>
+      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">僅看中文</button>
+      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
     </div>
 
     <div class="card">
@@ -135,7 +134,7 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <div class="section-title">重複次數</div>
+    <div class="section-title">重複朗讀次數</div>
     <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
       <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
@@ -160,8 +159,9 @@
       <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
     </div>
 
-    <div class="section-title">播放間隔（中英思考留白時間）</div>
-    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="section-title">思考留白時間（下一首前的間隔）</div>
+    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(4, 1fr);">
+      <button class="opt-btn" onclick="setIntervalTime(500, this)">0.5秒</button>
       <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
       <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
       <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
@@ -213,7 +213,7 @@
   let currentIndex = 0;
   
   let currentTab = 'listen';
-  let displayMode = 'en'; 
+  let displayMode = 'mix'; // 預設改回英中並存
   let readDisplayMode = 'all'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
@@ -228,24 +228,16 @@
 
   let isEnRevealed = false;
   let isZhRevealed = false;
-  
-  // 用於記錄中英交替的當前發音步驟 ('en' 或 'zh')
-  let currentLangStep = 'en';
 
   const synth = window.speechSynthesis;
   let currentUtterance = null;
   let targetVoice = null;
-  let chineseVoice = null;
 
   function loadVoices() {
     const voices = synth.getVoices();
     targetVoice = voices.find(v => v.name.includes('Google US English')) ||
                   voices.find(v => v.lang === 'en-US') ||
                   voices.find(v => v.lang.startsWith('en'));
-                  
-    // 取得中文發音庫
-    chineseVoice = voices.find(v => v.lang === 'zh-TW') || 
-                   voices.find(v => v.lang.startsWith('zh'));
   }
   if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = loadVoices;
@@ -353,7 +345,6 @@
     isZhRevealed = false;
   }
 
-  // 精進第1方向：點擊翻面時的「自動暫停與功能恢復」
   function toggleTextReveal(type) {
     if (filteredData.length === 0) return;
     
@@ -369,7 +360,6 @@
     if (stateChanged) {
       renderCardTextOnly();
       
-      // 如果目前是展開（看答案）狀態：立刻暫停語音與排程
       if (isEnRevealed || isZhRevealed) {
         if (playStatus === 'playing') {
           playStatus = 'paused';
@@ -378,7 +368,6 @@
           updatePlayButtonUI();
         }
       } else {
-        // 如果全部收起來了（隱藏模式）：自動恢復播放
         if (playStatus === 'paused') {
           playStatus = 'playing';
           updatePlayButtonUI();
@@ -399,12 +388,12 @@
     const zh = item.中文 || item.chinese || '';
 
     let finalEn = '•••';
-    if (displayMode === 'en' || displayMode === 'all' || isEnRevealed) {
+    if (displayMode === 'mix' || displayMode === 'en' || isEnRevealed) {
       finalEn = en;
     }
     
     let finalZh = '•••';
-    if (displayMode === 'zh' || displayMode === 'all' || isZhRevealed) {
+    if (displayMode === 'mix' || displayMode === 'zh' || isZhRevealed) {
       finalZh = zh;
     }
 
@@ -580,7 +569,6 @@
       playStatus = 'playing';
       updatePlayButtonUI();
       
-      // 如果有點開看答案，恢復時自動把它收起來，保持盲聽流暢
       if (isEnRevealed || isZhRevealed) {
         resetRevealState();
         renderCardTextOnly();
@@ -595,14 +583,6 @@
     } else {
       playStatus = 'playing';
       currentRepeatCount = 0;
-      
-      // 根據播放模式決定起手語言步驟
-      if (displayMode === 'zh') {
-        currentLangStep = 'zh'; 
-      } else {
-        currentLangStep = 'en'; 
-      }
-      
       updatePlayButtonUI();
       speakCurrent();
     }
@@ -630,100 +610,30 @@
     updatePlayButtonUI();
   }
 
-  // 精進第3方向：英文/中文交替發音與排程引擎
+  // 核心發音引擎：不論切到哪種視覺顯示模式，都只發出英文聲音
   function speakCurrent() {
     if (filteredData.length === 0 || playStatus !== 'playing') return;
     if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
 
     const item = filteredData[currentIndex];
     const en = item.英文 || item.english || '';
-    const zh = item.中文 || item.chinese || '';
 
     synth.cancel();
 
-    let speakText = '';
-    let isChinese = false;
-
-    // 依據當前步驟與顯示模式決定要唸中文還是英文
-    if (displayMode === 'en' || displayMode === 'blind') {
-      if (currentLangStep === 'en') {
-        speakText = en;
-        isChinese = false;
-      } else {
-        speakText = zh;
-        isChinese = true;
-      }
-    } else if (displayMode === 'zh') {
-      if (currentLangStep === 'zh') {
-        speakText = zh;
-        isChinese = true;
-      } else {
-        speakText = en;
-        isChinese = false;
-      }
-    } else {
-      // 英+中 模式：直接連續朗讀英文
-      speakText = en;
-      isChinese = false;
-    }
-
-    currentUtterance = new SpeechSynthesisUtterance(speakText);
-    
-    if (isChinese) {
-      if (chineseVoice) currentUtterance.voice = chineseVoice;
-      currentUtterance.lang = 'zh-TW';
-      currentUtterance.rate = 1.0; // 中文使用正常語速
-    } else {
-      if (targetVoice) currentUtterance.voice = targetVoice;
-      currentUtterance.lang = 'en-US';
-      currentUtterance.rate = playSpeed; // 英文套用使用者設定語速
-    }
+    currentUtterance = new SpeechSynthesisUtterance(en);
+    if (targetVoice) currentUtterance.voice = targetVoice;
+    currentUtterance.lang = 'en-US';
+    currentUtterance.rate = playSpeed; 
 
     currentUtterance.onend = () => {
       if (playStatus !== 'playing') return; 
 
-      if (displayMode === 'all') {
-        // 「英+中」模式原有機制：算重複次數
-        currentRepeatCount++;
-        if (currentRepeatCount < repeatTimes) {
-          timeoutId = setTimeout(() => { speakCurrent(); }, 400);
-        } else {
-          currentRepeatCount = 0;
-          proceedToNextCard();
-        }
+      currentRepeatCount++;
+      if (currentRepeatCount < repeatTimes) {
+        timeoutId = setTimeout(() => { speakCurrent(); }, 400);
       } else {
-        // 「盲聽」、「英文」、「中文」模式：執行中英交替與間隔思考留白
-        if (displayMode === 'en' || displayMode === 'blind') {
-          if (currentLangStep === 'en') {
-            currentRepeatCount++;
-            if (currentRepeatCount < repeatTimes) {
-              // 英文的單句重複
-              timeoutId = setTimeout(() => { speakCurrent(); }, 400);
-            } else {
-              // 英文重複完畢，進入「思考留白間隔」，時間到後自動切換至中文發音
-              currentRepeatCount = 0;
-              currentLangStep = 'zh';
-              timeoutId = setTimeout(() => { speakCurrent(); }, intervalTime);
-            }
-          } else {
-            // 中文解答也朗讀完畢，直接跳下一張卡片
-            proceedToNextCard();
-          }
-        } else if (displayMode === 'zh') {
-          // 中文開頭的模式
-          if (currentLangStep === 'zh') {
-            currentLangStep = 'en';
-            timeoutId = setTimeout(() => { speakCurrent(); }, intervalTime);
-          } else {
-            currentRepeatCount++;
-            if (currentRepeatCount < repeatTimes) {
-              timeoutId = setTimeout(() => { speakCurrent(); }, 400);
-            } else {
-              currentRepeatCount = 0;
-              proceedToNextCard();
-            }
-          }
-        }
+        currentRepeatCount = 0;
+        proceedToNextCard();
       }
     };
 
@@ -737,12 +647,11 @@
     synth.speak(currentUtterance);
   }
 
-  // 下一首卡片的調度核心
   function proceedToNextCard() {
     if (autoPlayMode === 'loop') {
-      timeoutId = setTimeout(() => { nextSentence(true); }, 800);
+      timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
     } else if (autoPlayMode === 'random') {
-      timeoutId = setTimeout(() => { triggerRandomNext(); }, 800);
+      timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
     } else {
       stopAudio();
     }
@@ -759,10 +668,6 @@
     }
     currentIndex = nextIdx;
     currentRepeatCount = 0;
-    
-    // 初始化下一首語言起步步驟
-    if (displayMode === 'zh') currentLangStep = 'zh';
-    else currentLangStep = 'en';
     
     resetRevealState();
     renderCard();
@@ -784,9 +689,6 @@
     currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
     currentRepeatCount = 0;
     
-    if (displayMode === 'zh') currentLangStep = 'zh';
-    else currentLangStep = 'en';
-    
     resetRevealState();
     renderCard();
     
@@ -802,9 +704,6 @@
     
     currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
     currentRepeatCount = 0;
-    
-    if (displayMode === 'zh') currentLangStep = 'zh';
-    else currentLangStep = 'en';
     
     resetRevealState();
     renderCard();
@@ -836,11 +735,7 @@
   function changeDisplayMode(mode) {
     displayMode = mode;
     resetRevealState();
-    
-    if (mode === 'zh') currentLangStep = 'zh';
-    else currentLangStep = 'en';
-    
-    ['en', 'zh', 'all', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
+    ['mix', 'en', 'zh', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
     renderCard();
   }
 
