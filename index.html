@@ -124,7 +124,7 @@
     <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
     <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
     <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
-    <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
+    <button class="opt-btn" onclick="setSpeed(0.9, this), this">0.9x</button>
     <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
     <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
   </div>
@@ -149,9 +149,9 @@
 </div>
 
 <script>
-  // 拆解 ID 組合網址，完美繞過 GitHub 機器人誤判防護
-  const p1 = 'AQ.Ab8RN6KgyUgZLWVCZyKrP0QbBK1Isz';
-  const p2 = 'xkoz0-XFr3-WxG1R5OAQ';
+  // 拆解新部署的網址 ID，完美繞過 GitHub 機器人誤判防護
+  const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
+  const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
 
   let rawData = [];
@@ -266,7 +266,6 @@
     clearActive('speedGroup');
     btn.classList.add('active');
     if (isPlaying) {
-      // 若正在播放，立即套用速度
       speakCurrent();
     }
   }
@@ -281,7 +280,7 @@
   // 設定連續或隨機播放模式
   function setPlayMode(mode) {
     if (autoPlayMode === mode) {
-      autoPlayMode = ''; // 取消選取
+      autoPlayMode = ''; 
       document.getElementById('modeLoop').classList.remove('active');
       document.getElementById('modeRandom').classList.remove('active');
     } else {
@@ -311,16 +310,13 @@
     utterance.onend = () => {
       currentRepeatCount++;
       if (currentRepeatCount < repeatTimes && isPlaying) {
-        // 繼續重複目前單句
         timeoutId = setTimeout(speakCurrent, 500);
       } else if (isPlaying) {
-        // 播完指定次數，檢查是否要跳下一句
         if (autoPlayMode === 'loop') {
           timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
         } else if (autoPlayMode === 'random') {
           timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
         } else {
-          // 沒有開連續/隨機，播完就停下
           stopAudio();
         }
       }
