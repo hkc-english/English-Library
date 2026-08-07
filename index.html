@@ -37,11 +37,12 @@
     .mode-btn { flex: 1; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
     .mode-btn.active { background: #2563eb; color: #fff; }
 
+    /* 卡片加入游標指引，提示可以點擊 */
     .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; }
-    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; }
+    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
+    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
     
-    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; }
+    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
 
     .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
@@ -111,13 +112,10 @@
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
-  <div class="tool-bar">
-    <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
-  </div>
-
   <!-- ================= 聽力模式區塊 ================= -->
   <div id="listenSection">
-    <div style="font-size: 13px; color: #64748b; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    <!-- 移除原本夾在中間的共幾筆，並將後方 [類型] 完全移除 -->
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
     <div class="mode-group">
       <button class="mode-btn active" id="m-en" onclick="changeDisplayMode('en')">英文</button>
@@ -126,9 +124,10 @@
       <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
     </div>
 
+    <!-- 綁定點擊事件，實現點擊翻轉揭曉功能 -->
     <div class="card">
-      <div class="text-en" id="textEn">讀取中...</div>
-      <div class="text-zh" id="textZh">--</div>
+      <div class="text-en" id="textEn" onclick="toggleTextReveal('en')">讀取中...</div>
+      <div class="text-zh" id="textZh" onclick="toggleTextReveal('zh')">--</div>
       <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆☆</div>
     </div>
 
@@ -139,7 +138,6 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <!-- 文案已由「單句重複次數」修正為「重複次數」 -->
     <div class="section-title">重複次數</div>
     <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
@@ -175,6 +173,11 @@
 
   <!-- ================= 閱讀模式區塊 ================= -->
   <div id="readSection" class="hidden">
+    <!-- 將「共幾筆」獨立移到閱讀模式的最上方，保持資訊透明 -->
+    <div class="tool-bar">
+      <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
+    </div>
+
     <div class="sort-grid" id="sortGroup">
       <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
       <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
@@ -226,6 +229,10 @@
   let playStatus = 'stopped'; 
   let timeoutId = null;
   let currentSortMode = 'default'; 
+
+  // 新增：用來記錄目前當前句子是否被使用者點擊「強行翻開」揭曉的狀態
+  let isEnRevealed = false;
+  let isZhRevealed = false;
 
   const synth = window.speechSynthesis;
   let currentUtterance = null;
@@ -306,6 +313,7 @@
     }
 
     filteredData = temp;
+    resetRevealState(); // 切換或篩選時重置翻面狀態
     currentIndex = 0;
     
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
@@ -337,6 +345,51 @@
     applyFilters();
   }
 
+  function resetRevealState() {
+    isEnRevealed = false;
+    isZhRevealed = false;
+  }
+
+  // 精進第 1 方向：點擊文字區塊切換顯示/遮蔽狀態
+  function toggleTextReveal(type) {
+    if (filteredData.length === 0) return;
+    
+    if (type === 'en') {
+      // 只有在原本是隱藏模式下，點擊才有效（如果是正常顯示模式則不處理）
+      if (displayMode === 'zh' || displayMode === 'blind') {
+        isEnRevealed = !isEnRevealed;
+      }
+    } else if (type === 'zh') {
+      if (displayMode === 'en' || displayMode === 'blind') {
+        isZhRevealed = !isZhRevealed;
+      }
+    }
+    renderCardTextOnly(); // 局部刷新文字即可，不引發重新繪製與重置
+  }
+
+  // 獨立出純文字渲染邏輯，點擊揭曉時不影響其他 UI 狀態
+  function renderCardTextOnly() {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const en = item.英文 || item.english || '';
+    const zh = item.中文 || item.chinese || '';
+
+    // 判斷英文該顯示原文還是 •••
+    let finalEn = '•••';
+    if (displayMode === 'en' || displayMode === 'all' || isEnRevealed) {
+      finalEn = en;
+    }
+    
+    // 判斷中文該顯示原文還是 •••
+    let finalZh = '•••';
+    if (displayMode === 'zh' || displayMode === 'all' || isZhRevealed) {
+      finalZh = zh;
+    }
+
+    document.getElementById('textEn').innerText = finalEn;
+    document.getElementById('textZh').innerText = finalZh;
+  }
+
   function renderCard() {
     if (filteredData.length === 0) {
       document.getElementById('textEn').innerText = '無符合資料';
@@ -349,14 +402,12 @@
     if (currentIndex >= filteredData.length) currentIndex = 0;
 
     const item = filteredData[currentIndex];
-    const en = item.英文 || item.english || '';
-    const zh = item.中文 || item.chinese || '';
     const star = item.star;
-    const type = item.類型 || item.type || '未定';
 
-    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆 [${type}]`;
-    document.getElementById('textEn').innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
-    document.getElementById('textZh').innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
+    // 介面問題優化：完全移除後面的 [句子] 或 [單字] 連同括號
+    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
+    
+    renderCardTextOnly();
     document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
   }
 
@@ -597,6 +648,7 @@
     }
     currentIndex = nextIdx;
     currentRepeatCount = 0;
+    resetRevealState(); // 切下一首時，自動把上一首點開的遮蔽狀態重新蓋回去
     renderCard();
     speakCurrent();
   }
@@ -615,6 +667,7 @@
     
     currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
     currentRepeatCount = 0;
+    resetRevealState(); // 手動上一首/下一首也同樣重置遮蔽狀態
     renderCard();
     
     if (auto || playStatus === 'playing') {
@@ -629,6 +682,7 @@
     
     currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
     currentRepeatCount = 0;
+    resetRevealState();
     renderCard();
     
     if (playStatus === 'playing') {
@@ -657,6 +711,7 @@
 
   function changeDisplayMode(mode) {
     displayMode = mode;
+    resetRevealState(); // 切換模式時，也一併清空個人臨時點開的紀錄
     ['en', 'zh', 'all', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
     renderCard();
   }
