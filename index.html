@@ -19,15 +19,14 @@
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
-    .tool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 0 4px; }
-    .tool-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .tool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 0 4px; text-align: left; }
     
-    .sort-grid { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
-    .sort-btn { padding: 6px 10px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; display: flex; align-items: center; gap: 2px; }
+    .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; }
+    .sort-btn { padding: 8px 10px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .mode-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
-    .mode-btn { flex: 1; max-width: 75px; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .mode-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; }
+    .mode-btn { flex: 1; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
     .mode-btn.active { background: #2563eb; color: #fff; }
 
     .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
@@ -43,14 +42,14 @@
     .btn-play.is-playing { background: #f59e0b; color: #fff; }
     .btn-stop { background: #ef4444; color: #fff; }
 
-    .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; }
+    .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; text-align: center; }
 
-    .opt-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 5px; }
-    .opt-btn { padding: 6px 12px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; min-width: 45px; }
+    .opt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 5px; }
+    .opt-btn { padding: 8px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; text-align: center; }
     .opt-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     .play-mode-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
-    .btn-mode { padding: 6px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .btn-mode { padding: 8px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
     .btn-mode.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 0 8px rgba(37,99,235,0.3); }
 
     .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 55vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
@@ -62,7 +61,6 @@
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
     .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
-    /* 新增項目區塊樣式 */
     .add-box { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; }
     .add-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .add-input-group { display: flex; gap: 8px; }
@@ -92,15 +90,14 @@
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
   <div class="tool-bar">
-    <div class="tool-row-top">
-      <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 13px;">共 0 筆資料</div>
-    </div>
+    <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px; margin-bottom: 4px;">共 0 筆資料</div>
     <div class="sort-grid" id="sortGroup">
       <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
+      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
       <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
       <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
       <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
-      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
+      <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
     </div>
   </div>
 
@@ -129,23 +126,24 @@
     </div>
 
     <div class="section-title">單句重複次數</div>
-    <div class="opt-grid" id="repeatGroup">
+    <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
       <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
       <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
-      <button class="opt-btn" onclick="setRepeat(4, this)">4次</button>
-      <button class="opt-btn" onclick="setRepeat(5, this)">5次</button>
       <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
     </div>
 
+    <!-- 播放速度全面回歸，支援 0.5x 到 1.2x，共 8 個按鈕，對齊排版 -->
     <div class="section-title">播放速度</div>
-    <div class="opt-grid" id="speedGroup">
+    <div class="opt-grid" id="speedGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
       <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
       <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
       <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
       <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
       <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
+      <button class="opt-btn" onclick="setSpeed(1.1, this)">1.1x</button>
+      <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
     </div>
 
     <div class="play-mode-row">
@@ -154,23 +152,26 @@
     </div>
 
     <div class="section-title">播放間隔 (句/字之間)</div>
-    <div class="opt-grid" id="intervalGroup">
+    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
       <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
-      <button class="opt-btn active" onclick="setIntervalTime(2000, this)">2秒</button>
-      <button class="opt-btn" onclick="setIntervalTime(3000, this)">3秒</button>
+      <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
       <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
     </div>
   </div>
 
   <!-- ================= 閱讀模式區塊 ================= -->
   <div id="readSection" class="hidden">
+    <div class="mode-group" style="margin-bottom: 12px;">
+      <button class="mode-btn active" id="rm-all" onclick="changeReadDisplayMode('all')">英 + 中</button>
+      <button class="mode-btn" id="rm-en" onclick="changeReadDisplayMode('en')">僅看英文</button>
+      <button class="mode-btn" id="rm-zh" onclick="changeReadDisplayMode('zh')">僅看中文</button>
+    </div>
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- 全自動輸入區塊 -->
   <div class="add-box">
     <div class="add-title">
-      <span>⚡ 智能極速新增 (免打字其餘欄位)</span>
+      <span>⚡ 快速新增</span>
       <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
     </div>
     <div class="add-input-group">
@@ -190,11 +191,12 @@
   let currentIndex = 0;
   
   let displayMode = 'en'; 
+  let readDisplayMode = 'all'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
-  let playSpeed = 0.7;
+  let playSpeed = 0.7; // 預設跟著回到慢速的 0.7x 方便練習
   let autoPlayMode = ''; 
-  let intervalTime = 2000;
+  let intervalTime = 3000; 
   
   let playStatus = 'stopped'; 
   let timeoutId = null;
@@ -221,7 +223,6 @@
       rawData = await res.json();
       
       rawData.forEach((item, idx) => {
-        // 【對齊表頭】精準綁定你的試算表欄位名稱「熟悉度」
         let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 0;
         let starVal = parseInt(rawStar);
         if (isNaN(starVal) || starVal < 0) starVal = 0; 
@@ -256,6 +257,8 @@
 
     if (currentSortMode === 'az') {
       temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
+    } else if (currentSortMode === 'za') {
+      temp.sort((a, b) => (b.英文 || b.english || '').trim().toLowerCase().localeCompare((a.英文 || a.english || '').trim().toLowerCase()));
     } else if (currentSortMode === 'random') {
       temp.sort(() => Math.random() - 0.5);
     } else if (currentSortMode === 'star-asc') {
@@ -302,7 +305,6 @@
     document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
   }
 
-  // 修改星星時同步發送請求回後台保存
   async function handleStarClick(e) {
     if (filteredData.length === 0) return;
     const starEl = e.currentTarget;
@@ -320,7 +322,6 @@
     renderCard();
     renderReadList();
 
-    // 發送同步請求給 GAS
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -355,10 +356,14 @@
       
       const div = document.createElement('div');
       div.className = 'read-item';
+      
+      let showEn = (readDisplayMode === 'all' || readDisplayMode === 'en') ? `<div class="en">${index + 1}. ${en}</div>` : '';
+      let showZh = (readDisplayMode === 'all' || readDisplayMode === 'zh') ? `<div class="zh">${readDisplayMode === 'zh' ? (index + 1) + '. ' : ''}${zh}</div>` : '';
+      
       div.innerHTML = `
         <div class="read-content">
-          <div class="en">${index + 1}. ${en}</div>
-          <div class="zh">${zh}</div>
+          ${showEn}
+          ${showZh}
           <div class="meta"><span>🏷️ ${cat} (${type})</span><span style="color: #f59e0b;">${'★'.repeat(star)}</span></div>
         </div>
       `;
@@ -373,7 +378,12 @@
     });
   }
 
-  // 點選送出英文的動作處理
+  function changeReadDisplayMode(mode) {
+    readDisplayMode = mode;
+    ['all', 'en', 'zh'].forEach(m => document.getElementById(`rm-${m}`).classList.toggle('active', m === mode));
+    renderReadList();
+  }
+
   async function submitNewEnglish() {
     const inputEl = document.getElementById('newEnglishInput');
     const btnEl = document.getElementById('submitAddBtn');
@@ -384,7 +394,7 @@
 
     inputEl.disabled = true;
     btnEl.disabled = true;
-    statusEl.innerText = '⏳ AI 生成欄位並同步中...';
+    statusEl.innerText = '⏳ 同步中...';
     statusEl.style.color = '#2563eb';
 
     try {
@@ -399,10 +409,9 @@
       const result = await response.json();
       
       if (result.status === 'success') {
-        statusEl.innerText = '✅ 新增成功！';
+        statusEl.innerText = '✅ 成功！';
         statusEl.style.color = '#16a34a';
         inputEl.value = '';
-        // 延遲一秒重新載入資料刷新畫面
         setTimeout(() => {
           statusEl.innerText = '';
           loadSheetData();
@@ -411,7 +420,7 @@
         throw new Error(result.message || '未知錯誤');
       }
     } catch (err) {
-      statusEl.innerText = '❌ 新增失敗，請確認後端部署。';
+      statusEl.innerText = '❌ 失敗';
       statusEl.style.color = '#ef4444';
       console.error(err);
     } finally {
@@ -484,7 +493,6 @@
     if (targetVoice) utterance.voice = targetVoice;
     utterance.lang = 'en-US';
     utterance.rate = playSpeed;
-    if (playSpeed < 1.0) utterance.pitch = 1.05; 
 
     utterance.onend = () => {
       if (playStatus !== 'playing') return;
