@@ -15,13 +15,18 @@
     .tab-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active { background: #2563eb; color: #fff; }
 
-    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
+    .search-row { display: flex; align-items: center; width: 100%; gap: 8px; }
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
+    /* 聽力專用弱項過濾器 */
+    .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
+    .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
+
     .tool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 0 4px; text-align: left; }
     
-    .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; }
+    .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin-bottom: 12px; }
     .sort-btn { padding: 8px 10px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
@@ -52,12 +57,12 @@
     .btn-mode { padding: 8px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
     .btn-mode.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 0 8px rgba(37,99,235,0.3); }
 
-    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 55vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
+    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 48vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
     .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
     .read-item:hover { background: #f1f5f9; }
     .read-content { flex: 1; padding-right: 10px; }
-    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; }
-    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; }
+    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
+    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
     .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
@@ -83,22 +88,21 @@
   </div>
 
   <div class="filter-box">
-    <span class="filter-label">🔍 快速搜尋：</span>
-    <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
+    <div class="search-row">
+      <span class="filter-label">🔍 快速搜尋：</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
+    </div>
+    <!-- 聽力加強過濾：只聽弱項 -->
+    <div class="weak-filter-row" id="weakFilterRow">
+      <input type="checkbox" id="onlyWeakCheck" class="weak-checkbox" onchange="applyFilters()">
+      <label Kakao for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星已熟悉的句子)</label>
+    </div>
   </div>
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
   <div class="tool-bar">
-    <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px; margin-bottom: 4px;">共 0 筆資料</div>
-    <div class="sort-grid" id="sortGroup">
-      <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
-      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
-      <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
-      <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
-      <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
-      <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
-    </div>
+    <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
   </div>
 
   <!-- ================= 聽力模式區塊 ================= -->
@@ -133,7 +137,6 @@
       <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
     </div>
 
-    <!-- 播放速度全面回歸，支援 0.5x 到 1.2x，共 8 個按鈕，對齊排版 -->
     <div class="section-title">播放速度</div>
     <div class="opt-grid" id="speedGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
@@ -161,6 +164,16 @@
 
   <!-- ================= 閱讀模式區塊 ================= -->
   <div id="readSection" class="hidden">
+    <!-- 排序按鈕收納在此，僅在閱讀瀏覽時使用 -->
+    <div class="sort-grid" id="sortGroup">
+      <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
+      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
+      <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
+      <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
+      <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
+      <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
+    </div>
+
     <div class="mode-group" style="margin-bottom: 12px;">
       <button class="mode-btn active" id="rm-all" onclick="changeReadDisplayMode('all')">英 + 中</button>
       <button class="mode-btn" id="rm-en" onclick="changeReadDisplayMode('en')">僅看英文</button>
@@ -190,11 +203,12 @@
   let filteredData = [];
   let currentIndex = 0;
   
+  let currentTab = 'listen';
   let displayMode = 'en'; 
   let readDisplayMode = 'all'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
-  let playSpeed = 0.7; // 預設跟著回到慢速的 0.7x 方便練習
+  let playSpeed = 0.7; 
   let autoPlayMode = ''; 
   let intervalTime = 3000; 
   
@@ -242,8 +256,10 @@
 
   function applyFilters() {
     const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
+    const onlyWeak = document.getElementById('onlyWeakCheck').checked;
 
     let temp = rawData.filter(item => {
+      // 關鍵字搜尋
       if (searchKeyword) {
         const en = (item.英文 || item.english || '').toLowerCase();
         const zh = (item.中文 || item.chinese || '').toLowerCase();
@@ -252,9 +268,16 @@
           return false;
         }
       }
+      
+      // 聽力優化：如果是聽力模式且開啟「僅聽弱項」，排除大於等於 4 星的成熟資料
+      if (currentTab === 'listen' && onlyWeak) {
+        if (item.star >= 4) return false;
+      }
+
       return true;
     });
 
+    // 排序只影響閱讀模式或全域資料基底
     if (currentSortMode === 'az') {
       temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
     } else if (currentSortMode === 'za') {
@@ -568,11 +591,17 @@
   });
 
   function switchTab(tab) {
+    currentTab = tab;
     document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    if (tab === 'read') stopAudio();
+    
+    // 控制弱項過濾勾選列的顯示與隱藏
+    document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
+    
+    stopAudio();
+    applyFilters();
   }
 
   function changeDisplayMode(mode) {
