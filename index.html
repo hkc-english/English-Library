@@ -20,6 +20,11 @@
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
+    /* 類型篩選格 */
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
+    .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
+    .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
     /* 聽力專用弱項過濾器 */
     .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
     .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
@@ -92,10 +97,19 @@
       <span class="filter-label">🔍 快速搜尋：</span>
       <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
     </div>
-    <!-- 聽力加強過濾：只聽弱項 -->
+    
+    <!-- 類型篩選按鈕列 -->
+    <div class="type-grid" id="typeGroup">
+      <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
+      <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
+      <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
+      <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
+    </div>
+
+    <!-- 聽力加強過濾（已修正為保留排除4~5星） -->
     <div class="weak-filter-row" id="weakFilterRow">
       <input type="checkbox" id="onlyWeakCheck" class="weak-checkbox" onchange="applyFilters()">
-      <label Kakao for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星已熟悉的句子)</label>
+      <label for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星)</label>
     </div>
   </div>
 
@@ -154,7 +168,7 @@
       <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
     </div>
 
-    <div class="section-title">播放間隔 (句/字之間)</div>
+    <div class="section-title">播放間隔</div>
     <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
       <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
       <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
@@ -164,7 +178,6 @@
 
   <!-- ================= 閱讀模式區塊 ================= -->
   <div id="readSection" class="hidden">
-    <!-- 排序按鈕收納在此，僅在閱讀瀏覽時使用 -->
     <div class="sort-grid" id="sortGroup">
       <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
       <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
@@ -211,6 +224,7 @@
   let playSpeed = 0.7; 
   let autoPlayMode = ''; 
   let intervalTime = 3000; 
+  let selectedTypeFilter = 'all'; 
   
   let playStatus = 'stopped'; 
   let timeoutId = null;
@@ -259,7 +273,13 @@
     const onlyWeak = document.getElementById('onlyWeakCheck').checked;
 
     let temp = rawData.filter(item => {
-      // 關鍵字搜尋
+      // 1. 類型篩選
+      if (selectedTypeFilter !== 'all') {
+        const itemType = (item.類型 || item.type || '').trim();
+        if (itemType !== selectedTypeFilter) return false;
+      }
+
+      // 2. 關鍵字搜尋
       if (searchKeyword) {
         const en = (item.英文 || item.english || '').toLowerCase();
         const zh = (item.中文 || item.chinese || '').toLowerCase();
@@ -269,7 +289,7 @@
         }
       }
       
-      // 聽力優化：如果是聽力模式且開啟「僅聽弱項」，排除大於等於 4 星的成熟資料
+      // 3. 聽力弱項過濾 (排除 4~5 星)
       if (currentTab === 'listen' && onlyWeak) {
         if (item.star >= 4) return false;
       }
@@ -277,7 +297,7 @@
       return true;
     });
 
-    // 排序只影響閱讀模式或全域資料基底
+    // 排序處理
     if (currentSortMode === 'az') {
       temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
     } else if (currentSortMode === 'za') {
@@ -298,6 +318,19 @@
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
     renderCard();
     renderReadList();
+  }
+
+  function changeTypeFilter(type) {
+    selectedTypeFilter = type;
+    document.querySelectorAll('#typeGroup .type-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'all') document.getElementById('type-all').classList.add('active');
+    else if (type === '單字') document.getElementById('type-word').classList.add('active');
+    else if (type === '片語') document.getElementById('type-phrase').classList.add('active');
+    else if (type === '句子') document.getElementById('type-sentence').classList.add('active');
+    
+    if (playStatus === 'playing') stopAudio();
+    applyFilters();
   }
 
   function changeSortMode(mode) {
@@ -597,7 +630,6 @@
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
     
-    // 控制弱項過濾勾選列的顯示與隱藏
     document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
     
     stopAudio();
