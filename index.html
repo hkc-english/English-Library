@@ -139,7 +139,8 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <div class="section-title">單句重複次數</div>
+    <!-- 文案已由「單句重複次數」修正為「重複次數」 -->
+    <div class="section-title">重複次數</div>
     <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
       <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
       <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
@@ -227,7 +228,7 @@
   let currentSortMode = 'default'; 
 
   const synth = window.speechSynthesis;
-  let currentUtterance = null; // 強固的全域參考，防止被垃圾回收
+  let currentUtterance = null;
   let targetVoice = null;
 
   function loadVoices() {
@@ -309,7 +310,6 @@
     
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
     
-    // 如果在播放中更改了篩選條件，主動停止語音防止錯亂
     if (playStatus === 'playing' || playStatus === 'paused') {
       stopAudio();
     }
@@ -435,8 +435,6 @@
 
   function changeReadDisplayMode(mode) {
     readDisplayMode = mode;
-    ['all', 'en', 'zh'].forEach(m => document.getElementById(`rm-${m}`).toggleAttribute('active', m === mode));
-    // 同步修正 active Class
     ['all', 'en', 'zh'].forEach(m => {
       const btn = document.getElementById(`rm-${m}`);
       if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
@@ -509,7 +507,6 @@
     } else if (playStatus === 'paused') {
       playStatus = 'playing';
       updatePlayButtonUI();
-      // 在某些瀏覽器 resume 可能失效，安全的做法是直接重新播放當前句子
       if (synth.paused) {
         synth.resume();
       }
@@ -553,7 +550,7 @@
     const item = filteredData[currentIndex];
     const en = item.英文 || item.english || '';
 
-    synth.cancel(); // 確保清除前一個語音序列
+    synth.cancel();
 
     currentUtterance = new SpeechSynthesisUtterance(en);
     if (targetVoice) currentUtterance.voice = targetVoice;
@@ -561,16 +558,13 @@
     currentUtterance.rate = playSpeed;
 
     currentUtterance.onend = () => {
-      // 確保只有在播放狀態下才啟動下一階段計時
       if (playStatus !== 'playing') return; 
       
       currentRepeatCount++;
       if (currentRepeatCount < repeatTimes) {
-        // 單句重複之間的極短間隔（0.4秒），不需要套用大間隔
         timeoutId = setTimeout(() => { speakCurrent(); }, 400);
       } else {
-        // 單句重複次數已滿，判斷是否切換下一句
-        currentRepeatCount = 0; // 重置計時器
+        currentRepeatCount = 0; 
         
         if (autoPlayMode === 'loop') {
           timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
@@ -584,7 +578,6 @@
 
     currentUtterance.onerror = (event) => {
       console.error('語音播放錯誤:', event);
-      // 避免因為不影響大局的錯誤（例如被 cancel）導致整個排程永久死鎖
       if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
         stopAudio();
       }
@@ -673,7 +666,7 @@
     clearActive('repeatGroup'); 
     btn.classList.add('active'); 
     if (playStatus === 'playing') {
-      currentRepeatCount = 0; // 重製次數從新計算
+      currentRepeatCount = 0; 
       speakCurrent();
     }
   }
