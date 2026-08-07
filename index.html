@@ -62,7 +62,13 @@
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
     .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
-    .btn-add { width: 100%; max-width: 280px; margin-top: 20px; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 6px; }
+    /* 新增項目區塊樣式 */
+    .add-box { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; }
+    .add-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .add-input-group { display: flex; gap: 8px; }
+    .add-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; font-weight: bold; }
+    .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap; }
+    .btn-submit-add:disabled { background: #94a3b8; cursor: not-allowed; }
 
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
@@ -161,7 +167,17 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <button class="btn-add">➕ 新增項目 (單字/片語/句子)</button>
+  <!-- 全自動輸入區塊 -->
+  <div class="add-box">
+    <div class="add-title">
+      <span>⚡ 智能極速新增 (免打字其餘欄位)</span>
+      <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
+    </div>
+    <div class="add-input-group">
+      <input type="text" id="newEnglishInput" class="add-input" placeholder="請輸入英文單字、片語或句子...">
+      <button class="btn-submit-add" id="submitAddBtn" onclick="submitNewEnglish()">送出</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -205,11 +221,9 @@
       rawData = await res.json();
       
       rawData.forEach((item, idx) => {
-        // 【核心修正】極大化欄位容錯率，支援所有中英文可能出現的欄位名稱
-        let rawStar = item.star ?? item.星級 ?? item.評價 ?? item.熟悉度 ?? item.掌握度 ?? item.分數 ?? null;
-        let starVal = rawStar !== null ? parseInt(rawStar) : 0;
-        
-        // 只有在試算表完全沒有這欄、或抓到完全不合理的負數時才預設為 0
+        // 【對齊表頭】精準綁定你的試算表欄位名稱「熟悉度」
+        let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 0;
+        let starVal = parseInt(rawStar);
         if (isNaN(starVal) || starVal < 0) starVal = 0; 
         
         item.star = starVal;
@@ -230,9 +244,9 @@
 
     let temp = rawData.filter(item => {
       if (searchKeyword) {
-        const en = (item.english || item.英文 || '').toLowerCase();
-        const zh = (item.chinese || item.中文 || '').toLowerCase();
-        const cat = (item.category || item.分類 || item.情境 || '').toLowerCase();
+        const en = (item.英文 || item.english || '').toLowerCase();
+        const zh = (item.中文 || item.chinese || '').toLowerCase();
+        const cat = (item['標籤(情境分類)'] || item.category || item.分類 || '').toLowerCase();
         if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.includes(searchKeyword)) {
           return false;
         }
@@ -241,7 +255,7 @@
     });
 
     if (currentSortMode === 'az') {
-      temp.sort((a, b) => (a.english || a.英文 || '').trim().toLowerCase().localeCompare((b.english || b.英文 || '').trim().toLowerCase()));
+      temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
     } else if (currentSortMode === 'random') {
       temp.sort(() => Math.random() - 0.5);
     } else if (currentSortMode === 'star-asc') {
@@ -277,10 +291,10 @@
     }
 
     const item = filteredData[currentIndex];
-    const en = item.english || item.英文 || '';
-    const zh = item.chinese || item.中文 || '';
+    const en = item.英文 || item.english || '';
+    const zh = item.中文 || item.chinese || '';
     const star = item.star;
-    const type = item.type || item.型態 || item.類型 || '句子';
+    const type = item.類型 || item.type || '未定';
 
     document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆 [${type}]`;
     document.getElementById('textEn').innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
@@ -288,7 +302,8 @@
     document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
   }
 
-  function handleStarClick(e) {
+  // 修改星星時同步發送請求回後台保存
+  async function handleStarClick(e) {
     if (filteredData.length === 0) return;
     const starEl = e.currentTarget;
     const rect = starEl.getBoundingClientRect();
@@ -300,12 +315,26 @@
 
     const currentItem = filteredData[currentIndex];
     currentItem.star = newStar;
+    currentItem.熟悉度 = newStar;
     
-    const rawItem = rawData.find(r => r.originalIndex === currentItem.originalIndex);
-    if (rawItem) rawItem.star = newStar;
-
     renderCard();
     renderReadList();
+
+    // 發送同步請求給 GAS
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateStar',
+          id: currentItem.ID,
+          star: newStar
+        })
+      });
+    } catch (err) {
+      console.error('同步熟悉度失敗', err);
+    }
   }
 
   function renderReadList() {
@@ -318,11 +347,11 @@
     }
 
     filteredData.forEach((item, index) => {
-      const en = item.english || item.英文 || '';
-      const zh = item.chinese || item.中文 || '';
+      const en = item.英文 || item.english || '';
+      const zh = item.中文 || item.chinese || '';
       const star = item.star;
-      const cat = item.category || item.分類 || item.情境 || '未分類';
-      const type = item.type || item.型態 || item.類型 || '句子';
+      const cat = item['標籤(情境分類)'] || item.category || '未分類';
+      const type = item.類型 || item.type || '未定';
       
       const div = document.createElement('div');
       div.className = 'read-item';
@@ -342,6 +371,53 @@
       div.appendChild(pBtn);
       listContainer.appendChild(div);
     });
+  }
+
+  // 點選送出英文的動作處理
+  async function submitNewEnglish() {
+    const inputEl = document.getElementById('newEnglishInput');
+    const btnEl = document.getElementById('submitAddBtn');
+    const statusEl = document.getElementById('addStatus');
+    const text = inputEl.value.trim();
+
+    if (!text) return;
+
+    inputEl.disabled = true;
+    btnEl.disabled = true;
+    statusEl.innerText = '⏳ AI 生成欄位並同步中...';
+    statusEl.style.color = '#2563eb';
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'addEnglish',
+          english: text
+        })
+      });
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        statusEl.innerText = '✅ 新增成功！';
+        statusEl.style.color = '#16a34a';
+        inputEl.value = '';
+        // 延遲一秒重新載入資料刷新畫面
+        setTimeout(() => {
+          statusEl.innerText = '';
+          loadSheetData();
+        }, 1200);
+      } else {
+        throw new Error(result.message || '未知錯誤');
+      }
+    } catch (err) {
+      statusEl.innerText = '❌ 新增失敗，請確認後端部署。';
+      statusEl.style.color = '#ef4444';
+      console.error(err);
+    } finally {
+      inputEl.disabled = false;
+      btnEl.disabled = false;
+    }
   }
 
   function speakDirect(text) {
@@ -401,7 +477,7 @@
     if (timeoutId) clearTimeout(timeoutId);
 
     const item = filteredData[currentIndex];
-    const en = item.english || item.英文 || '';
+    const en = item.英文 || item.english || '';
 
     synth.cancel();
     utterance = new SpeechSynthesisUtterance(en);
