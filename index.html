@@ -20,12 +20,10 @@
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
-    /* 類型篩選格 */
     .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
     .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 聽力專用弱項過濾器 */
     .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
     .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
 
@@ -98,7 +96,6 @@
       <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
     </div>
     
-    <!-- 類型篩選按鈕列 -->
     <div class="type-grid" id="typeGroup">
       <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
       <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
@@ -106,7 +103,6 @@
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
 
-    <!-- 聽力加強過濾（已修正為保留排除4~5星） -->
     <div class="weak-filter-row" id="weakFilterRow">
       <input type="checkbox" id="onlyWeakCheck" class="weak-checkbox" onchange="applyFilters()">
       <label for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星)</label>
@@ -231,7 +227,7 @@
   let currentSortMode = 'default'; 
 
   const synth = window.speechSynthesis;
-  let utterance = null;
+  let currentUtterance = null; // 強固的全域參考，防止被垃圾回收
   let targetVoice = null;
 
   function loadVoices() {
@@ -273,13 +269,11 @@
     const onlyWeak = document.getElementById('onlyWeakCheck').checked;
 
     let temp = rawData.filter(item => {
-      // 1. 類型篩選
       if (selectedTypeFilter !== 'all') {
         const itemType = (item.類型 || item.type || '').trim();
         if (itemType !== selectedTypeFilter) return false;
       }
 
-      // 2. 關鍵字搜尋
       if (searchKeyword) {
         const en = (item.英文 || item.english || '').toLowerCase();
         const zh = (item.中文 || item.chinese || '').toLowerCase();
@@ -289,7 +283,6 @@
         }
       }
       
-      // 3. 聽力弱項過濾 (排除 4~5 星)
       if (currentTab === 'listen' && onlyWeak) {
         if (item.star >= 4) return false;
       }
@@ -297,7 +290,6 @@
       return true;
     });
 
-    // 排序處理
     if (currentSortMode === 'az') {
       temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
     } else if (currentSortMode === 'za') {
@@ -316,6 +308,12 @@
     currentIndex = 0;
     
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
+    
+    // 如果在播放中更改了篩選條件，主動停止語音防止錯亂
+    if (playStatus === 'playing' || playStatus === 'paused') {
+      stopAudio();
+    }
+    
     renderCard();
     renderReadList();
   }
@@ -329,7 +327,6 @@
     else if (type === '片語') document.getElementById('type-phrase').classList.add('active');
     else if (type === '句子') document.getElementById('type-sentence').classList.add('active');
     
-    if (playStatus === 'playing') stopAudio();
     applyFilters();
   }
 
@@ -348,6 +345,8 @@
       document.getElementById('infoText').innerText = '第 0 / 0 筆';
       return;
     }
+
+    if (currentIndex >= filteredData.length) currentIndex = 0;
 
     const item = filteredData[currentIndex];
     const en = item.英文 || item.english || '';
@@ -436,7 +435,12 @@
 
   function changeReadDisplayMode(mode) {
     readDisplayMode = mode;
-    ['all', 'en', 'zh'].forEach(m => document.getElementById(`rm-${m}`).classList.toggle('active', m === mode));
+    ['all', 'en', 'zh'].forEach(m => document.getElementById(`rm-${m}`).toggleAttribute('active', m === mode));
+    // 同步修正 active Class
+    ['all', 'en', 'zh'].forEach(m => {
+      const btn = document.getElementById(`rm-${m}`);
+      if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
+    });
     renderReadList();
   }
 
@@ -500,18 +504,23 @@
     if (playStatus === 'playing') {
       playStatus = 'paused';
       synth.pause();
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
       updatePlayButtonUI();
     } else if (playStatus === 'paused') {
       playStatus = 'playing';
-      synth.resume();
-      if (!synth.speaking) speakCurrent();
       updatePlayButtonUI();
+      // 在某些瀏覽器 resume 可能失效，安全的做法是直接重新播放當前句子
+      if (synth.paused) {
+        synth.resume();
+      }
+      if (!synth.speaking) {
+        speakCurrent();
+      }
     } else {
       playStatus = 'playing';
       currentRepeatCount = 0;
-      speakCurrent();
       updatePlayButtonUI();
+      speakCurrent();
     }
   }
 
@@ -531,31 +540,38 @@
 
   function stopAudio() {
     playStatus = 'stopped';
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
     synth.cancel();
-    if (timeoutId) clearTimeout(timeoutId);
     currentRepeatCount = 0;
     updatePlayButtonUI();
   }
 
   function speakCurrent() {
     if (filteredData.length === 0 || playStatus !== 'playing') return;
-    if (timeoutId) clearTimeout(timeoutId);
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
 
     const item = filteredData[currentIndex];
     const en = item.英文 || item.english || '';
 
-    synth.cancel();
-    utterance = new SpeechSynthesisUtterance(en);
-    if (targetVoice) utterance.voice = targetVoice;
-    utterance.lang = 'en-US';
-    utterance.rate = playSpeed;
+    synth.cancel(); // 確保清除前一個語音序列
 
-    utterance.onend = () => {
-      if (playStatus !== 'playing') return;
+    currentUtterance = new SpeechSynthesisUtterance(en);
+    if (targetVoice) currentUtterance.voice = targetVoice;
+    currentUtterance.lang = 'en-US';
+    currentUtterance.rate = playSpeed;
+
+    currentUtterance.onend = () => {
+      // 確保只有在播放狀態下才啟動下一階段計時
+      if (playStatus !== 'playing') return; 
+      
       currentRepeatCount++;
       if (currentRepeatCount < repeatTimes) {
-        timeoutId = setTimeout(speakCurrent, 500);
+        // 單句重複之間的極短間隔（0.4秒），不需要套用大間隔
+        timeoutId = setTimeout(() => { speakCurrent(); }, 400);
       } else {
+        // 單句重複次數已滿，判斷是否切換下一句
+        currentRepeatCount = 0; // 重置計時器
+        
         if (autoPlayMode === 'loop') {
           timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
         } else if (autoPlayMode === 'random') {
@@ -566,15 +582,22 @@
       }
     };
 
-    utterance.onerror = () => {
-      if (playStatus === 'playing' && synth.speaking === false) stopAudio();
+    currentUtterance.onerror = (event) => {
+      console.error('語音播放錯誤:', event);
+      // 避免因為不影響大局的錯誤（例如被 cancel）導致整個排程永久死鎖
+      if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
+        stopAudio();
+      }
     };
 
-    synth.speak(utterance);
+    synth.speak(currentUtterance);
   }
 
   function triggerRandomNext() {
-    if (filteredData.length <= 1) return;
+    if (filteredData.length <= 1) {
+      speakCurrent();
+      return;
+    }
     let nextIdx = currentIndex;
     while (nextIdx === currentIndex) {
       nextIdx = Math.floor(Math.random() * filteredData.length);
@@ -591,17 +614,17 @@
     btn.classList.add('active');
     if (playStatus === 'playing') {
       speakCurrent();
-    } else if (playStatus === 'paused') {
-      synth.cancel();
     }
   }
 
   function nextSentence(auto = false) {
     if (filteredData.length === 0) return;
+    
     currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
     currentRepeatCount = 0;
     renderCard();
-    if ((auto || playStatus === 'playing') && autoPlayMode !== 'random') {
+    
+    if (auto || playStatus === 'playing') {
       playStatus = 'playing';
       updatePlayButtonUI();
       speakCurrent();
@@ -610,10 +633,14 @@
 
   function prevSentence() {
     if (filteredData.length === 0) return;
+    
     currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
     currentRepeatCount = 0;
     renderCard();
-    if (playStatus === 'playing') speakCurrent();
+    
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
   }
 
   document.addEventListener('keydown', (e) => {
@@ -629,7 +656,6 @@
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    
     document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
     
     stopAudio();
@@ -642,8 +668,21 @@
     renderCard();
   }
 
-  function setRepeat(times, btn) { repeatTimes = times; clearActive('repeatGroup'); btn.classList.add('active'); }
-  function setIntervalTime(ms, btn) { intervalTime = ms; clearActive('intervalGroup'); btn.classList.add('active'); }
+  function setRepeat(times, btn) { 
+    repeatTimes = times; 
+    clearActive('repeatGroup'); 
+    btn.classList.add('active'); 
+    if (playStatus === 'playing') {
+      currentRepeatCount = 0; // 重製次數從新計算
+      speakCurrent();
+    }
+  }
+  
+  function setIntervalTime(ms, btn) { 
+    intervalTime = ms; 
+    clearActive('intervalGroup'); 
+    btn.classList.add('active'); 
+  }
   
   function setPlayMode(mode) {
     if (autoPlayMode === mode) {
@@ -657,7 +696,9 @@
     }
   }
 
-  function clearActive(parentId) { document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); }
+  function clearActive(parentId) { 
+    document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); 
+  }
 
   loadSheetData();
 </script>
