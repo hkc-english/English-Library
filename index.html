@@ -45,14 +45,13 @@
     /* 可點擊點選的星星熟悉度 */
     .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; }
 
-    /* 控制按鈕組 */
-    .control-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
-    .btn { padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+    /* 控制按鈕組 (簡化版面) */
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
     .btn-nav { background: #e2e8f0; color: #475569; }
-    .btn-play { background: #2563eb; color: #fff; padding: 8px 20px; font-size: 15px; }
-    .btn-pause { background: #f59e0b; color: #fff; }
+    .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
+    .btn-play.is-playing { background: #f59e0b; color: #fff; } /* 暫停狀態樣式 */
     .btn-stop { background: #ef4444; color: #fff; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* 設定區塊標題 */
     .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; }
@@ -95,7 +94,7 @@
     <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
   </div>
 
-  <!-- 篩選範圍與搜尋列 -->
+  <!-- 篩選範圍與搜尋列 (移除重複的星級選擇) -->
   <div class="filter-box">
     <div class="filter-row">
       <span class="filter-label">🎯 播放範圍：</span>
@@ -103,15 +102,14 @@
         <option value="全部顯示">全部顯示</option>
       </select>
     </div>
-    <!-- 搜尋框只在有需要時或閱讀模式時輔助，此處全域保留方便隨時使用 -->
-    <div class="filter-row id-search-row">
+    <div class="filter-row">
       <span class="filter-label">🔍 搜尋關鍵字：</span>
       <input type="text" id="searchInput" class="search-input" placeholder="輸入中/英文/情境..." oninput="applyFilters()">
     </div>
   </div>
 
-  <!-- 狀態提示（錯誤時顯示） -->
-  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認 試算表部署網址 是否正確。</div>
+  <!-- 狀態提示 -->
+  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
   <!-- ================= 聽力模式區塊 ================= -->
   <div id="listenSection">
@@ -131,18 +129,15 @@
     <div class="card">
       <div class="text-en" id="textEn">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
-      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆•</div>
+      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆☆</div>
     </div>
 
-    <!-- 上下句與主播放控制 -->
+    <!-- 優化後的核心控制列：上一句、播放/暫停、停止、下一句 -->
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-      <button class="btn btn-play" id="playBtn" onclick="togglePlay()">🔊 播放</button>
-      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
-    </div>
-    <div class="control-row">
-      <button class="btn btn-pause" onclick="pauseAudio()">⏸ 暫停</button>
+      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
       <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
     <!-- 單句重複次數 -->
@@ -192,13 +187,13 @@
       <div class="tool-row-top">
         <div id="readCount" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
       </div>
-      <!-- 高級排序控制列 -->
+      <!-- 乾淨無重複的高級排序按鈕 -->
       <div class="sort-grid" id="sortGroup">
         <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
         <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
         <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
         <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機</button>
-        <button class="sort-btn" id="sort-star" onclick="changeSortMode('star')">⭐ 熟悉度</button>
+        <button class="sort-btn" id="sort-star" onclick="changeSortMode('star')">⭐ 熟悉度 (高➔低)</button>
       </div>
     </div>
     <div class="read-list" id="readList"></div>
@@ -209,7 +204,6 @@
 </div>
 
 <script>
-  // 拆解部署網址 ID
   const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
   const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
@@ -218,16 +212,16 @@
   let filteredData = [];
   let currentIndex = 0;
   
-  // 播放與顯示設定參數
   let displayMode = 'en'; 
   let repeatTimes = 1;
   let currentRepeatCount = 0;
   let playSpeed = 0.7;
   let autoPlayMode = ''; 
   let intervalTime = 2000;
-  let isPlaying = false;
+  
+  let playStatus = 'stopped'; // 'stopped', 'playing', 'paused'
   let timeoutId = null;
-  let currentSortMode = 'default'; // 'default', 'az', 'za', 'random', 'star'
+  let currentSortMode = 'default'; 
 
   const synth = window.speechSynthesis;
   let utterance = null;
@@ -244,18 +238,14 @@
   }
   loadVoices();
 
-  // 載入試算表資料
   async function loadSheetData() {
     try {
       const res = await fetch(API_URL);
       rawData = await res.json();
       
-      // 【規格修正】預設熟悉度至少為 1 星
       rawData.forEach((item, idx) => {
         let starVal = parseInt(item.star || item.星級 || item.評價 || 0);
-        if (starVal < 1) {
-          starVal = 1;
-        }
+        if (starVal < 1) starVal = 1; // 預設至少 1 星
         item.star = starVal;
         item.originalIndex = idx;
       });
@@ -270,55 +260,32 @@
     }
   }
 
-  // 初始化範圍下拉選單 (支援情境分類與星級篩選)
   function initCategories() {
     const categories = new Set();
     rawData.forEach(item => {
-      // 相容多元欄位命名：分類、category、情境
       const cat = item.category || item.分類 || item.情境;
       if (cat) categories.add(cat.trim());
     });
 
     const select = document.getElementById('categorySelect');
     select.innerHTML = '<option value="全部顯示">全部顯示</option>';
-    
-    // 加入情境分類標籤
     categories.forEach(cat => {
       const opt = document.createElement('option');
       opt.value = cat;
-      opt.innerText = `🏷️ 分類: ${cat}`;
+      opt.innerText = `🏷️ ${cat}`;
       select.appendChild(opt);
     });
-
-    // 加入星級篩選選項，達成「播放範圍自訂選擇」
-    for(let s=1; s<=5; s++) {
-      const opt = document.createElement('option');
-      opt.value = `STAR_${s}`;
-      opt.innerText = `⭐ 熟悉度: ${s} 星`;
-      select.appendChild(opt);
-    }
   }
 
-  // 篩選過濾與高級排序資料
   function applyFilters() {
     const selectedCat = document.getElementById('categorySelect').value;
     const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
 
     let temp = rawData.filter(item => {
-      // 1. 分類/範圍篩選
       const cat = (item.category || item.分類 || item.情境 || '').trim();
-      const star = item.star;
       
-      if (selectedCat !== '全部顯示') {
-        if (selectedCat.startsWith('STAR_')) {
-          const targetStar = parseInt(selectedCat.split('_')[1]);
-          if (star !== targetStar) return false;
-        } else {
-          if (cat !== selectedCat) return false;
-        }
-      }
+      if (selectedCat !== '全部顯示' && cat !== selectedCat) return false;
 
-      // 2. 關鍵字搜尋篩選 (支援情境、英文、中文)
       if (searchKeyword) {
         const en = (item.english || item.英文 || '').toLowerCase();
         const zh = (item.chinese || item.中文 || '').toLowerCase();
@@ -329,26 +296,15 @@
       return true;
     });
 
-    // 3. 處理進階排序多功能
     if (currentSortMode === 'az') {
-      temp.sort((a, b) => {
-        const enA = (a.english || a.英文 || '').trim().toLowerCase();
-        const enB = (b.english || b.英文 || '').trim().toLowerCase();
-        return enA.localeCompare(enB);
-      });
+      temp.sort((a, b) => (a.english || a.英文 || '').trim().toLowerCase().localeCompare((b.english || b.英文 || '').trim().toLowerCase()));
     } else if (currentSortMode === 'za') {
-      temp.sort((a, b) => {
-        const enA = (a.english || a.英文 || '').trim().toLowerCase();
-        const enB = (b.english || b.英文 || '').trim().toLowerCase();
-        return enB.localeCompare(enA);
-      });
+      temp.sort((a, b) => (b.english || b.英文 || '').trim().toLowerCase().localeCompare((a.english || a.英文 || '').trim().toLowerCase()));
     } else if (currentSortMode === 'random') {
       temp.sort(() => Math.random() - 0.5);
     } else if (currentSortMode === 'star') {
-      // 熟悉度排序：星級由高到低
       temp.sort((a, b) => b.star - a.star);
     } else {
-      // default: 還原回原始試算表排序
       temp.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
@@ -358,7 +314,6 @@
     renderReadList();
   }
 
-  // 切換排序模式
   function changeSortMode(mode) {
     currentSortMode = mode;
     document.querySelectorAll('#sortGroup .sort-btn').forEach(b => b.classList.remove('active'));
@@ -366,7 +321,6 @@
     applyFilters();
   }
 
-  // 渲染主卡片內容 (聽力模式)
   function renderCard() {
     if (filteredData.length === 0) {
       document.getElementById('textEn').innerText = '無符合資料';
@@ -384,41 +338,31 @@
 
     document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆 [${type}]`;
 
-    const enEl = document.getElementById('textEn');
-    const zhEl = document.getElementById('textZh');
-
-    enEl.innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
-    zhEl.innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
-    
-    // 渲染星星熟悉度
+    document.getElementById('textEn').innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
+    document.getElementById('textZh').innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
     document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
   }
 
-  // 處理點擊星星變更熟悉度
   function handleStarClick(e) {
     if (filteredData.length === 0) return;
     const starEl = e.currentTarget;
     const rect = starEl.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    const width = rect.width;
     
-    let newStar = Math.ceil((clickX / width) * 5);
-    if (newStar < 1) newStar = 1; // 確保最低預設是 1 星
+    let newStar = Math.ceil((clickX / rect.width) * 5);
+    if (newStar < 1) newStar = 1;
     if (newStar > 5) newStar = 5;
 
     const currentItem = filteredData[currentIndex];
     currentItem.star = newStar;
     
     const rawItem = rawData.find(r => r.originalIndex === currentItem.originalIndex);
-    if (rawItem) {
-      rawItem.star = newStar;
-    }
+    if (rawItem) rawItem.star = newStar;
 
     renderCard();
     renderReadList();
   }
 
-  // 渲染閱讀模式清單
   function renderReadList() {
     const listContainer = document.getElementById('readList');
     document.getElementById('readCount').innerText = `共 ${filteredData.length} 筆資料`;
@@ -438,28 +382,20 @@
       
       const div = document.createElement('div');
       div.className = 'read-item';
-      
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'read-content';
-      contentDiv.innerHTML = `
-        <div class="en">${index + 1}. ${en}</div>
-        <div class="zh">${zh}</div>
-        <div class="meta">
-          <span>🏷️ ${cat} (${type})</span>
-          <span style="color: #f59e0b;">${'★'.repeat(star)}</span>
+      div.innerHTML = `
+        <div class="read-content">
+          <div class="en">${index + 1}. ${en}</div>
+          <div class="zh">${zh}</div>
+          <div class="meta"><span>🏷️ ${cat} (${type})</span><span style="color: #f59e0b;">${'★'.repeat(star)}</span></div>
         </div>
       `;
       
-      const playBtn = document.createElement('button');
-      playBtn.className = 'btn-inline-play';
-      playBtn.innerHTML = '🔊';
-      playBtn.onclick = (e) => {
-        e.stopPropagation();
-        speakDirect(en);
-      };
+      const pBtn = document.createElement('button');
+      pBtn.className = 'btn-inline-play';
+      pBtn.innerHTML = '🔊';
+      pBtn.onclick = (e) => { e.stopPropagation(); speakDirect(en); };
       
-      div.appendChild(contentDiv);
-      div.appendChild(playBtn);
+      div.appendChild(pBtn);
       listContainer.appendChild(div);
     });
   }
@@ -473,67 +409,58 @@
     synth.speak(utt);
   }
 
-  function switchTab(tab) {
-    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
-    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
-    
-    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
-    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-
-    if (tab === 'read') stopAudio();
-  }
-
-  function changeDisplayMode(mode) {
-    displayMode = mode;
-    ['en', 'zh', 'all', 'blind'].forEach(m => {
-      document.getElementById(`m-${m}`).classList.toggle('active', m === mode);
-    });
-    renderCard();
-  }
-
-  function setRepeat(times, btn) {
-    repeatTimes = times;
-    clearActive('repeatGroup');
-    btn.classList.add('active');
-  }
-
-  // 【功能修正】當在播放中改變語速時，重新生成語音而不中斷自動下一句的排程
-  function setSpeed(speed, btn) {
-    playSpeed = speed;
-    clearActive('speedGroup');
-    btn.classList.add('active');
-    
-    if (isPlaying) {
-      // 如果正在播放，直接重新呼叫 speakCurrent() 套用新速度，它會繼續接下去播
-      speakCurrent();
-    }
-  }
-
-  function setIntervalTime(ms, btn) {
-    intervalTime = ms;
-    clearActive('intervalGroup');
-    btn.classList.add('active');
-  }
-
-  function setPlayMode(mode) {
-    if (autoPlayMode === mode) {
-      autoPlayMode = ''; 
-      document.getElementById('modeLoop').classList.remove('active');
-      document.getElementById('modeRandom').classList.remove('active');
-    } else {
-      autoPlayMode = mode;
-      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
-      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
-    }
-  }
-
-  function clearActive(parentId) {
-    document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
-  }
-
-  // 核心語音播放邏輯
-  function speakCurrent() {
+  // 完美二合一播放與暫停控制邏輯
+  function handlePlayToggle() {
     if (filteredData.length === 0) return;
+
+    if (playStatus === 'playing') {
+      // 切換為暫停
+      playStatus = 'paused';
+      synth.pause();
+      if (timeoutId) clearTimeout(timeoutId);
+      updatePlayButtonUI();
+    } else if (playStatus === 'paused') {
+      // 繼續播放
+      playStatus = 'playing';
+      synth.resume();
+      // 如果是因為切換速度等原因導致語音引擎靜止，則重新播放當前句
+      if (!synth.speaking) {
+        speakCurrent();
+      }
+      updatePlayButtonUI();
+    } else {
+      // 從頭開始播放
+      playStatus = 'playing';
+      currentRepeatCount = 0;
+      speakCurrent();
+      updatePlayButtonUI();
+    }
+  }
+
+  function updatePlayButtonUI() {
+    const pBtn = document.getElementById('playBtn');
+    if (playStatus === 'playing') {
+      pBtn.innerText = '⏸ 暫停';
+      pBtn.classList.add('is-playing');
+    } else if (playStatus === 'paused') {
+      pBtn.innerText = '▶ 繼續播放';
+      pBtn.classList.remove('is-playing');
+    } else {
+      pBtn.innerText = '🔊 播放';
+      pBtn.classList.remove('is-playing');
+    }
+  }
+
+  function stopAudio() {
+    playStatus = 'stopped';
+    synth.cancel();
+    if (timeoutId) clearTimeout(timeoutId);
+    currentRepeatCount = 0;
+    updatePlayButtonUI();
+  }
+
+  function speakCurrent() {
+    if (filteredData.length === 0 || playStatus !== 'playing') return;
     if (timeoutId) clearTimeout(timeoutId);
 
     const item = filteredData[currentIndex];
@@ -544,16 +471,14 @@
     if (targetVoice) utterance.voice = targetVoice;
     utterance.lang = 'en-US';
     utterance.rate = playSpeed;
-
-    if (playSpeed < 1.0) {
-      utterance.pitch = 1.05; 
-    }
+    if (playSpeed < 1.0) utterance.pitch = 1.05; 
 
     utterance.onend = () => {
+      if (playStatus !== 'playing') return;
       currentRepeatCount++;
-      if (currentRepeatCount < repeatTimes && isPlaying) {
+      if (currentRepeatCount < repeatTimes) {
         timeoutId = setTimeout(speakCurrent, 500);
-      } else if (isPlaying) {
+      } else {
         if (autoPlayMode === 'loop') {
           timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
         } else if (autoPlayMode === 'random') {
@@ -565,8 +490,7 @@
     };
 
     utterance.onerror = () => {
-      // 防止因為切換速度觸發 cancel 導致的錯誤中斷，只要還是播放狀態就不停
-      if (isPlaying && synth.speaking === false) {
+      if (playStatus === 'playing' && synth.speaking === false) {
         stopAudio();
       }
     };
@@ -586,55 +510,68 @@
     speakCurrent();
   }
 
-  function togglePlay() {
-    if (isPlaying) {
-      pauseAudio();
-    } else {
-      isPlaying = true;
-      currentRepeatCount = 0;
-      document.getElementById('playBtn').innerText = '⏸ 播放中';
+  function setSpeed(speed, btn) {
+    playSpeed = speed;
+    clearActive('speedGroup');
+    btn.classList.add('active');
+    // 如果在播放或暫停中切換語速，立即無縫重播當前句套用新速度，不破壞後續自動播下一句的排程
+    if (playStatus === 'playing') {
       speakCurrent();
+    } else if (playStatus === 'paused') {
+      synth.cancel();
     }
-  }
-
-  function pauseAudio() {
-    isPlaying = false;
-    synth.pause();
-    if (timeoutId) clearTimeout(timeoutId);
-    document.getElementById('playBtn').innerText = '🔊 播放';
-  }
-
-  function stopAudio() {
-    isPlaying = false;
-    synth.cancel();
-    if (timeoutId) clearTimeout(timeoutId);
-    currentRepeatCount = 0;
-    document.getElementById('playBtn').innerText = '🔊 播放';
   }
 
   function nextSentence(auto = false) {
     if (filteredData.length === 0) return;
-    if (currentIndex < filteredData.length - 1) {
-      currentIndex++;
-    } else {
-      currentIndex = 0; 
-    }
+    currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
     currentRepeatCount = 0;
     renderCard();
-    if ((auto || isPlaying) && autoPlayMode !== 'random') speakCurrent();
+    if ((auto || playStatus === 'playing') && autoPlayMode !== 'random') {
+      playStatus = 'playing';
+      updatePlayButtonUI();
+      speakCurrent();
+    }
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
-    if (currentIndex > 0) {
-      currentIndex--;
-    } else {
-      currentIndex = filteredData.length - 1;
-    }
+    currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
     currentRepeatCount = 0;
     renderCard();
-    if (isPlaying) speakCurrent();
+    if (playStatus === 'playing') speakCurrent();
   }
+
+  function switchTab(tab) {
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    if (tab === 'read') stopAudio();
+  }
+
+  function changeDisplayMode(mode) {
+    displayMode = mode;
+    ['en', 'zh', 'all', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
+    renderCard();
+  }
+
+  function setRepeat(times, btn) { repeatTimes = times; clearActive('repeatGroup'); btn.classList.add('active'); }
+  function setIntervalTime(ms, btn) { intervalTime = ms; clearActive('intervalGroup'); btn.classList.add('active'); }
+  
+  function setPlayMode(mode) {
+    if (autoPlayMode === mode) {
+      autoPlayMode = ''; 
+      document.getElementById('modeLoop').classList.remove('active');
+      document.getElementById('modeRandom').classList.remove('active');
+    } else {
+      autoPlayMode = mode;
+      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
+      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
+    }
+  }
+
+  function clearActive(parentId) { document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); }
 
   loadSheetData();
 </script>
