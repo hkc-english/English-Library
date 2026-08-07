@@ -16,20 +16,18 @@
     .tab-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .tab-btn.active { background: #2563eb; color: #fff; }
 
-    /* 頂部篩選與搜尋 */
-    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .filter-row { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+    /* 精簡後的頂部搜尋列 (已移除播放範圍) */
+    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
-    select, .search-input { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; max-width: 220px; font-weight: bold; }
+    .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
     /* 排序與計數列 */
     .tool-bar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding: 0 4px; }
     .tool-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-    .info-text { font-size: 13px; color: #64748b; font-weight: bold; }
     
     /* 高級排序按鈕群 */
-    .sort-grid { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; justify-content: flex-start; }
-    .sort-btn { padding: 4px 8px; font-size: 11px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
+    .sort-grid { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
+    .sort-btn { padding: 6px 10px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; display: flex; align-items: center; gap: 2px; }
     .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     /* 顯示模式切換 */
@@ -45,12 +43,12 @@
     /* 可點擊點選的星星熟悉度 */
     .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; }
 
-    /* 控制按鈕組 (簡化版面) */
+    /* 控制按鈕組 */
     .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
     .btn-nav { background: #e2e8f0; color: #475569; }
     .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
-    .btn-play.is-playing { background: #f59e0b; color: #fff; } /* 暫停狀態樣式 */
+    .btn-play.is-playing { background: #f59e0b; color: #fff; }
     .btn-stop { background: #ef4444; color: #fff; }
 
     /* 設定區塊標題 */
@@ -61,7 +59,7 @@
     .opt-btn { padding: 6px 12px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; min-width: 45px; }
     .opt-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 播放模式按鈕 (連續/隨機) 藍色高亮樣式 */
+    /* 播放模式按鈕 */
     .play-mode-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
     .btn-mode { padding: 6px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
     .btn-mode.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 0 8px rgba(37,99,235,0.3); }
@@ -94,28 +92,32 @@
     <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
   </div>
 
-  <!-- 篩選範圍與搜尋列 (移除重複的星級選擇) -->
+  <!-- 精簡後的搜尋列 -->
   <div class="filter-box">
-    <div class="filter-row">
-      <span class="filter-label">🎯 播放範圍：</span>
-      <select id="categorySelect" onchange="applyFilters()">
-        <option value="全部顯示">全部顯示</option>
-      </select>
-    </div>
-    <div class="filter-row">
-      <span class="filter-label">🔍 搜尋關鍵字：</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="輸入中/英文/情境..." oninput="applyFilters()">
-    </div>
+    <span class="filter-label">🔍 快速搜尋：</span>
+    <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
   </div>
 
   <!-- 狀態提示 -->
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
+  <!-- 頂部與共用排序工具列 (讓聽力模式與閱讀模式都能同步調整排序邏輯) -->
+  <div class="tool-bar">
+    <div class="tool-row-top">
+      <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 13px;">共 0 筆資料</div>
+    </div>
+    <div class="sort-grid" id="sortGroup">
+      <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
+      <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
+      <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
+      <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
+      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
+    </div>
+  </div>
+
   <!-- ================= 聽力模式區塊 ================= -->
   <div id="listenSection">
-    <div class="tool-bar">
-      <div class="info-text" id="infoText">第 -- / -- 筆 [讀取中...]</div>
-    </div>
+    <div style="font-size: 13px; color: #64748b; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
     <!-- 顯示模式切換 -->
     <div class="mode-group">
@@ -129,10 +131,10 @@
     <div class="card">
       <div class="text-en" id="textEn">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
-      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆☆</div>
+      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆•</div>
     </div>
 
-    <!-- 優化後的核心控制列：上一句、播放/暫停、停止、下一句 -->
+    <!-- 優化控制列 -->
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
@@ -154,15 +156,12 @@
     <!-- 播放速度 -->
     <div class="section-title">播放速度</div>
     <div class="opt-grid" id="speedGroup">
-      <button class="opt-btn" onclick="setSpeed(0.3, this)">0.3x</button>
-      <button class="opt-btn" onclick="setSpeed(0.4, this)">0.4x</button>
       <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
       <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
       <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
       <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
       <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
       <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
-      <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
     </div>
 
     <!-- 連續/隨機播放模式 -->
@@ -183,19 +182,6 @@
 
   <!-- ================= 閱讀模式區塊 ================= -->
   <div id="readSection" class="hidden">
-    <div class="tool-bar">
-      <div class="tool-row-top">
-        <div id="readCount" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
-      </div>
-      <!-- 乾淨無重複的高級排序按鈕 -->
-      <div class="sort-grid" id="sortGroup">
-        <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
-        <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
-        <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
-        <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機</button>
-        <button class="sort-btn" id="sort-star" onclick="changeSortMode('star')">⭐ 熟悉度 (高➔低)</button>
-      </div>
-    </div>
     <div class="read-list" id="readList"></div>
   </div>
 
@@ -219,7 +205,7 @@
   let autoPlayMode = ''; 
   let intervalTime = 2000;
   
-  let playStatus = 'stopped'; // 'stopped', 'playing', 'paused'
+  let playStatus = 'stopped'; 
   let timeoutId = null;
   let currentSortMode = 'default'; 
 
@@ -245,13 +231,12 @@
       
       rawData.forEach((item, idx) => {
         let starVal = parseInt(item.star || item.星級 || item.評價 || 0);
-        if (starVal < 1) starVal = 1; // 預設至少 1 星
+        if (starVal < 1) starVal = 1; 
         item.star = starVal;
         item.originalIndex = idx;
       });
       
       document.getElementById('statusMessage').classList.add('hidden');
-      initCategories();
       applyFilters();
     } catch (err) {
       document.getElementById('statusMessage').classList.remove('hidden');
@@ -260,56 +245,38 @@
     }
   }
 
-  function initCategories() {
-    const categories = new Set();
-    rawData.forEach(item => {
-      const cat = item.category || item.分類 || item.情境;
-      if (cat) categories.add(cat.trim());
-    });
-
-    const select = document.getElementById('categorySelect');
-    select.innerHTML = '<option value="全部顯示">全部顯示</option>';
-    categories.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.innerText = `🏷️ ${cat}`;
-      select.appendChild(opt);
-    });
-  }
-
   function applyFilters() {
-    const selectedCat = document.getElementById('categorySelect').value;
     const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
 
     let temp = rawData.filter(item => {
-      const cat = (item.category || item.分類 || item.情境 || '').trim();
-      
-      if (selectedCat !== '全部顯示' && cat !== selectedCat) return false;
-
       if (searchKeyword) {
         const en = (item.english || item.英文 || '').toLowerCase();
         const zh = (item.chinese || item.中文 || '').toLowerCase();
-        if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.toLowerCase().includes(searchKeyword)) {
+        const cat = (item.category || item.分類 || item.情境 || '').toLowerCase();
+        if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.includes(searchKeyword)) {
           return false;
         }
       }
       return true;
     });
 
+    // 核心邏輯修正：支援雙向熟悉度排序
     if (currentSortMode === 'az') {
       temp.sort((a, b) => (a.english || a.英文 || '').trim().toLowerCase().localeCompare((b.english || b.英文 || '').trim().toLowerCase()));
-    } else if (currentSortMode === 'za') {
-      temp.sort((a, b) => (b.english || b.英文 || '').trim().toLowerCase().localeCompare((a.english || a.英文 || '').trim().toLowerCase()));
     } else if (currentSortMode === 'random') {
       temp.sort(() => Math.random() - 0.5);
-    } else if (currentSortMode === 'star') {
-      temp.sort((a, b) => b.star - a.star);
+    } else if (currentSortMode === 'star-asc') {
+      temp.sort((a, b) => a.star - b.star); // 低 -> 高 (弱點強訓模式)
+    } else if (currentSortMode === 'star-desc') {
+      temp.sort((a, b) => b.star - a.star); // 高 -> 低 (信心複習模式)
     } else {
       temp.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
     filteredData = temp;
     currentIndex = 0;
+    
+    document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
     renderCard();
     renderReadList();
   }
@@ -337,7 +304,6 @@
     const type = item.type || item.型態 || item.類型 || '句子';
 
     document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆 [${type}]`;
-
     document.getElementById('textEn').innerText = (displayMode === 'zh' || displayMode === 'blind') ? '•••' : en;
     document.getElementById('textZh').innerText = (displayMode === 'en' || displayMode === 'blind') ? '•••' : zh;
     document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
@@ -365,7 +331,6 @@
 
   function renderReadList() {
     const listContainer = document.getElementById('readList');
-    document.getElementById('readCount').innerText = `共 ${filteredData.length} 筆資料`;
     listContainer.innerHTML = '';
 
     if (filteredData.length === 0) {
@@ -409,27 +374,20 @@
     synth.speak(utt);
   }
 
-  // 完美二合一播放與暫停控制邏輯
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playStatus === 'playing') {
-      // 切換為暫停
       playStatus = 'paused';
       synth.pause();
       if (timeoutId) clearTimeout(timeoutId);
       updatePlayButtonUI();
     } else if (playStatus === 'paused') {
-      // 繼續播放
       playStatus = 'playing';
       synth.resume();
-      // 如果是因為切換速度等原因導致語音引擎靜止，則重新播放當前句
-      if (!synth.speaking) {
-        speakCurrent();
-      }
+      if (!synth.speaking) speakCurrent();
       updatePlayButtonUI();
     } else {
-      // 從頭開始播放
       playStatus = 'playing';
       currentRepeatCount = 0;
       speakCurrent();
@@ -490,9 +448,7 @@
     };
 
     utterance.onerror = () => {
-      if (playStatus === 'playing' && synth.speaking === false) {
-        stopAudio();
-      }
+      if (playStatus === 'playing' && synth.speaking === false) stopAudio();
     };
 
     synth.speak(utterance);
@@ -514,7 +470,6 @@
     playSpeed = speed;
     clearActive('speedGroup');
     btn.classList.add('active');
-    // 如果在播放或暫停中切換語速，立即無縫重播當前句套用新速度，不破壞後續自動播下一句的排程
     if (playStatus === 'playing') {
       speakCurrent();
     } else if (playStatus === 'paused') {
@@ -541,6 +496,13 @@
     renderCard();
     if (playStatus === 'playing') speakCurrent();
   }
+
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); handlePlayToggle(); }
+    if (e.code === 'ArrowRight') { nextSentence(); }
+    if (e.code === 'ArrowLeft') { prevSentence(); }
+  });
 
   function switchTab(tab) {
     document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
