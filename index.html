@@ -123,7 +123,7 @@
     <div class="card">
       <div class="text-en" id="textEn" onclick="toggleTextReveal('en')">讀取中...</div>
       <div class="text-zh" id="textZh" onclick="toggleTextReveal('zh')">--</div>
-      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆•</div>
+      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆☆</div>
     </div>
 
     <div class="control-row">
@@ -202,6 +202,7 @@
 </div>
 
 <script>
+  // 這兩段密碼是我們專屬的 Google Apps Script 連線密鑰，不需要修改
   const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
   const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
@@ -482,7 +483,7 @@
     renderReadList();
   }
 
-  /* 相似度算法 (Levenshtein Distance) 用於比對類似句子 */
+  /* 相似度演算法 (Levenshtein Distance) */
   function getSimilarity(s1, s2) {
     s1 = s1.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
     s2 = s2.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
@@ -516,7 +517,7 @@
 
     if (!text) return;
 
-    /* 檢查資料庫是否有重複或類似的句子 */
+    /* 檢查重複或高度相似字句 */
     let exactMatch = false;
     let similarMatch = null;
 
@@ -527,7 +528,6 @@
         break;
       }
       
-      // 計算相似度，大於 70% 視為相似
       let sim = getSimilarity(text, existingEn);
       if (sim >= 0.7) {
         similarMatch = existingEn;
@@ -535,13 +535,13 @@
     }
 
     if (exactMatch) {
-      alert(`⚠️ 該字句已存在於資料庫中，無法重複新增！`);
+      alert(`⚠️ 該字句已完全存在於資料庫中，無法重複新增！`);
       return;
     }
 
     if (similarMatch) {
-      const confirmAdd = confirm(`💡 發現類似的句子已存在：\n「${similarMatch}」\n\n您確定還要建立這筆新資料嗎？`);
-      if (!confirmAdd) return; // 使用者按取消，中斷送出
+      const confirmAdd = confirm(`💡 發現高度類似的句子已存在：\n「${similarMatch}」\n\n您確定還要建立這筆新資料嗎？`);
+      if (!confirmAdd) return; 
     }
 
     inputEl.disabled = true;
