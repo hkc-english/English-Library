@@ -208,7 +208,6 @@
 </div>
 
 <script>
-  // 已帶入您正確的 Google Apps Script 部署網址
   const API_URL = 'https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec';
 
   let rawData = [];
@@ -253,9 +252,9 @@
       rawData = await res.json();
       
       rawData.forEach((item, idx) => {
-        let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 0;
+        let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 1;
         let starVal = parseInt(rawStar);
-        if (isNaN(starVal) || starVal < 0) starVal = 0; 
+        if (isNaN(starVal) || starVal < 0) starVal = 1; 
         
         item.star = starVal;
         item.originalIndex = idx;
@@ -425,8 +424,7 @@
     try {
       await fetch(API_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'updateStar',
           id: currentItem.ID,
@@ -485,6 +483,50 @@
       if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
     });
     renderReadList();
+  }
+
+  function changeDisplayMode(mode) {
+    displayMode = mode;
+    ['mix', 'en', 'zh', 'blind'].forEach(m => {
+      const btn = document.getElementById(`m-${m}`);
+      if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+    resetRevealState();
+    renderCardTextOnly();
+  }
+
+  function setRepeat(times, btn) {
+    repeatTimes = times;
+    clearActive('repeatGroup');
+    btn.classList.add('active');
+  }
+
+  function setSpeed(speed, btn) {
+    playSpeed = speed;
+    clearActive('speedGroup');
+    btn.classList.add('active');
+  }
+
+  function setPlayMode(mode) {
+    if (autoPlayMode === mode) {
+      autoPlayMode = '';
+      document.getElementById('modeLoop').classList.remove('active');
+      document.getElementById('modeRandom').classList.remove('active');
+    } else {
+      autoPlayMode = mode;
+      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
+      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
+    }
+  }
+
+  function setIntervalTime(time, btn) {
+    intervalTime = time;
+    clearActive('intervalGroup');
+    btn.classList.add('active');
+  }
+
+  function clearActive(groupId) {
+    document.querySelectorAll(`#${groupId} .opt-btn`).forEach(b => b.classList.remove('active'));
   }
 
   function getSimilarity(s1, s2) {
@@ -585,7 +627,7 @@
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'addEnglish',
           english: text,
@@ -736,15 +778,6 @@
     speakCurrent();
   }
 
-  function setSpeed(speed, btn) {
-    playSpeed = speed;
-    clearActive('speedGroup');
-    btn.classList.add('active');
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
-  }
-
   function nextSentence(auto = false) {
     if (filteredData.length === 0) return;
     
@@ -789,49 +822,12 @@
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
     document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
-    applyFilters();
   }
 
-  function changeDisplayMode(mode) {
-    displayMode = mode;
-    ['mix', 'en', 'zh', 'blind'].forEach(m => {
-      document.getElementById(`m-${m}`).classList.toggle('active', m === mode);
-    });
-    resetRevealState();
-    renderCard();
-  }
-
-  function setRepeat(count, btn) {
-    repeatTimes = count;
-    clearActive('repeatGroup');
-    btn.classList.add('active');
-  }
-
-  function setPlayMode(mode) {
-    if (autoPlayMode === mode) {
-      autoPlayMode = '';
-      document.getElementById('modeLoop').classList.remove('active');
-      document.getElementById('modeRandom').classList.remove('active');
-    } else {
-      autoPlayMode = mode;
-      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
-      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
-    }
-  }
-
-  function setIntervalTime(time, btn) {
-    intervalTime = time;
-    clearActive('intervalGroup');
-    btn.classList.add('active');
-  }
-
-  function clearActive(groupId) {
-    document.querySelectorAll(`#${groupId} .opt-btn`).forEach(b => b.classList.remove('active'));
-  }
-
-  // 初始化載入
-  loadSheetData();
+  // 頁面載入時抓取資料
+  window.onload = function() {
+    loadSheetData();
+  };
 </script>
-
 </body>
 </html>
