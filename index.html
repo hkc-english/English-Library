@@ -3,313 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的英文學習庫</title>
+  <title>英文單字播放複習</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .card { border: none; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .star-rating { color: #ffc107; cursor: pointer; font-size: 1.2rem; }
-    .star-rating .far { color: #e4e5e9; }
-    .badge-custom { background-color: #e3f2fd; color: #0d6efd; font-weight: 500; }
-    .loading-spinner { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
-    .fixed-table { table-layout: fixed; width: 100%; }
-    .fixed-table th, .fixed-table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .main-card { background: white; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); width: 100%; max-width: 550px; padding: 30px; text-align: center; }
+    .card-display { border: 1px solid #e0e0e0; border-radius: 15px; padding: 25px; margin-bottom: 25px; background: #fff; }
+    .star-rating { color: #ffc107; font-size: 1.5rem; margin-top: 10px; }
+    .btn-group-custom .btn { border-radius: 10px; font-weight: 600; margin: 3px; }
+    .section-title { font-size: 0.9rem; color: #6c757d; font-weight: 600; margin: 15px 0 8px 0; }
   </style>
 </head>
 <body>
 
-  <div class="container py-4">
-    <header class="text-center mb-4">
-      <h1 class="fw-bold text-primary"><i class="fas fa-book-open me-2"></i>英文單字片語庫</h1>
-      <p class="text-muted">隨時記錄，智慧分類，輕鬆複習</p>
-    </header>
-
-    <!-- 輸入區塊 -->
-    <div class="card p-4 mb-4">
-      <h5 class="card-title mb-3 fw-bold"><i class="fas fa-plus-circle text-success me-2"></i>快速新增</h5>
-      <form id="vocabForm">
-        <div class="row g-3">
-          <div class="col-md-5">
-            <input type="text" id="englishInput" class="form-control" placeholder="輸入英文單字或句子 (例如: Apple)" required autocomplete="off">
-          </div>
-          <div class="col-md-4">
-            <input type="text" id="chineseInput" class="form-control" placeholder="中文翻譯 (可留空，由系統預判)" autocomplete="off">
-          </div>
-          <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="fas fa-paper-plane me-1"></i>送出</button>
-          </div>
-        </div>
-      </form>
+  <div class="main-card">
+    <div class="card-display" id="cardContainer">
+      <h2 id="englishText" class="fw-bold text-dark mb-2">載入中...</h2>
+      <p id="chineseText" class="text-muted fs-5 mb-3"></p>
+      <div class="star-rating" id="starContainer">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+      </div>
     </div>
 
-    <!-- 列表與篩選區塊 -->
-    <div class="card p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h5 class="fw-bold mb-0"><i class="fas fa-list text-info me-2"></i>單字列表</h5>
-        <div class="d-flex gap-2">
-          <select id="filterCategory" class="form-select form-select-sm" style="width: 130px;">
-            <option value="all">所有情境</option>
-          </select>
-          <select id="filterType" class="form-select form-select-sm" style="width: 110px;">
-            <option value="all">所有類型</option>
-            <option value="單字">單字</option>
-            <option value="片語">片語</option>
-            <option value="句子">句子</option>
-          </select>
-        </div>
-      </div>
+    <!-- 播放控制按鈕 -->
+    <div class="row g-2 mb-3">
+      <div class="col-3"><button id="btnPrev" class="btn btn-light border w-100 py-2"><i class="fas fa-arrow-left me-1"></i>上一句</button></div>
+      <div class="col-3"><button id="btnPlay" class="btn btn-primary w-100 py-2"><i class="fas fa-volume-up me-1"></i>播放</button></div>
+      <div class="col-3"><button id="btnStop" class="btn btn-danger w-100 py-2"><i class="fas fa-stop me-1"></i>停止</button></div>
+      <div class="col-3"><button id="btnNext" class="btn btn-light border w-100 py-2">下一句<i class="fas fa-arrow-right ms-1"></i></button></div>
+    </div>
 
-      <div class="table-responsive">
-        <table class="table table-hover align-middle fixed-table">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 8%;">ID</th>
-              <th style="width: 26%;">英文</th>
-              <th style="width: 26%;">中文</th>
-              <th style="width: 12%;">類型</th>
-              <th style="width: 14%;">熟悉度</th>
-              <th style="width: 14%;">情境標籤</th>
-            </tr>
-          </thead>
-          <tbody id="vocabTableBody">
-            <tr>
-              <td colspan="6" class="text-center text-muted py-4">資料載入中...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- 重複次數 -->
+    <div class="section-title">重複次數</div>
+    <div class="btn-group w-100 btn-group-custom" role="group" id="repeatGroup">
+      <button type="button" class="btn btn-outline-primary active" data-val="1">1次</button>
+      <button type="button" class="btn btn-outline-primary" data-val="2">2次</button>
+      <button type="button" class="btn btn-outline-primary" data-val="3">3次</button>
+      <button type="button" class="btn btn-outline-primary" data-val="0">無限</button>
+    </div>
+
+    <!-- 播放速度 -->
+    <div class="section-title">播放速度</div>
+    <div class="d-flex flex-wrap justify-content-center gap-1 mb-2" id="speedGroup">
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.5">0.5x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.6">0.6x</button>
+      <button type="button" class="btn btn-sm btn-primary" data-val="0.7">0.7x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.8">0.8x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.9">0.9x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.0">1.0x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.1">1.1x</button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.2">1.2x</button>
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+      <button id="btnAutoPlay" class="btn btn-outline-secondary w-50 py-2"><i class="fas fa-play me-1"></i>連續播放</button>
+      <button id="btnShuffle" class="btn btn-outline-secondary w-50 py-2"><i class="fas fa-random me-1"></i>隨機播放</button>
+    </div>
+
+    <!-- 播放間隔 -->
+    <div class="section-title">播放間隔</div>
+    <div class="btn-group w-100 btn-group-custom" role="group" id="intervalGroup">
+      <button type="button" class="btn btn-outline-primary" data-val="1">1秒</button>
+      <button type="button" class="btn btn-outline-primary active" data-val="3">3秒</button>
+      <button type="button" class="btn btn-outline-primary" data-val="5">5秒</button>
     </div>
   </div>
 
-  <!-- 智慧引導確認彈窗 -->
-  <div class="modal fade" id="predictModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content" style="border-radius: 15px;">
-        <div class="modal-header bg-light">
-          <h5 class="modal-title fw-bold text-primary"><i class="fas fa-magic me-2"></i>AI 智慧引導確認</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <div class="mb-3">
-            <label class="form-label fw-bold text-muted small">您輸入的英文</label>
-            <div id="modalEnglish" class="p-2 bg-light rounded fw-semibold text-dark"></div>
-          </div>
-          <div class="mb-3">
-            <label for="modalChinese" class="form-label fw-bold">中文翻譯確認</label>
-            <input type="text" id="modalChinese" class="form-control form-control-lg" placeholder="請輸入或修正中文翻譯">
-          </div>
-          <div class="row mb-3">
-            <div class="col-6">
-              <label for="modalType" class="form-label fw-bold small">類型預判</label>
-              <select id="modalType" class="form-select">
-                <option value="單字">單字</option>
-                <option value="片語">片語</option>
-                <option value="句子">句子</option>
-              </select>
-            </div>
-            <div class="col-6">
-              <label for="modalCategory" class="form-label fw-bold small">情境分類</label>
-              <input type="text" id="modalCategory" class="form-control" placeholder="例如: 職場、棒球">
-            </div>
-          </div>
-          <button type="button" id="btnConfirmSubmit" class="btn btn-success w-100 btn-lg fw-bold mt-2">
-            <i class="fas fa-check-circle me-1"></i>確認並寫入試算表
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="loadingSpinner" class="loading-spinner">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script>
-    // 已經直接綁定好妳目前的部署網址，不用再手動改了
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw63p4iK_10n4iWq4rWq4rWq4rWq4rWq4rWq4rW/exec"; 
-
-    let dbData = [];
-    const predictModal = new bootstrap.Modal(document.getElementById('predictModal'));
-
-    const keywordRules = [
-      { keywords: ['baseball', 'game', 'pitcher', 'homerun', 'team'], type: '句子', category: '棒球' },
-      { keywords: ['cat', 'kitten', 'meow', 'vet', 'feline'], type: '單字', category: '貓咪' },
-      { keywords: ['meeting', 'budget', 'report', 'office', 'manager'], type: '單字', category: '職場' }
-    ];
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw63p4iK_10n4iWq4rWq4rWq4rWq4rWq4rWq4rW/exec";
+    let vocabList = [];
+    let currentIndex = 0;
+    let currentRate = 0.7;
 
     document.addEventListener("DOMContentLoaded", () => {
-      fetchData();
-      document.getElementById("vocabForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        handleFormSubmit();
+      fetchCards();
+
+      document.getElementById("btnPlay").addEventListener("click", speakCurrent);
+      document.getElementById("btnNext").addEventListener("click", () => {
+        if(vocabList.length > 0) {
+          currentIndex = (currentIndex + 1) % vocabList.length;
+          displayCard();
+          speakCurrent();
+        }
       });
-      document.getElementById("btnConfirmSubmit").addEventListener("click", () => {
-        submitToGoogleSheet();
+      document.getElementById("btnPrev").addEventListener("click", () => {
+        if(vocabList.length > 0) {
+          currentIndex = (currentIndex - 1 + vocabList.length) % vocabList.length;
+          displayCard();
+          speakCurrent();
+        }
       });
-      document.getElementById("filterCategory").addEventListener("change", renderTable);
-      document.getElementById("filterType").addEventListener("change", renderTable);
+      document.getElementById("btnStop").addEventListener("click", () => {
+        window.speechSynthesis.cancel();
+      });
+
+      document.querySelectorAll("#speedGroup button").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          document.querySelectorAll("#speedGroup button").forEach(b => b.classList.replace("btn-primary", "btn-outline-primary"));
+          e.target.classList.replace("btn-outline-primary", "btn-primary");
+          currentRate = parseFloat(e.target.getAttribute("data-val"));
+        });
+      });
     });
 
-    function fetchData() {
-      showLoading(true);
+    function fetchCards() {
       fetch(`${GAS_WEB_APP_URL}?action=read`)
         .then(res => res.json())
         .then(res => {
-          if(res.status === "success") {
-            dbData = res.data || [];
-            updateFilterOptions();
-            renderTable();
+          if(res.status === "success" && res.data && res.data.length > 0) {
+            vocabList = res.data;
+            currentIndex = 0;
+            displayCard();
+          } else {
+            document.getElementById("englishText").innerText = "目前試算表沒有資料";
+            document.getElementById("chineseText").innerText = "請先確認內容";
           }
         })
         .catch(err => {
-          console.error(err);
-        })
-        .finally(() => showLoading(false));
+          document.getElementById("englishText").innerText = "連線失敗";
+        });
     }
 
-    function handleFormSubmit() {
-      const english = document.getElementById("englishInput").value.trim();
-      const chinese = document.getElementById("chineseInput").value.trim();
-      if (!english) return;
-
-      let predictedType = "單字";
-      const spaceCount = english.split(/\s+/).filter(Boolean).length;
-      if (spaceCount === 2 || spaceCount === 3) predictedType = "片語";
-      if (spaceCount > 3) predictedType = "句子";
-
-      let predictedCategory = "通用";
-      const lowerEnglish = english.toLowerCase();
-      for (const rule of keywordRules) {
-        if (rule.keywords.some(kw => lowerEnglish.includes(kw))) {
-          predictedCategory = rule.category;
-          if (spaceCount <= 3) predictedType = rule.type;
-          break;
-        }
+    function displayCard() {
+      if(vocabList.length === 0) return;
+      const item = vocabList[currentIndex];
+      document.getElementById("englishText").innerText = item["英文"] || "";
+      document.getElementById("chineseText").innerText = item["中文"] || "";
+      
+      const starVal = parseInt(item["熟悉度"]) || 1;
+      let starHtml = "";
+      for (let i = 1; i <= 5; i++) {
+        starHtml += `<i class="${i <= starVal ? 'fas' : 'far'} fa-star"></i>`;
       }
-
-      document.getElementById("modalEnglish").innerText = english;
-      document.getElementById("modalChinese").value = chinese;
-      document.getElementById("modalType").value = predictedType;
-      document.getElementById("modalCategory").value = predictedCategory;
-      predictModal.show();
+      document.getElementById("starContainer").innerHTML = starHtml;
     }
 
-    function submitToGoogleSheet() {
-      const english = document.getElementById("modalEnglish").innerText.trim();
-      let chinese = document.getElementById("modalChinese").value.trim();
-      const type = document.getElementById("modalType").value;
-      const category = document.getElementById("modalCategory").value.trim() || "通用";
-
-      predictModal.hide();
-      showLoading(true);
-
-      const payload = {
-        action: "addEnglish",
-        english: english,
-        chinese: chinese,
-        type: type,
-        category: category,
-        star: 1
-      };
-
-      fetch(GAS_WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        if (res.status === "success") {
-          document.getElementById("englishInput").value = "";
-          document.getElementById("chineseInput").value = "";
-          fetchData();
-        }
-      })
-      .finally(() => showLoading(false));
-    }
-
-    function updateStarRating(id, newStar) {
-      showLoading(true);
-      fetch(GAS_WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify({ action: "updateStar", id: id, star: newStar })
-      })
-      .then(res => res.json())
-      .then(res => {
-        if (res.status === "success") {
-          const item = dbData.find(d => parseInt(d.ID) === parseInt(id));
-          if(item) item["熟悉度"] = newStar;
-          renderTable();
-        }
-      })
-      .finally(() => showLoading(false));
-    }
-
-    function updateFilterOptions() {
-      const catSelect = document.getElementById("filterCategory");
-      const categories = new Set(["all"]);
-      dbData.apply ? null : dbData.forEach(item => {
-        const cat = item["標籤(情境分類)"] || item["標籤"] || "通用";
-        categories.add(cat);
-      });
-      catSelect.innerHTML = "";
-      categories.forEach(cat => {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.innerText = cat === "all" ? "所有情境" : cat;
-        catSelect.appendChild(opt);
-      });
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById("vocabTableBody");
-      const filterCat = document.getElementById("filterCategory").value;
-      const filterType = document.getElementById("filterType").value;
-      tbody.innerHTML = "";
-
-      const filteredData = dbData.filter(item => {
-        const cat = item["標籤(情境分類)"] || item["標籤"] || "通用";
-        const type = item["類型"] || "單字";
-        return (filterCat === "all" || cat === filterCat) && (filterType === "all" || type === filterType);
-      });
-
-      if (filteredData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">沒有符合條件的資料（試算表目前無內容）</td></tr>`;
-        return;
-      }
-
-      filteredData.forEach(item => {
-        const id = item["ID"];
-        const english = item["英文"] || "";
-        const chinese = item["中文"] || "";
-        const type = item["類型"] || "單字";
-        const category = item["標籤(情境分類)"] || item["標籤"] || "通用";
-        let starVal = parseInt(item["熟悉度"]) || 1;
-
-        let starHtml = `<div class="star-rating" data-id="${id}">`;
-        for (let i = 1; i <= 5; i++) {
-          starHtml += `<i class="${i <= starVal ? 'fas' : 'far'} fa-star" onclick="updateStarRating(${id}, ${i})"></i>`;
-        }
-        starHtml += `</div>`;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><span class="text-secondary small">${id}</span></td>
-          <td class="fw-semibold text-dark">${english}</td>
-          <td>${chinese}</td>
-          <td><span class="badge bg-light text-secondary border">${type}</span></td>
-          <td>${starHtml}</td>
-          <td><span class="badge badge-custom">${category}</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function showLoading(show) {
-      document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+    function speakCurrent() {
+      if(vocabList.length === 0) return;
+      window.speechSynthesis.cancel();
+      const text = vocabList[currentIndex]["英文"];
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = currentRate;
+      window.speechSynthesis.speak(utterance);
     }
   </script>
 </body>
