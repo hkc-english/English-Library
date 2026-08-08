@@ -724,31 +724,35 @@
 
     synth.cancel();
 
-    currentUtterance = new SpeechSynthesisUtterance(en);
-    if (targetVoice) currentUtterance.voice = targetVoice;
-    currentUtterance.lang = 'en-US';
-    currentUtterance.rate = playSpeed; 
+    setTimeout(() => {
+      if (playStatus !== 'playing') return;
+      
+      currentUtterance = new SpeechSynthesisUtterance(en);
+      if (targetVoice) currentUtterance.voice = targetVoice;
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = playSpeed; 
 
-    currentUtterance.onend = () => {
-      if (playStatus !== 'playing') return; 
+      currentUtterance.onend = () => {
+        if (playStatus !== 'playing') return; 
 
-      currentRepeatCount++;
-      if (currentRepeatCount < repeatTimes) {
-        timeoutId = setTimeout(() => { speakCurrent(); }, 400);
-      } else {
-        currentRepeatCount = 0;
-        proceedToNextCard();
-      }
-    };
+        currentRepeatCount++;
+        if (currentRepeatCount < repeatTimes) {
+          timeoutId = setTimeout(() => { speakCurrent(); }, 400);
+        } else {
+          currentRepeatCount = 0;
+          proceedToNextCard();
+        }
+      };
 
-    currentUtterance.onerror = (event) => {
-      console.error('語音播放錯誤:', event);
-      if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
-        stopAudio();
-      }
-    };
+      currentUtterance.onerror = (event) => {
+        console.error('語音播放錯誤:', event);
+        if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
+          stopAudio();
+        }
+      };
 
-    synth.speak(currentUtterance);
+      synth.speak(currentUtterance);
+    }, 50);
   }
 
   function proceedToNextCard() {
@@ -787,11 +791,9 @@
     resetRevealState();
     renderCard();
     
-    if (auto || playStatus === 'playing') {
-      playStatus = 'playing';
-      updatePlayButtonUI();
-      speakCurrent();
-    }
+    playStatus = 'playing';
+    updatePlayButtonUI();
+    speakCurrent();
   }
 
   function prevSentence() {
@@ -803,9 +805,9 @@
     resetRevealState();
     renderCard();
     
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
+    playStatus = 'playing';
+    updatePlayButtonUI();
+    speakCurrent();
   }
 
   document.addEventListener('keydown', (e) => {
@@ -824,7 +826,6 @@
     document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
   }
 
-  // 頁面載入時抓取資料
   window.onload = function() {
     loadSheetData();
   };
