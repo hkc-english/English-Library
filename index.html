@@ -1,841 +1,139 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英文學習資料庫</title>
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
-    .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
-    
-    h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
-    
-    .tab-group { display: flex; gap: 12px; margin-bottom: 15px; }
-    .tab-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-    .tab-btn.active { background: #2563eb; color: #fff; }
-
-    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
-    .search-row { display: flex; align-items: center; width: 100%; gap: 8px; }
-    .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
-    .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
-    
-    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
-    .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
-    .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-    .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
-    .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
-
-    .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin-bottom: 12px; }
-    .sort-btn { padding: 8px 10px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; gap: 4px; }
-    .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-    .mode-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; }
-    .mode-btn { flex: 1; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-    .mode-btn.active { background: #2563eb; color: #fff; }
-
-    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
-    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
-    
-    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
-
-    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
-    .btn-nav { background: #e2e8f0; color: #475569; }
-    .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
-    .btn-play.is-playing { background: #f59e0b; color: #fff; }
-    .btn-stop { background: #ef4444; color: #fff; }
-
-    .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; text-align: center; }
-
-    .opt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 5px; }
-    .opt-btn { padding: 8px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; text-align: center; }
-    .opt-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-    .play-mode-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
-    .btn-mode { padding: 8px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
-    .btn-mode.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 0 8px rgba(37,99,235,0.3); }
-
-    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 48vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
-    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-    .read-item:hover { background: #f1f5f9; }
-    .read-content { flex: 1; padding-right: 10px; }
-    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
-    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
-    .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
-    .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
-
-    .add-box { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; }
-    .add-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .add-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
-    .add-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; font-weight: bold; }
-    .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap; }
-    .btn-submit-add:disabled { background: #94a3b8; cursor: not-allowed; }
-    .btn-translate { background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0 14px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-
-    .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
-    .hidden { display: none !important; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文學習與情境標籤管理</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; color: #333; }
+        h2 { color: #2c3e50; }
+        .card { background: #fff; padding: 15px 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .english { font-size: 1.1em; font-weight: bold; color: #2980b9; margin-bottom: 5px; }
+        .chinese { color: #7f8c8d; margin-bottom: 10px; }
+        select, button { padding: 8px 12px; margin-right: 5px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 1em; }
+        button { background-color: #27ae60; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #219653; }
+        .loading { text-align: center; color: #95a5a6; padding: 20px; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>📚 英文學習資料庫</h1>
-
-  <div class="tab-group">
-    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
-    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
-  </div>
-
-  <div class="filter-box">
-    <div class="search-row">
-      <span class="filter-label">🔍 快速搜尋：</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
-    </div>
-    
-    <div class="type-grid" id="typeGroup">
-      <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
-      <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
-      <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
-      <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
+    <h2>待分類英文清單 ([待處理])</h2>
+    <div id="todo-container">
+        <div class="loading">載入中，正在尋找需要分類的資料...</div>
     </div>
 
-    <div class="weak-filter-row" id="weakFilterRow">
-      <input type="checkbox" id="onlyWeakCheck" class="weak-checkbox" onchange="applyFilters()">
-      <label for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星)</label>
-    </div>
-  </div>
+    <script>
+        // 主標籤與次標籤的對應資料庫
+        const categoryMap = {
+            "職場": ["開會", "面試", "簡報", "談薪", "電郵", "同事互動"],
+            "日常": ["購物", "餐廳", "交通", "問路", "天氣", "居家"],
+            "情感": ["社交", "約會", "朋友聊天", "感謝", "安慰"],
+            "旅遊": ["機場", "飯店", "觀光", "緊急狀況"]
+        };
 
-  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
+        // 當網頁載入時，向 Apps Script 請求所有 [待處理] 的資料
+        window.onload = function() {
+            // 假設您的後端有提供一個取得資料的函數 (例如透過 doGet 傳回 JSON，或 google.script.run)
+            // 這裡示範使用 Google Apps Script 標準的 google.script.run 呼叫方式
+            if (typeof google !== 'undefined' && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(renderTodoList)
+                    .withFailureHandler(function(err) {
+                        document.getElementById('todo-container').innerHTML = '<p style="color:red;">載入失敗：' + err.message + '</p>';
+                    })
+                    .getPendingItems(); // 這需要在 Code.gs 裡寫對應的後端函式
+            } else {
+                // 測試用模擬資料（當您在本地端瀏覽器測試時可看見畫面）
+                renderTodoList([
+                    { row: 2, english: "I'm a people person.", chinese: "我是個很好相處的人。" },
+                    { row: 3, english: "Could you elaborate on that?", chinese: "您能詳細說明一下嗎？" }
+                ]);
+            }
+        };
 
-  <!-- 聽力模式區塊 -->
-  <div id="listenSection">
-    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+        // 渲染待處理清單到畫面上
+        function renderTodoList(items) {
+            const container = document.getElementById('todo-container');
+            container.innerHTML = '';
 
-    <div class="mode-group">
-      <button class="mode-btn active" id="m-mix" onclick="changeDisplayMode('mix')">英 + 中</button>
-      <button class="mode-btn" id="m-en" onclick="changeDisplayMode('en')">英文</button>
-      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
-      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
-    </div>
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p>太棒了！目前沒有需要處理的未分類資料。</p>';
+                return;
+            }
 
-    <div class="card">
-      <div class="text-en" id="textEn" onclick="toggleTextReveal('en')">讀取中...</div>
-      <div class="text-zh" id="textZh" onclick="toggleTextReveal('zh')">--</div>
-      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆•</div>
-    </div>
+            items.forEach(item => {
+                let card = document.createElement('div');
+                card.className = 'card';
+                card.id = 'row-' + item.row;
 
-    <div class="control-row">
-      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
-      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
-      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
-    </div>
+                let mainSelectOptions = '<option value="">請選擇主標籤</option>';
+                for (let main in categoryMap) {
+                    mainSelectOptions += `<option value="${main}">${main}</option>`;
+                }
 
-    <div class="section-title">重複次數</div>
-    <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
-      <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
-      <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
-      <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
-      <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
-    </div>
-
-    <div class="section-title">播放速度</div>
-    <div class="opt-grid" id="speedGroup" style="grid-template-columns: repeat(4, 1fr);">
-      <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
-      <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
-      <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
-      <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
-      <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
-      <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
-      <button class="opt-btn" onclick="setSpeed(1.1, this)">1.1x</button>
-      <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
-    </div>
-
-    <div class="play-mode-row">
-      <button class="btn-mode id-loop" id="modeLoop" onclick="setPlayMode('loop')">▶ 連續播放</button>
-      <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
-    </div>
-
-    <div class="section-title">播放間隔</div>
-    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
-      <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
-      <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
-      <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
-    </div>
-  </div>
-
-  <!-- 閱讀模式區塊 -->
-  <div id="readSection" class="hidden">
-    <div class="tool-bar">
-      <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
-    </div>
-
-    <div class="sort-grid" id="sortGroup">
-      <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
-      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
-      <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
-      <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
-      <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
-      <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
-    </div>
-
-    <div class="mode-group" style="margin-bottom: 12px;">
-      <button class="mode-btn active" id="rm-all" onclick="changeReadDisplayMode('all')">英 + 中</button>
-      <button class="mode-btn" id="rm-en" onclick="changeReadDisplayMode('en')">僅看英文</button>
-      <button class="mode-btn" id="rm-zh" onclick="changeReadDisplayMode('zh')">僅看中文</button>
-    </div>
-    <div class="read-list" id="readList"></div>
-  </div>
-
-  <!-- 快速新增區塊 -->
-  <div class="add-box">
-    <div class="add-title">
-      <span>⚡ 快速新增（自動帶出翻譯與類型）</span>
-      <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
-    </div>
-    <div class="add-input-group">
-      <input type="text" id="newEnglishInput" class="add-input" placeholder="請輸入英文單字、片語或句子...">
-      <button class="btn-translate" onclick="handleTranslate()">自動翻譯</button>
-    </div>
-    <div class="add-input-group" style="margin-bottom: 0;">
-      <input type="text" id="newChineseInput" class="add-input" placeholder="中文翻譯（可留空自動填入）...">
-      <button class="btn-submit-add" id="submitAddBtn" onclick="submitNewEnglish()">送出</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
-  const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
-  const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
-
-  let rawData = [];
-  let filteredData = [];
-  let currentIndex = 0;
-  
-  let currentTab = 'listen';
-  let displayMode = 'mix'; 
-  let readDisplayMode = 'all'; 
-  let repeatTimes = 1;
-  let currentRepeatCount = 0;
-  let playSpeed = 0.7; 
-  let autoPlayMode = ''; 
-  let intervalTime = 3000; 
-  let selectedTypeFilter = 'all'; 
-  
-  let playStatus = 'stopped'; 
-  let timeoutId = null;
-  let currentSortMode = 'default'; 
-
-  let isEnRevealed = false;
-  let isZhRevealed = false;
-
-  const synth = window.speechSynthesis;
-  let currentUtterance = null;
-  let targetVoice = null;
-
-  function loadVoices() {
-    const voices = synth.getVoices();
-    targetVoice = voices.find(v => v.name.includes('Google US English')) ||
-                  voices.find(v => v.lang === 'en-US') ||
-                  voices.find(v => v.lang.startsWith('en'));
-  }
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-  }
-  loadVoices();
-
-  async function loadSheetData() {
-    try {
-      const res = await fetch(API_URL);
-      rawData = await res.json();
-      
-      rawData.forEach((item, idx) => {
-        let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 0;
-        let starVal = parseInt(rawStar);
-        if (isNaN(starVal) || starVal < 0) starVal = 0; 
-        
-        item.star = starVal;
-        item.originalIndex = idx;
-      });
-      
-      document.getElementById('statusMessage').classList.add('hidden');
-      applyFilters();
-    } catch (err) {
-      document.getElementById('statusMessage').classList.remove('hidden');
-      document.getElementById('textEn').innerText = '錯誤';
-      console.error(err);
-    }
-  }
-
-  function applyFilters() {
-    const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
-    const onlyWeak = document.getElementById('onlyWeakCheck').checked;
-
-    let temp = rawData.filter(item => {
-      if (selectedTypeFilter !== 'all') {
-        const itemType = (item.類型 || item.type || '').trim();
-        if (itemType !== selectedTypeFilter) return false;
-      }
-
-      if (searchKeyword) {
-        const en = (item.英文 || item.english || '').toLowerCase();
-        const zh = (item.中文 || item.chinese || '').toLowerCase();
-        const cat = (item['標籤(情境分類)'] || item.category || item.分類 || '').toLowerCase();
-        if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.includes(searchKeyword)) {
-          return false;
+                card.innerHTML = `
+                    <div class="english">${item.english}</div>
+                    <div class="chinese">${item.chinese}</div>
+                    <div>
+                        <select id="main-cat-${item.row}" onchange="updateSubCategories(${item.row})">
+                            ${mainSelectOptions}
+                        </select>
+                        <select id="sub-cat-${item.row}">
+                            <option value="">請先選主標籤</option>
+                        </select>
+                        <button onclick="saveCategory(${item.row})">確認儲存</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
-      }
-      
-      if (currentTab === 'listen' && onlyWeak) {
-        if (item.star >= 4) return false;
-      }
 
-      return true;
-    });
+        // 當主標籤改變時，連動更新次標籤選單
+        function updateSubCategories(row) {
+            const mainCat = document.getElementById(`main-cat-${row}`).value;
+            const subSelect = document.getElementById(`sub-cat-${row}`);
+            
+            subSelect.innerHTML = '<option value="">請選擇次標籤</option>';
+            
+            if (categoryMap[mainCat]) {
+                categoryMap[mainCat].forEach(sub => {
+                    subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+                });
+            }
+        }
 
-    if (currentSortMode === 'az') {
-      temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
-    } else if (currentSortMode === 'za') {
-      temp.sort((a, b) => (b.英文 || b.english || '').trim().toLowerCase().localeCompare((a.英文 || a.english || '').trim().toLowerCase()));
-    } else if (currentSortMode === 'random') {
-      temp.sort(() => Math.random() - 0.5);
-    } else if (currentSortMode === 'star-asc') {
-      temp.sort((a, b) => a.star - b.star); 
-    } else if (currentSortMode === 'star-desc') {
-      temp.sort((a, b) => b.star - a.star); 
-    } else {
-      temp.sort((a, b) => a.originalIndex - b.originalIndex);
-    }
+        // 點擊儲存時，將選好的標籤回傳給後端寫入 Sheet
+        function saveCategory(row) {
+            const mainCat = document.getElementById(`main-cat-${row}`).value;
+            const subCat = document.getElementById(`sub-cat-${row}`).value;
 
-    filteredData = temp;
-    resetRevealState();
-    currentIndex = 0;
-    
-    document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
-    
-    if (playStatus === 'playing' || playStatus === 'paused') {
-      stopAudio();
-    }
-    
-    renderCard();
-    renderReadList();
-  }
+            if (!mainCat || !subCat) {
+                alert('請完整選擇主標籤與次標籤！');
+                return;
+            }
 
-  function changeTypeFilter(type) {
-    selectedTypeFilter = type;
-    document.querySelectorAll('#typeGroup .type-btn').forEach(btn => btn.classList.remove('active'));
-    
-    if (type === 'all') document.getElementById('type-all').classList.add('active');
-    else if (type === '單字') document.getElementById('type-word').classList.add('active');
-    else if (type === '片語') document.getElementById('type-phrase').classList.add('active');
-    else if (type === '句子') document.getElementById('type-sentence').classList.add('active');
-    
-    applyFilters();
-  }
+            const finalTag = `${mainCat} / ${subCat}`;
 
-  function changeSortMode(mode) {
-    currentSortMode = mode;
-    document.querySelectorAll('#sortGroup .sort-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`sort-${mode}`).classList.add('active');
-    applyFilters();
-  }
-
-  function resetRevealState() {
-    isEnRevealed = false;
-    isZhRevealed = false;
-  }
-
-  function toggleTextReveal(type) {
-    if (filteredData.length === 0) return;
-    
-    let stateChanged = false;
-    if (type === 'en' && (displayMode === 'zh' || displayMode === 'blind')) {
-      isEnRevealed = !isEnRevealed;
-      stateChanged = true;
-    } else if (type === 'zh' && (displayMode === 'en' || displayMode === 'blind')) {
-      isZhRevealed = !isZhRevealed;
-      stateChanged = true;
-    }
-
-    if (stateChanged) {
-      renderCardTextOnly();
-    }
-  }
-
-  function renderCardTextOnly() {
-    if (filteredData.length === 0) return;
-    const item = filteredData[currentIndex];
-    const en = item.英文 || item.english || '';
-    const zh = item.中文 || item.chinese || '';
-
-    let finalEn = '•••';
-    if (displayMode === 'mix' || displayMode === 'en' || isEnRevealed) {
-      finalEn = en;
-    }
-    
-    let finalZh = '•••';
-    if (displayMode === 'mix' || displayMode === 'zh' || isZhRevealed) {
-      finalZh = zh;
-    }
-
-    document.getElementById('textEn').innerText = finalEn;
-    document.getElementById('textZh').innerText = finalZh;
-  }
-
-  function renderCard() {
-    if (filteredData.length === 0) {
-      document.getElementById('textEn').innerText = '無符合資料';
-      document.getElementById('textZh').innerText = '--';
-      document.getElementById('textStar').innerText = '';
-      document.getElementById('infoText').innerText = '第 0 / 0 筆';
-      return;
-    }
-
-    if (currentIndex >= filteredData.length) currentIndex = 0;
-
-    const item = filteredData[currentIndex];
-    const star = item.star;
-
-    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
-    
-    renderCardTextOnly();
-    document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
-  }
-
-  async function handleStarClick(e) {
-    if (filteredData.length === 0) return;
-    const starEl = e.currentTarget;
-    const rect = starEl.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    
-    let newStar = Math.ceil((clickX / rect.width) * 5);
-    if (newStar < 1) newStar = 1;
-    if (newStar > 5) newStar = 5;
-
-    const currentItem = filteredData[currentIndex];
-    currentItem.star = newStar;
-    currentItem.熟悉度 = newStar;
-    
-    renderCard();
-    renderReadList();
-
-    try {
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'updateStar',
-          id: currentItem.ID,
-          star: newStar
-        })
-      });
-    } catch (err) {
-      console.error('同步熟悉度失敗', err);
-    }
-  }
-
-  function renderReadList() {
-    const listContainer = document.getElementById('readList');
-    listContainer.innerHTML = '';
-
-    if (filteredData.length === 0) {
-      listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px;">沒有符合條件的內容</div>';
-      return;
-    }
-
-    filteredData.forEach((item, index) => {
-      const en = item.英文 || item.english || '';
-      const zh = item.中文 || item.chinese || '';
-      const star = item.star;
-      const cat = item['標籤(情境分類)'] || item.category || '未分類';
-      const type = item.類型 || item.type || '未定';
-      
-      const div = document.createElement('div');
-      div.className = 'read-item';
-      
-      let showEn = (readDisplayMode === 'all' || readDisplayMode === 'en') ? `<div class="en">${index + 1}. ${en}</div>` : '';
-      let showZh = (readDisplayMode === 'all' || readDisplayMode === 'zh') ? `<div class="zh">${readDisplayMode === 'zh' ? (index + 1) + '. ' : ''}${zh}</div>` : '';
-      
-      div.innerHTML = `
-        <div class="read-content">
-          ${showEn}
-          ${showZh}
-          <div class="meta"><span>🏷️ ${cat} (${type})</span><span style="color: #f59e0b;">${'★'.repeat(star)}</span></div>
-        </div>
-      `;
-      
-      const pBtn = document.createElement('button');
-      pBtn.className = 'btn-inline-play';
-      pBtn.innerHTML = '🔊';
-      pBtn.onclick = (e) => { e.stopPropagation(); speakDirect(en); };
-      
-      div.appendChild(pBtn);
-      listContainer.appendChild(div);
-    });
-  }
-
-  function changeReadDisplayMode(mode) {
-    readDisplayMode = mode;
-    ['all', 'en', 'zh'].forEach(m => {
-      const btn = document.getElementById(`rm-${m}`);
-      if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
-    });
-    renderReadList();
-  }
-
-  function getSimilarity(s1, s2) {
-    s1 = s1.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
-    s2 = s2.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
-    
-    if (s1 === s2) return 1.0;
-    
-    const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
-    for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
-    for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
-    
-    for (let j = 1; j <= s2.length; j += 1) {
-      for (let i = 1; i <= s1.length; i += 1) {
-        const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
-        track[j][i] = Math.min(
-          track[j][i - 1] + 1, 
-          track[j - 1][i] + 1, 
-          track[j - 1][i - 1] + indicator 
-        );
-      }
-    }
-    const distance = track[s2.length][s1.length];
-    const longest = Math.max(s1.length, s2.length);
-    return longest === 0 ? 1.0 : (longest - distance) / longest;
-  }
-
-  async function handleTranslate() {
-    const inputEl = document.getElementById('newEnglishInput');
-    const zhInputEl = document.getElementById('newChineseInput');
-    const text = inputEl.value.trim();
-    const statusEl = document.getElementById('addStatus');
-
-    if (!text) {
-      alert('請先輸入要翻譯的英文！');
-      return;
-    }
-
-    statusEl.innerText = '⏳ 翻譯中...';
-    statusEl.style.color = '#2563eb';
-
-    try {
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`);
-      const resJson = await res.json();
-      const translated = resJson[0].map(item => item[0]).join('');
-      zhInputEl.value = translated;
-      statusEl.innerText = '✅ 翻譯完成';
-      statusEl.style.color = '#16a34a';
-      setTimeout(() => { statusEl.innerText = ''; }, 1500);
-    } catch (e) {
-      statusEl.innerText = '❌ 翻譯失敗';
-      statusEl.style.color = '#ef4444';
-    }
-  }
-
-  async function submitNewEnglish() {
-    const inputEl = document.getElementById('newEnglishInput');
-    const zhInputEl = document.getElementById('newChineseInput');
-    const btnEl = document.getElementById('submitAddBtn');
-    const statusEl = document.getElementById('addStatus');
-    const text = inputEl.value.trim();
-    const chineseText = zhInputEl.value.trim();
-
-    if (!text) return;
-
-    let exactMatch = false;
-    let similarMatch = null;
-
-    for (let item of rawData) {
-      const existingEn = (item.英文 || item.english || '').trim();
-      if (existingEn.toLowerCase() === text.toLowerCase()) {
-        exactMatch = true;
-        break;
-      }
-      
-      let sim = getSimilarity(text, existingEn);
-      if (sim >= 0.7) {
-        similarMatch = existingEn;
-      }
-    }
-
-    if (exactMatch) {
-      alert(`⚠️ 該字句已存在於資料庫中，無法重複新增！`);
-      return;
-    }
-
-    if (similarMatch) {
-      const confirmAdd = confirm(`💡 發現類似的句子已存在：\n「${similarMatch}」\n\n您確定還要建立這筆新資料嗎？`);
-      if (!confirmAdd) return; 
-    }
-
-    inputEl.disabled = true;
-    zhInputEl.disabled = true;
-    btnEl.disabled = true;
-    statusEl.innerText = '⏳ 同步中...';
-    statusEl.style.color = '#2563eb';
-
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'addEnglish',
-          english: text,
-          chinese: chineseText
-        })
-      });
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        statusEl.innerText = '✅ 成功！';
-        statusEl.style.color = '#16a34a';
-        inputEl.value = '';
-        zhInputEl.value = '';
-        setTimeout(() => {
-          statusEl.innerText = '';
-          loadSheetData();
-        }, 1200);
-      } else {
-        throw new Error(result.message || '未知錯誤');
-      }
-    } catch (err) {
-      statusEl.innerText = '❌ 失敗';
-      statusEl.style.color = '#ef4444';
-      console.error(err);
-    } finally {
-      inputEl.disabled = false;
-      zhInputEl.disabled = false;
-      btnEl.disabled = false;
-    }
-  }
-
-  function speakDirect(text) {
-    synth.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    if (targetVoice) utt.voice = targetVoice;
-    utt.lang = 'en-US';
-    utt.rate = playSpeed;
-    synth.speak(utt);
-  }
-
-  function handlePlayToggle() {
-    if (filteredData.length === 0) return;
-
-    if (playStatus === 'playing') {
-      playStatus = 'paused';
-      synth.pause();
-      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-      updatePlayButtonUI();
-    } else if (playStatus === 'paused') {
-      playStatus = 'playing';
-      updatePlayButtonUI();
-      
-      if (synth.paused) {
-        synth.resume();
-      } else {
-        speakCurrent();
-      }
-    } else {
-      playStatus = 'playing';
-      currentRepeatCount = 0;
-      updatePlayButtonUI();
-      speakCurrent();
-    }
-  }
-
-  function updatePlayButtonUI() {
-    const pBtn = document.getElementById('playBtn');
-    if (playStatus === 'playing') {
-      pBtn.innerText = '⏸ 暫停';
-      pBtn.classList.add('is-playing');
-    } else if (playStatus === 'paused') {
-      pBtn.innerText = '▶ 繼續播放';
-      pBtn.classList.remove('is-playing');
-    } else {
-      pBtn.innerText = '🔊 播放';
-      pBtn.classList.remove('is-playing');
-    }
-  }
-
-  function stopAudio() {
-    playStatus = 'stopped';
-    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-    synth.cancel();
-    currentRepeatCount = 0;
-    updatePlayButtonUI();
-  }
-
-  function speakCurrent() {
-    if (filteredData.length === 0 || playStatus !== 'playing') return;
-    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-
-    const item = filteredData[currentIndex];
-    const en = item.英文 || item.english || '';
-
-    synth.cancel();
-
-    currentUtterance = new SpeechSynthesisUtterance(en);
-    if (targetVoice) currentUtterance.voice = targetVoice;
-    currentUtterance.lang = 'en-US';
-    currentUtterance.rate = playSpeed; 
-
-    currentUtterance.onend = () => {
-      if (playStatus !== 'playing') return; 
-
-      currentRepeatCount++;
-      if (currentRepeatCount < repeatTimes) {
-        timeoutId = setTimeout(() => { speakCurrent(); }, 400);
-      } else {
-        currentRepeatCount = 0;
-        proceedToNextCard();
-      }
-    };
-
-    currentUtterance.onerror = (event) => {
-      console.error('語音播放錯誤:', event);
-      if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
-        stopAudio();
-      }
-    };
-
-    synth.speak(currentUtterance);
-  }
-
-  function proceedToNextCard() {
-    if (autoPlayMode === 'loop') {
-      timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
-    } else if (autoPlayMode === 'random') {
-      timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
-    } else {
-      stopAudio();
-    }
-  }
-
-  function triggerRandomNext() {
-    if (filteredData.length <= 1) {
-      speakCurrent();
-      return;
-    }
-    let nextIdx = currentIndex;
-    while (nextIdx === currentIndex) {
-      nextIdx = Math.floor(Math.random() * filteredData.length);
-    }
-    currentIndex = nextIdx;
-    currentRepeatCount = 0;
-    
-    resetRevealState();
-    renderCard();
-    speakCurrent();
-  }
-
-  function setSpeed(speed, btn) {
-    playSpeed = speed;
-    clearActive('speedGroup');
-    btn.classList.add('active');
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
-  }
-
-  function nextSentence(auto = false) {
-    if (filteredData.length === 0) return;
-    
-    currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
-    currentRepeatCount = 0;
-    
-    resetRevealState();
-    renderCard();
-    
-    if (auto || playStatus === 'playing') {
-      playStatus = 'playing';
-      updatePlayButtonUI();
-      speakCurrent();
-    }
-  }
-
-  function prevSentence() {
-    if (filteredData.length === 0) return;
-    
-    currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
-    currentRepeatCount = 0;
-    
-    resetRevealState();
-    renderCard();
-    
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
-  }
-
-  document.addEventListener('keydown', (e) => {
-    if (document.activeElement.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); handlePlayToggle(); }
-    if (e.code === 'ArrowRight') { nextSentence(); }
-    if (e.code === 'ArrowLeft') { prevSentence(); }
-  });
-
-  function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
-    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
-    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
-    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
-    
-    stopAudio();
-    applyFilters();
-  }
-
-  function changeDisplayMode(mode) {
-    displayMode = mode;
-    resetRevealState();
-    ['mix', 'en', 'zh', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
-    renderCard();
-  }
-
-  function setRepeat(times, btn) { 
-    repeatTimes = times; 
-    clearActive('repeatGroup'); 
-    btn.classList.add('active'); 
-    if (playStatus === 'playing') {
-      currentRepeatCount = 0; 
-      speakCurrent();
-    }
-  }
-  
-  function setIntervalTime(ms, btn) { 
-    intervalTime = ms; 
-    clearActive('intervalGroup'); 
-    btn.classList.add('active'); 
-  }
-  
-  function setPlayMode(mode) {
-    if (autoPlayMode === mode) {
-      autoPlayMode = ''; 
-      document.getElementById('modeLoop').classList.remove('active');
-      document.getElementById('modeRandom').classList.remove('active');
-    } else {
-      autoPlayMode = mode;
-      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
-      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
-    }
-  }
-
-  function clearActive(parentId) { 
-    document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); 
-  }
-
-  loadSheetData();
-</script>
-
+            if (typeof google !== 'undefined' && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function() {
+                        // 儲存成功後，把該張卡片從畫面上移除
+                        document.getElementById('row-' + row).remove();
+                        // 檢查是否全部清空
+                        if (document.getElementById('todo-container').children.length === 0) {
+                            document.getElementById('todo-container').innerHTML = '<p>所有待處理資料已分類完成！</p>';
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        alert('儲存失敗：' + err.message);
+                    })
+                    .updateItemCategory(row, finalTag); // 這需要在 Code.gs 裡寫對應的後端函式
+            } else {
+                alert(`[模擬] 第 ${row} 行已成功更新標籤為：${finalTag}`);
+                document.getElementById('row-' + row).remove();
+            }
+        }
+    </script>
 </body>
 </html>
