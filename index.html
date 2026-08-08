@@ -17,11 +17,19 @@
 
     .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
     .search-row { display: flex; align-items: center; width: 100%; gap: 8px; }
+    .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
     .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
     .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .weak-filter-row { display: flex; align-items: center; justify-content: flex-start; width: 100%; padding-left: 4px; gap: 6px; font-size: 13px; font-weight: bold; color: #b45309; }
+    .weak-checkbox { width: 16px; height: 16px; cursor: pointer; }
+
+    .sort-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin-bottom: 12px; }
+    .sort-btn { padding: 8px 10px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .sort-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     .mode-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; }
     .mode-btn { flex: 1; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
@@ -37,289 +45,798 @@
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
     .btn-nav { background: #e2e8f0; color: #475569; }
     .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
+    .btn-play.is-playing { background: #f59e0b; color: #fff; }
+    .btn-stop { background: #ef4444; color: #fff; }
+
+    .section-title { font-size: 13px; font-weight: bold; color: #64748b; margin: 12px 0 6px 0; text-align: center; }
+
+    .opt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 5px; }
+    .opt-btn { padding: 8px; border: 1px solid #e2e8f0; background: #e2e8f0; color: #475569; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.1s; text-align: center; }
+    .opt-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .play-mode-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+    .btn-mode { padding: 8px 14px; border: 1px solid #cbd5e1; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
+    .btn-mode.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 0 8px rgba(37,99,235,0.3); }
 
     .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 48vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
-    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .read-item:hover { background: #f1f5f9; }
     .read-content { flex: 1; padding-right: 10px; }
-    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; }
-    .read-item .zh { font-size: 14px; color: #64748b; }
-    .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
+    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
+    .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
+    .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
     .add-box { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; }
-    .add-input-group { display: flex; gap: 8px; margin-top: 8px; }
+    .add-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .add-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
     .add-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; font-weight: bold; }
-    .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn-translate { background: #10b981; color: #fff; border: none; padding: 0 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; white-space: nowrap; }
-    
-    .status-msg { color: #2563eb; font-weight: bold; font-size: 13px; margin: 8px 0; text-align: center; }
+    .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap; }
+    .btn-submit-add:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-translate { background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0 14px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+
+    .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📚 英文學習資料庫</h1>
+
+<div class="container">
+  <h1>📚 英文學習資料庫</h1>
+
+  <div class="tab-group">
+    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
+    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+  </div>
+
+  <div class="filter-box">
+    <div class="search-row">
+      <span class="filter-label">🔍 快速搜尋：</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類情境..." oninput="applyFilters()">
+    </div>
     
-    <div class="tab-group">
-      <button class="tab-btn active" id="tabFlashcard" onclick="switchTab('flashcard')">閃卡背誦</button>
-      <button class="tab-btn" id="tabList" onclick="switchTab('list')">清單瀏覽</button>
+    <div class="type-grid" id="typeGroup">
+      <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
+      <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
+      <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
+      <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
 
-    <div id="statusMsg" class="status-msg">正在載入資料...</div>
-
-    <!-- 閃卡模式 -->
-    <div id="flashcardSection">
-      <div class="mode-group">
-        <button class="mode-btn active" id="modeEn" onclick="setCardMode('en')">看英猜中</button>
-        <button class="mode-btn" id="modeZh" onclick="setCardMode('zh')">看中猜英</button>
-        <button class="mode-btn" id="modeBoth" onclick="setCardMode('both')">中英對照</button>
-      </div>
-
-      <div class="card" id="cardContainer">
-        <div class="text-en" id="cardEn" onclick="speakCurrent()">載入中...</div>
-        <div class="text-zh" id="cardZh" onclick="toggleAnswer()">點擊顯示中文</div>
-        <div class="stars" id="cardStars">★★★★★</div>
-      </div>
-
-      <div class="control-row">
-        <button class="btn btn-nav" onclick="prevCard()">⬅ 上一張</button>
-        <button class="btn btn-play" id="playAudioBtn" onclick="speakCurrent()">🔊 朗讀</button>
-        <button class="btn btn-nav" onclick="nextCard()">下一張 ➡</button>
-      </div>
-    </div>
-
-    <!-- 清單瀏覽模式 -->
-    <div id="listSection" class="hidden">
-      <div class="filter-box">
-        <div class="search-row">
-          <input type="text" class="search-input" id="searchInput" placeholder="搜尋單字或中文..." oninput="filterData()">
-        </div>
-        <div class="type-grid" id="typeFilters">
-          <button class="type-btn active" onclick="setTypeFilter('all', this)">全部</button>
-          <button class="type-btn" onclick="setTypeFilter('word', this)">單字</button>
-          <button class="type-btn" onclick="setTypeFilter('phrase', this)">片語</button>
-          <button class="type-btn" onclick="setTypeFilter('sentence', this)">句子</button>
-        </div>
-      </div>
-      <div class="read-list" id="readListContainer"></div>
-    </div>
-
-    <!-- 新增與翻譯區塊 -->
-    <div class="add-box">
-      <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 4px;">➕ 新增內容（具備一鍵雲端翻譯）</div>
-      <div class="add-input-group">
-        <input type="text" class="add-input" id="newEnInput" placeholder="輸入英文單字或句子">
-        <button class="btn-translate" onclick="handleTranslate()">自動翻譯</button>
-      </div>
-      <div class="add-input-group" style="margin-top: 6px;">
-        <input type="text" class="add-input" id="newZhInput" placeholder="中文翻譯">
-        <select id="newTypeInput" class="add-input" style="max-width: 100px;">
-          <option value="word">單字</option>
-          <option value="phrase">片語</option>
-          <option value="sentence">句子</option>
-        </select>
-        <button class="btn-submit-add" onclick="handleAdd()">新增</button>
-      </div>
+    <div class="weak-filter-row" id="weakFilterRow">
+      <input type="checkbox" id="onlyWeakCheck" class="weak-checkbox" onchange="applyFilters()">
+      <label for="onlyWeakCheck" style="cursor: pointer;">⚡ 僅聽弱項 (排除 4~5 星)</label>
     </div>
   </div>
 
-  <script>
-    let allData = [];
-    let filteredData = [];
-    let currentIndex = 0;
-    let cardMode = 'en';
-    let currentTypeFilter = 'all';
-    let showAnswerFlag = false;
+  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
-    window.onload = function() { loadData(); };
+  <!-- ================= 聽力模式區塊 ================= -->
+  <div id="listenSection">
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
-    function loadData() {
-      document.getElementById('statusMsg').innerText = '正在從試算表同步資料...';
-      google.script.run
-        .withSuccessHandler(function(data) {
-          allData = data;
-          filterData();
-          document.getElementById('statusMsg').innerText = `已成功載入 ${allData.length} 筆資料`;
-          setTimeout(() => { document.getElementById('statusMsg').innerText = ''; }, 2000);
-        })
-        .withFailureHandler(function(err) {
-          document.getElementById('statusMsg').innerText = '載入失敗: ' + err.message;
-        })
-        .getData();
-    }
+    <div class="mode-group">
+      <button class="mode-btn active" id="m-mix" onclick="changeDisplayMode('mix')">英 + 中</button>
+      <button class="mode-btn" id="m-en" onclick="changeDisplayMode('en')">英文</button>
+      <button class="mode-btn" id="m-zh" onclick="changeDisplayMode('zh')">中文</button>
+      <button class="mode-btn" id="m-blind" onclick="changeDisplayMode('blind')">盲聽</button>
+    </div>
 
-    function switchTab(tab) {
-      document.getElementById('tabFlashcard').classList.toggle('active', tab === 'flashcard');
-      document.getElementById('tabList').classList.toggle('active', tab === 'list');
-      document.getElementById('flashcardSection').classList.toggle('hidden', tab !== 'flashcard');
-      document.getElementById('listSection').classList.toggle('hidden', tab !== 'list');
-      if (tab === 'list') renderList();
-    }
+    <div class="card">
+      <div class="text-en" id="textEn" onclick="toggleTextReveal('en')">讀取中...</div>
+      <div class="text-zh" id="textZh" onclick="toggleTextReveal('zh')">--</div>
+      <div class="stars" id="textStar" onclick="handleStarClick(event)">☆☆☆☆•</div>
+    </div>
 
-    function setCardMode(mode) {
-      cardMode = mode;
-      ['En', 'Zh', 'Both'].forEach(m => {
-        document.getElementById('mode' + m).classList.toggle('active', mode.toLowerCase() === m.toLowerCase());
-      });
-      showAnswerFlag = (mode === 'both');
-      updateCardDisplay();
-    }
+    <div class="control-row">
+      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
+      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+    </div>
 
-    function filterData() {
-      const keyword = document.getElementById('searchInput').value.toLowerCase();
-      filteredData = allData.filter(item => {
-        const matchKeyword = !keyword || (item.en && item.en.toLowerCase().includes(keyword)) || (item.zh && item.zh.toLowerCase().includes(keyword));
-        const matchType = (currentTypeFilter === 'all') || (item.type === currentTypeFilter);
-        return matchKeyword && matchType;
-      });
-      currentIndex = 0;
-      updateCardDisplay();
-      if (!document.getElementById('listSection').classList.contains('hidden')) {
-        renderList();
-      }
-    }
+    <div class="section-title">重複次數</div>
+    <div class="opt-grid" id="repeatGroup" style="grid-template-columns: repeat(4, 1fr);">
+      <button class="opt-btn active" onclick="setRepeat(1, this)">1次</button>
+      <button class="opt-btn" onclick="setRepeat(2, this)">2次</button>
+      <button class="opt-btn" onclick="setRepeat(3, this)">3次</button>
+      <button class="opt-btn" onclick="setRepeat(999, this)">無限</button>
+    </div>
 
-    function setTypeFilter(type, btn) {
-      currentTypeFilter = type;
-      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      filterData();
-    }
+    <div class="section-title">播放速度</div>
+    <div class="opt-grid" id="speedGroup" style="grid-template-columns: repeat(4, 1fr);">
+      <button class="opt-btn" onclick="setSpeed(0.5, this)">0.5x</button>
+      <button class="opt-btn" onclick="setSpeed(0.6, this)">0.6x</button>
+      <button class="opt-btn active" onclick="setSpeed(0.7, this)">0.7x</button>
+      <button class="opt-btn" onclick="setSpeed(0.8, this)">0.8x</button>
+      <button class="opt-btn" onclick="setSpeed(0.9, this)">0.9x</button>
+      <button class="opt-btn" onclick="setSpeed(1.0, this)">1.0x</button>
+      <button class="opt-btn" onclick="setSpeed(1.1, this)">1.1x</button>
+      <button class="opt-btn" onclick="setSpeed(1.2, this)">1.2x</button>
+    </div>
 
-    function updateCardDisplay() {
-      if (filteredData.length === 0) {
-        document.getElementById('cardEn').innerText = '沒有符合條件的資料';
-        document.getElementById('cardZh').innerText = '請新增或調整篩選條件';
-        document.getElementById('cardStars').innerText = '☆☆☆☆☆';
-        return;
-      }
-      if (currentIndex >= filteredData.length) currentIndex = 0;
-      if (currentIndex < 0) currentIndex = filteredData.length - 1;
+    <div class="play-mode-row">
+      <button class="btn-mode id-loop" id="modeLoop" onclick="setPlayMode('loop')">▶ 連續播放</button>
+      <button class="btn-mode id-random" id="modeRandom" onclick="setPlayMode('random')">🔀 隨機播放</button>
+    </div>
 
-      const item = filteredData[currentIndex];
-      document.getElementById('cardEn').innerText = item.en || '';
+    <div class="section-title">播放間隔</div>
+    <div class="opt-grid" id="intervalGroup" style="grid-template-columns: repeat(3, 1fr);">
+      <button class="opt-btn" onclick="setIntervalTime(1000, this)">1秒</button>
+      <button class="opt-btn active" onclick="setIntervalTime(3000, this)">3秒</button>
+      <button class="opt-btn" onclick="setIntervalTime(5000, this)">5秒</button>
+    </div>
+  </div>
+
+  <!-- ================= 閱讀模式區塊 ================= -->
+  <div id="readSection" class="hidden">
+    <div class="tool-bar">
+      <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
+    </div>
+
+    <div class="sort-grid" id="sortGroup">
+      <button class="sort-btn active" id="sort-default" onclick="changeSortMode('default')">📋 預設</button>
+      <button class="sort-btn" id="sort-random" onclick="changeSortMode('random')">🔀 隨機排序</button>
+      <button class="sort-btn" id="sort-star-asc" onclick="changeSortMode('star-asc')">⭐ 熟悉度 (低➔高)</button>
+      <button class="sort-btn" id="sort-star-desc" onclick="changeSortMode('star-desc')">⭐ 熟悉度 (高➔低)</button>
+      <button class="sort-btn" id="sort-az" onclick="changeSortMode('az')">🔤 A ➔ Z</button>
+      <button class="sort-btn" id="sort-za" onclick="changeSortMode('za')">🔤 Z ➔ A</button>
+    </div>
+
+    <div class="mode-group" style="margin-bottom: 12px;">
+      <button class="mode-btn active" id="rm-all" onclick="changeReadDisplayMode('all')">英 + 中</button>
+      <button class="mode-btn" id="rm-en" onclick="changeReadDisplayMode('en')">僅看英文</button>
+      <button class="mode-btn" id="rm-zh" onclick="changeReadDisplayMode('zh')">僅看中文</button>
+    </div>
+    <div class="read-list" id="readList"></div>
+  </div>
+
+  <!-- ================= 快速新增區塊 (含翻譯功能) ================= -->
+  <div class="add-box">
+    <div class="add-title">
+      <span>⚡ 快速新增（含雲端翻譯）</span>
+      <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
+    </div>
+    <div class="add-input-group">
+      <input type="text" id="newEnglishInput" class="add-input" placeholder="請輸入英文單字、片語或句子...">
+      <button class="btn-translate" onclick="handleTranslate()">自動翻譯</button>
+    </div>
+    <div class="add-input-group" style="margin-bottom: 0;">
+      <input type="text" id="newChineseInput" class="add-input" placeholder="中文翻譯（可留空自動填入）...">
+      <button class="btn-submit-add" id="submitAddBtn" onclick="submitNewEnglish()">送出</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
+  const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
+  const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
+
+  let rawData = [];
+  let filteredData = [];
+  let currentIndex = 0;
+  
+  let currentTab = 'listen';
+  let displayMode = 'mix'; 
+  let readDisplayMode = 'all'; 
+  let repeatTimes = 1;
+  let currentRepeatCount = 0;
+  let playSpeed = 0.7; 
+  let autoPlayMode = ''; 
+  let intervalTime = 3000; 
+  let selectedTypeFilter = 'all'; 
+  
+  let playStatus = 'stopped'; 
+  let timeoutId = null;
+  let currentSortMode = 'default'; 
+
+  let isEnRevealed = false;
+  let isZhRevealed = false;
+
+  const synth = window.speechSynthesis;
+  let currentUtterance = null;
+  let targetVoice = null;
+
+  function loadVoices() {
+    const voices = synth.getVoices();
+    targetVoice = voices.find(v => v.name.includes('Google US English')) ||
+                  voices.find(v => v.lang === 'en-US') ||
+                  voices.find(v => v.lang.startsWith('en'));
+  }
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  loadVoices();
+
+  async function loadSheetData() {
+    try {
+      const res = await fetch(API_URL);
+      rawData = await res.json();
       
-      const zhElem = document.getElementById('cardZh');
-      if (cardMode === 'both' || showAnswerFlag) {
-        zhElem.innerText = item.zh || '';
-      } else if (cardMode === 'en') {
-        zhElem.innerText = '📌 點擊此處顯示中文';
+      rawData.forEach((item, idx) => {
+        let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 0;
+        let starVal = parseInt(rawStar);
+        if (isNaN(starVal) || starVal < 0) starVal = 0; 
+        
+        item.star = starVal;
+        item.originalIndex = idx;
+      });
+      
+      document.getElementById('statusMessage').classList.add('hidden');
+      applyFilters();
+    } catch (err) {
+      document.getElementById('statusMessage').classList.remove('hidden');
+      document.getElementById('textEn').innerText = '錯誤';
+      console.error(err);
+    }
+  }
+
+  function applyFilters() {
+    const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
+    const onlyWeak = document.getElementById('onlyWeakCheck').checked;
+
+    let temp = rawData.filter(item => {
+      if (selectedTypeFilter !== 'all') {
+        const itemType = (item.類型 || item.type || '').trim();
+        if (itemType !== selectedTypeFilter) return false;
+      }
+
+      if (searchKeyword) {
+        const en = (item.英文 || item.english || '').toLowerCase();
+        const zh = (item.中文 || item.chinese || '').toLowerCase();
+        const cat = (item['標籤(情境分類)'] || item.category || item.分類 || '').toLowerCase();
+        if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.includes(searchKeyword)) {
+          return false;
+        }
+      }
+      
+      if (currentTab === 'listen' && onlyWeak) {
+        if (item.star >= 4) return false;
+      }
+
+      return true;
+    });
+
+    if (currentSortMode === 'az') {
+      temp.sort((a, b) => (a.英文 || a.english || '').trim().toLowerCase().localeCompare((b.英文 || b.english || '').trim().toLowerCase()));
+    } else if (currentSortMode === 'za') {
+      temp.sort((a, b) => (b.英文 || b.english || '').trim().toLowerCase().localeCompare((a.英文 || a.english || '').trim().toLowerCase()));
+    } else if (currentSortMode === 'random') {
+      temp.sort(() => Math.random() - 0.5);
+    } else if (currentSortMode === 'star-asc') {
+      temp.sort((a, b) => a.star - b.star); 
+    } else if (currentSortMode === 'star-desc') {
+      temp.sort((a, b) => b.star - a.star); 
+    } else {
+      temp.sort((a, b) => a.originalIndex - b.originalIndex);
+    }
+
+    filteredData = temp;
+    resetRevealState();
+    currentIndex = 0;
+    
+    document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
+    
+    if (playStatus === 'playing' || playStatus === 'paused') {
+      stopAudio();
+    }
+    
+    renderCard();
+    renderReadList();
+  }
+
+  function changeTypeFilter(type) {
+    selectedTypeFilter = type;
+    document.querySelectorAll('#typeGroup .type-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (type === 'all') document.getElementById('type-all').classList.add('active');
+    else if (type === '單字') document.getElementById('type-word').classList.add('active');
+    else if (type === '片語') document.getElementById('type-phrase').classList.add('active');
+    else if (type === '句子') document.getElementById('type-sentence').classList.add('active');
+    
+    applyFilters();
+  }
+
+  function changeSortMode(mode) {
+    currentSortMode = mode;
+    document.querySelectorAll('#sortGroup .sort-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`sort-${mode}`).classList.add('active');
+    applyFilters();
+  }
+
+  function resetRevealState() {
+    isEnRevealed = false;
+    isZhRevealed = false;
+  }
+
+  function toggleTextReveal(type) {
+    if (filteredData.length === 0) return;
+    
+    let stateChanged = false;
+    if (type === 'en' && (displayMode === 'zh' || displayMode === 'blind')) {
+      isEnRevealed = !isEnRevealed;
+      stateChanged = true;
+    } else if (type === 'zh' && (displayMode === 'en' || displayMode === 'blind')) {
+      isZhRevealed = !isZhRevealed;
+      stateChanged = true;
+    }
+
+    if (stateChanged) {
+      renderCardTextOnly();
+    }
+  }
+
+  function renderCardTextOnly() {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const en = item.英文 || item.english || '';
+    const zh = item.中文 || item.chinese || '';
+
+    let finalEn = '•••';
+    if (displayMode === 'mix' || displayMode === 'en' || isEnRevealed) {
+      finalEn = en;
+    }
+    
+    let finalZh = '•••';
+    if (displayMode === 'mix' || displayMode === 'zh' || isZhRevealed) {
+      finalZh = zh;
+    }
+
+    document.getElementById('textEn').innerText = finalEn;
+    document.getElementById('textZh').innerText = finalZh;
+  }
+
+  function renderCard() {
+    if (filteredData.length === 0) {
+      document.getElementById('textEn').innerText = '無符合資料';
+      document.getElementById('textZh').innerText = '--';
+      document.getElementById('textStar').innerText = '';
+      document.getElementById('infoText').innerText = '第 0 / 0 筆';
+      return;
+    }
+
+    if (currentIndex >= filteredData.length) currentIndex = 0;
+
+    const item = filteredData[currentIndex];
+    const star = item.star;
+
+    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
+    
+    renderCardTextOnly();
+    document.getElementById('textStar').innerText = '★'.repeat(star) + '☆'.repeat(5 - star);
+  }
+
+  async function handleStarClick(e) {
+    if (filteredData.length === 0) return;
+    const starEl = e.currentTarget;
+    const rect = starEl.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    
+    let newStar = Math.ceil((clickX / rect.width) * 5);
+    if (newStar < 1) newStar = 1;
+    if (newStar > 5) newStar = 5;
+
+    const currentItem = filteredData[currentIndex];
+    currentItem.star = newStar;
+    currentItem.熟悉度 = newStar;
+    
+    renderCard();
+    renderReadList();
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'updateStar',
+          id: currentItem.ID,
+          star: newStar
+        })
+      });
+    } catch (err) {
+      console.error('同步熟悉度失敗', err);
+    }
+  }
+
+  function renderReadList() {
+    const listContainer = document.getElementById('readList');
+    listContainer.innerHTML = '';
+
+    if (filteredData.length === 0) {
+      listContainer.innerHTML = '<div style="text-align:center; color:#94a3b8; padding: 20px;">沒有符合條件的內容</div>';
+      return;
+    }
+
+    filteredData.forEach((item, index) => {
+      const en = item.英文 || item.english || '';
+      const zh = item.中文 || item.chinese || '';
+      const star = item.star;
+      const cat = item['標籤(情境分類)'] || item.category || '未分類';
+      const type = item.類型 || item.type || '未定';
+      
+      const div = document.createElement('div');
+      div.className = 'read-item';
+      
+      let showEn = (readDisplayMode === 'all' || readDisplayMode === 'en') ? `<div class="en">${index + 1}. ${en}</div>` : '';
+      let showZh = (readDisplayMode === 'all' || readDisplayMode === 'zh') ? `<div class="zh">${readDisplayMode === 'zh' ? (index + 1) + '. ' : ''}${zh}</div>` : '';
+      
+      div.innerHTML = `
+        <div class="read-content">
+          ${showEn}
+          ${showZh}
+          <div class="meta"><span>🏷️ ${cat} (${type})</span><span style="color: #f59e0b;">${'★'.repeat(star)}</span></div>
+        </div>
+      `;
+      
+      const pBtn = document.createElement('button');
+      pBtn.className = 'btn-inline-play';
+      pBtn.innerHTML = '🔊';
+      pBtn.onclick = (e) => { e.stopPropagation(); speakDirect(en); };
+      
+      div.appendChild(pBtn);
+      listContainer.appendChild(div);
+    });
+  }
+
+  function changeReadDisplayMode(mode) {
+    readDisplayMode = mode;
+    ['all', 'en', 'zh'].forEach(m => {
+      const btn = document.getElementById(`rm-${m}`);
+      if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
+    });
+    renderReadList();
+  }
+
+  function getSimilarity(s1, s2) {
+    s1 = s1.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
+    s2 = s2.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s+/g, " ").trim();
+    
+    if (s1 === s2) return 1.0;
+    
+    const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+    for (let i = 0; i <= s1.length; i += 1) track[0][i] = i;
+    for (let j = 0; j <= s2.length; j += 1) track[j][0] = j;
+    
+    for (let j = 1; j <= s2.length; j += 1) {
+      for (let i = 1; i <= s1.length; i += 1) {
+        const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        track[j][i] = Math.min(
+          track[j][i - 1] + 1, 
+          track[j - 1][i] + 1, 
+          track[j - 1][i - 1] + indicator 
+        );
+      }
+    }
+    const distance = track[s2.length][s1.length];
+    const longest = Math.max(s1.length, s2.length);
+    return longest === 0 ? 1.0 : (longest - distance) / longest;
+  }
+
+  // 雲端即時翻譯按鈕功能
+  async function handleTranslate() {
+    const inputEl = document.getElementById('newEnglishInput');
+    const zhInputEl = document.getElementById('newChineseInput');
+    const text = inputEl.value.trim();
+    const statusEl = document.getElementById('addStatus');
+
+    if (!text) {
+      alert('請先輸入要翻譯的英文！');
+      return;
+    }
+
+    statusEl.innerText = '⏳ 翻譯中...';
+    statusEl.style.color = '#2563eb';
+
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(text)}`);
+      const resJson = await res.json();
+      const translated = resJson[0].map(item => item[0]).join('');
+      zhInputEl.value = translated;
+      statusEl.innerText = '✅ 翻譯完成';
+      statusEl.style.color = '#16a34a';
+      setTimeout(() => { statusEl.innerText = ''; }, 1500);
+    } catch (e) {
+      statusEl.innerText = '❌ 翻譯失敗';
+      statusEl.style.color = '#ef4444';
+    }
+  }
+
+  async function submitNewEnglish() {
+    const inputEl = document.getElementById('newEnglishInput');
+    const zhInputEl = document.getElementById('newChineseInput');
+    const btnEl = document.getElementById('submitAddBtn');
+    const statusEl = document.getElementById('addStatus');
+    const text = inputEl.value.trim();
+    const chineseText = zhInputEl.value.trim();
+
+    if (!text) return;
+
+    let exactMatch = false;
+    let similarMatch = null;
+
+    for (let item of rawData) {
+      const existingEn = (item.英文 || item.english || '').trim();
+      if (existingEn.toLowerCase() === text.toLowerCase()) {
+        exactMatch = true;
+        break;
+      }
+      
+      let sim = getSimilarity(text, existingEn);
+      if (sim >= 0.7) {
+        similarMatch = existingEn;
+      }
+    }
+
+    if (exactMatch) {
+      alert(`⚠️ 該字句已存在於資料庫中，無法重複新增！`);
+      return;
+    }
+
+    if (similarMatch) {
+      const confirmAdd = confirm(`💡 發現類似的句子已存在：\n「${similarMatch}」\n\n您確定還要建立這筆新資料嗎？`);
+      if (!confirmAdd) return; 
+    }
+
+    inputEl.disabled = true;
+    zhInputEl.disabled = true;
+    btnEl.disabled = true;
+    statusEl.innerText = '⏳ 同步中...';
+    statusEl.style.color = '#2563eb';
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'addEnglish',
+          english: text,
+          chinese: chineseText
+        })
+      });
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        statusEl.innerText = '✅ 成功！';
+        statusEl.style.color = '#16a34a';
+        inputEl.value = '';
+        zhInputEl.value = '';
+        setTimeout(() => {
+          statusEl.innerText = '';
+          loadSheetData();
+        }, 1200);
       } else {
-        zhElem.innerText = '📌 點擊此處顯示英文';
-        document.getElementById('cardEn').innerText = showAnswerFlag ? (item.en || '') : '📌 點擊此處顯示英文';
+        throw new Error(result.message || '未知錯誤');
       }
-
-      const stars = parseInt(item.stars) || 3;
-      document.getElementById('cardStars').innerText = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+    } catch (err) {
+      statusEl.innerText = '❌ 失敗';
+      statusEl.style.color = '#ef4444';
+      console.error(err);
+    } finally {
+      inputEl.disabled = false;
+      zhInputEl.disabled = false;
+      btnEl.disabled = false;
     }
+  }
 
-    function toggleAnswer() {
-      showAnswerFlag = !showAnswerFlag;
-      updateCardDisplay();
-    }
+  function speakDirect(text) {
+    synth.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    if (targetVoice) utt.voice = targetVoice;
+    utt.lang = 'en-US';
+    utt.rate = playSpeed;
+    synth.speak(utt);
+  }
 
-    function nextCard() {
-      showAnswerFlag = (cardMode === 'both');
-      currentIndex = (currentIndex + 1) % filteredData.length;
-      updateCardDisplay();
-    }
+  function handlePlayToggle() {
+    if (filteredData.length === 0) return;
 
-    function prevCard() {
-      showAnswerFlag = (cardMode === 'both');
-      currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
-      updateCardDisplay();
-    }
-
-    function speakCurrent() {
-      if (filteredData.length === 0) return;
-      const item = filteredData[currentIndex];
-      if (!item.en) return;
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(item.en);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-
-    function renderList() {
-      const container = document.getElementById('readListContainer');
-      container.innerHTML = '';
-      if (filteredData.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">無資料</div>';
-        return;
-      }
-      filteredData.forEach((item) => {
-        const div = document.createElement('div');
-        div.className = 'read-item';
-        div.innerHTML = `
-          <div class="read-content">
-            <div class="en">${item.en}</div>
-            <div class="zh">${item.zh}</div>
-          </div>
-          <button class="btn-inline-play" onclick="speakText('${escapeHtml(item.en)}')">🔊</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function speakText(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-      }
-    }
-
-    function handleTranslate() {
-      const enText = document.getElementById('newEnInput').value.trim();
-      if (!enText) {
-        alert('請先輸入要翻譯的英文單字或句子');
-        return;
-      }
-      document.getElementById('statusMsg').innerText = '正在透過雲端翻譯...';
-      google.script.run
-        .withSuccessHandler(function(translatedText) {
-          document.getElementById('newZhInput').value = translatedText;
-          document.getElementById('statusMsg').innerText = '翻譯完成！';
-          setTimeout(() => { document.getElementById('statusMsg').innerText = ''; }, 1500);
-        })
-        .withFailureHandler(function(err) {
-          document.getElementById('statusMsg').innerText = '翻譯失敗: ' + err.message;
-        })
-        .translateText(enText, 'zh-TW');
-    }
-
-    function handleAdd() {
-      const en = document.getElementById('newEnInput').value.trim();
-      const zh = document.getElementById('newZhInput').value.trim();
-      const type = document.getElementById('newTypeInput').value;
-
-      if (!en || !zh) {
-        alert('請填寫完整英文與中文');
-        return;
-      }
-
-      document.getElementById('statusMsg').innerText = '正在儲存至雲端...';
-      const newItem = { en: en, zh: zh, type: type, stars: 3, weak: false };
+    if (playStatus === 'playing') {
+      playStatus = 'paused';
+      synth.pause();
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+      updatePlayButtonUI();
+    } else if (playStatus === 'paused') {
+      playStatus = 'playing';
+      updatePlayButtonUI();
       
-      google.script.run
-        .withSuccessHandler(function(res) {
-          document.getElementById('newEnInput').value = '';
-          document.getElementById('newZhInput').value = '';
-          document.getElementById('statusMsg').innerText = '儲存成功！';
-          loadData();
-        })
-        .withFailureHandler(function(err) {
-          document.getElementById('statusMsg').innerText = '儲存失敗: ' + err.message;
-        })
-        .saveItem(newItem);
+      if (synth.paused) {
+        synth.resume();
+      } else {
+        speakCurrent();
+      }
+    } else {
+      playStatus = 'playing';
+      currentRepeatCount = 0;
+      updatePlayButtonUI();
+      speakCurrent();
     }
+  }
 
-    function escapeHtml(str) {
-      return str.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+  function updatePlayButtonUI() {
+    const pBtn = document.getElementById('playBtn');
+    if (playStatus === 'playing') {
+      pBtn.innerText = '⏸ 暫停';
+      pBtn.classList.add('is-playing');
+    } else if (playStatus === 'paused') {
+      pBtn.innerText = '▶ 繼續播放';
+      pBtn.classList.remove('is-playing');
+    } else {
+      pBtn.innerText = '🔊 播放';
+      pBtn.classList.remove('is-playing');
     }
-  </script>
+  }
+
+  function stopAudio() {
+    playStatus = 'stopped';
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+    synth.cancel();
+    currentRepeatCount = 0;
+    updatePlayButtonUI();
+  }
+
+  function speakCurrent() {
+    if (filteredData.length === 0 || playStatus !== 'playing') return;
+    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+
+    const item = filteredData[currentIndex];
+    const en = item.英文 || item.english || '';
+
+    synth.cancel();
+
+    currentUtterance = new SpeechSynthesisUtterance(en);
+    if (targetVoice) currentUtterance.voice = targetVoice;
+    currentUtterance.lang = 'en-US';
+    currentUtterance.rate = playSpeed; 
+
+    currentUtterance.onend = () => {
+      if (playStatus !== 'playing') return; 
+
+      currentRepeatCount++;
+      if (currentRepeatCount < repeatTimes) {
+        timeoutId = setTimeout(() => { speakCurrent(); }, 400);
+      } else {
+        currentRepeatCount = 0;
+        proceedToNextCard();
+      }
+    };
+
+    currentUtterance.onerror = (event) => {
+      console.error('語音播放錯誤:', event);
+      if (playStatus === 'playing' && !synth.speaking && !synth.pending) {
+        stopAudio();
+      }
+    };
+
+    synth.speak(currentUtterance);
+  }
+
+  function proceedToNextCard() {
+    if (autoPlayMode === 'loop') {
+      timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
+    } else if (autoPlayMode === 'random') {
+      timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
+    } else {
+      stopAudio();
+    }
+  }
+
+  function triggerRandomNext() {
+    if (filteredData.length <= 1) {
+      speakCurrent();
+      return;
+    }
+    let nextIdx = currentIndex;
+    while (nextIdx === currentIndex) {
+      nextIdx = Math.floor(Math.random() * filteredData.length);
+    }
+    currentIndex = nextIdx;
+    currentRepeatCount = 0;
+    
+    resetRevealState();
+    renderCard();
+    speakCurrent();
+  }
+
+  function setSpeed(speed, btn) {
+    playSpeed = speed;
+    clearActive('speedGroup');
+    btn.classList.add('active');
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
+  }
+
+  function nextSentence(auto = false) {
+    if (filteredData.length === 0) return;
+    
+    currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
+    currentRepeatCount = 0;
+    
+    resetRevealState();
+    renderCard();
+    
+    if (auto || playStatus === 'playing') {
+      playStatus = 'playing';
+      updatePlayButtonUI();
+      speakCurrent();
+    }
+  }
+
+  function prevSentence() {
+    if (filteredData.length === 0) return;
+    
+    currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
+    currentRepeatCount = 0;
+    
+    resetRevealState();
+    renderCard();
+    
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); handlePlayToggle(); }
+    if (e.code === 'ArrowRight') { nextSentence(); }
+    if (e.code === 'ArrowLeft') { prevSentence(); }
+  });
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
+    
+    stopAudio();
+    applyFilters();
+  }
+
+  function changeDisplayMode(mode) {
+    displayMode = mode;
+    resetRevealState();
+    ['mix', 'en', 'zh', 'blind'].forEach(m => document.getElementById(`m-${m}`).classList.toggle('active', m === mode));
+    renderCard();
+  }
+
+  function setRepeat(times, btn) { 
+    repeatTimes = times; 
+    clearActive('repeatGroup'); 
+    btn.classList.add('active'); 
+    if (playStatus === 'playing') {
+      currentRepeatCount = 0; 
+      speakCurrent();
+    }
+  }
+  
+  function setIntervalTime(ms, btn) { 
+    intervalTime = ms; 
+    clearActive('intervalGroup'); 
+    btn.classList.add('active'); 
+  }
+  
+  function setPlayMode(mode) {
+    if (autoPlayMode === mode) {
+      autoPlayMode = ''; 
+      document.getElementById('modeLoop').classList.remove('active');
+      document.getElementById('modeRandom').classList.remove('active');
+    } else {
+      autoPlayMode = mode;
+      document.getElementById('modeLoop').classList.toggle('active', mode === 'loop');
+      document.getElementById('modeRandom').classList.toggle('active', mode === 'random');
+    }
+  }
+
+  function clearActive(parentId) { 
+    document.getElementById(parentId).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active')); 
+  }
+
+  loadSheetData();
+</script>
+
 </body>
 </html>
