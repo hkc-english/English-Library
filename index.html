@@ -13,6 +13,17 @@
     .star-rating .far { color: #e4e5e9; }
     .badge-custom { background-color: #e3f2fd; color: #0d6efd; font-weight: 500; }
     .loading-spinner { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+    
+    /* 💡 新增這段：強制鎖定表格比例，防止沒資料時版面走鐘 */
+    .fixed-table {
+      table-layout: fixed;
+      width: 100%;
+    }
+    .fixed-table th, .fixed-table td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -59,15 +70,16 @@
       </div>
 
       <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <!-- 💡 加上 fixed-table 類別 -->
+        <table class="table table-hover align-middle fixed-table">
           <thead class="table-light">
             <tr>
               <th style="width: 8%;">ID</th>
-              <th style="width: 25%;">英文</th>
-              <th style="width: 25%;">中文</th>
-              <th style="width: 10%;">類型</th>
-              <th style="width: 12%;">熟悉度</th>
-              <th style="width: 10%;">情境標籤</th>
+              <th style="width: 26%;">英文</th>
+              <th style="width: 26%;">中文</th>
+              <th style="width: 12%;">類型</th>
+              <th style="width: 14%;">熟悉度</th>
+              <th style="width: 14%;">情境標籤</th>
             </tr>
           </thead>
           <tbody id="vocabTableBody">
@@ -88,7 +100,8 @@
           <h5 class="modal-title fw-bold text-primary"><i class="fas fa-magic me-2"></i>AI 智慧引導確認</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-content p-4 border-0">
+        <!-- 💡 修正此處的重複類別錯誤 -->
+        <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label fw-bold text-muted small">您輸入的英文</label>
             <div id="modalEnglish" class="p-2 bg-light rounded fw-semibold text-dark"></div>
@@ -134,7 +147,6 @@
     let dbData = [];
     const predictModal = new bootstrap.Modal(document.getElementById('predictModal'));
 
-    // 關鍵字字典配置 (可自行擴增)
     const keywordRules = [
       { keywords: ['baseball', 'game', 'pitcher', 'homerun', 'team'], type: '句子', category: '棒球' },
       { keywords: ['cat', 'kitten', 'meow', 'vet', 'feline'], type: '單字', category: '貓咪' },
@@ -157,7 +169,6 @@
       document.getElementById("filterType").addEventListener("change", renderTable);
     });
 
-    // 取得資料
     function fetchData() {
       showLoading(true);
       fetch(`${GAS_WEB_APP_URL}?action=read`)
@@ -173,25 +184,22 @@
         })
         .catch(err => {
           console.error(err);
-          alert("無法連線至 Google 試算表，請檢查網路或 GAS 網址。");
+          alert("無法連線至 Google 試算表，請檢查網路或 GAS 網址是否填寫正確。");
         })
         .finally(() => showLoading(false));
     }
 
-    // 智慧預判邏輯
     function handleFormSubmit() {
       const english = document.getElementById("englishInput").value.trim();
       const chinese = document.getElementById("chineseInput").value.trim();
 
       if (!english) return;
 
-      // 1. 自動判斷類型 (依據空格數基本劃分，若有精準關鍵字會再覆寫)
       let predictedType = "單字";
       const spaceCount = english.split(/\s+/).filter(Boolean).length;
       if (spaceCount === 2 || spaceCount === 3) predictedType = "片語";
       if (spaceCount > 3) predictedType = "句子";
 
-      // 2. 自動判斷情境標籤
       let predictedCategory = "通用";
       const lowerEnglish = english.toLowerCase();
       
@@ -199,23 +207,19 @@
         const match = rule.keywords.some(kw => lowerEnglish.includes(kw));
         if (match) {
           predictedCategory = rule.category;
-          // 如果包含關鍵字且空格多，維持句子；若少，則採用規則定義的預設類型
           if (spaceCount <= 3) predictedType = rule.type;
           break;
         }
       }
 
-      // 3. 填入彈窗欄位
       document.getElementById("modalEnglish").innerText = english;
-      document.getElementById("modalChinese").value = chinese; // 有手打就帶入，沒手打就保持空白讓使用者填
+      document.getElementById("modalChinese").value = chinese;
       document.getElementById("modalType").value = predictedType;
       document.getElementById("modalCategory").value = predictedCategory;
 
-      predictModal.hide();
       predictModal.show();
     }
 
-    // 正式送出到試算表
     function submitToGoogleSheet() {
       const english = document.getElementById("modalEnglish").innerText.trim();
       let chinese = document.getElementById("modalChinese").value.trim();
@@ -236,10 +240,9 @@
         chinese: chinese,
         type: type,
         category: category,
-        star: 1 // 💡 前端預設直接給 1 星
+        star: 1
       };
 
-      // 設定逾時機制 (5秒)，防止網路塞車時網頁無限卡死
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -252,10 +255,9 @@
       .then(res => {
         clearTimeout(timeoutId);
         if (res.status === "success") {
-          // 清空主輸入框
           document.getElementById("englishInput").value = "";
           document.getElementById("chineseInput").value = "";
-          fetchData(); // 重新整理
+          fetchData();
         } else {
           alert("寫入失敗：" + res.message);
         }
@@ -264,25 +266,23 @@
         clearTimeout(timeoutId);
         console.warn("連線異常，啟動在地防呆備用機制", err);
         
-        // 💡 斷線防護機制：如果連線斷開，前端直接假擬一筆寫入本機畫面，且強制作為 1 星，不讓介面空白
         const fallbackId = dbData.length > 0 ? Math.max(...dbData.map(d => parseInt(d.ID) || 0)) + 1 : 1;
         const fallbackItem = {
           "ID": fallbackId,
           "英文": english,
           "中文": `（連線異常，已自動寫入）${chinese}`,
           "類型": type,
-          "熟悉度": 1, // 💡 強制補 1
+          "熟悉度": 1,
           "標籤(情境分類)": category,
           "建立日期": new Date().toISOString().slice(0,10)
         };
         dbData.unshift(fallbackItem); 
         renderTable();
-        alert("偵測到網路連線異常，已先將資料暫存至本地列表，請檢查您的 Google 試算表內是否有正常排進去喔！");
+        alert("偵測到網路連線異常，已先將資料暫存至本地列表！");
       })
       .finally(() => showLoading(false));
     }
 
-    // 更新星級熟悉度
     function updateStarRating(id, newStar) {
       showLoading(true);
       fetch(GAS_WEB_APP_URL, {
@@ -296,7 +296,6 @@
       .then(res => res.json())
       .then(res => {
         if (res.status === "success") {
-          // 在地直接更新狀態，免去重新載入整張表的時間
           const item = dbData.find(d => parseInt(d.ID) === parseInt(id));
           if(item) item["熟悉度"] = newStar;
           renderTable();
@@ -311,7 +310,6 @@
       .finally(() => showLoading(false));
     }
 
-    // 更新篩選下拉選單內容
     function updateFilterOptions() {
       const catSelect = document.getElementById("filterCategory");
       const categories = new Set(["all"]);
@@ -330,7 +328,6 @@
       });
     }
 
-    // 渲染表格資料
     function renderTable() {
       const tbody = document.getElementById("vocabTableBody");
       const filterCat = document.getElementById("filterCategory").value;
@@ -338,7 +335,6 @@
       
       tbody.innerHTML = "";
 
-      // 將資料倒序排列（最新發生的顯示在最上面）
       const filteredData = dbData.filter(item => {
         const cat = item["標籤(情境分類)"] || item["標籤"] || "通用";
         const type = item["類型"] || "單字";
@@ -360,14 +356,12 @@
         const type = item["類型"] || "單字";
         const category = item["標籤(情境分類)"] || item["標籤"] || "通用";
         
-        // 💡 核心防呆：如果撈回來的熟悉度是空字串、undefined 或 <= 0，網頁前端一律自動補為 1 星
         let rawStar = item["熟悉度"] !== undefined ? item["熟悉度"] : 1;
         let starVal = parseInt(rawStar);
         if (isNaN(starVal) || starVal <= 0) {
           starVal = 1;
         }
 
-        // 產生星星的 HTML
         let starHtml = `<div class="star-rating" data-id="${id}">`;
         for (let i = 1; i <= 5; i++) {
           if (i <= starVal) {
@@ -381,8 +375,8 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><span class="text-secondary small">${id}</span></td>
-          <td class="fw-semibold text-dark">${english}</td>
-          <td>${chinese}</td>
+          <td class="fw-semibold text-dark" title="${english}">${english}</td>
+          <td title="${chinese}">${chinese}</td>
           <td><span class="badge bg-light text-secondary border">${type}</span></td>
           <td>${starHtml}</td>
           <td><span class="badge badge-custom">${category}</span></td>
