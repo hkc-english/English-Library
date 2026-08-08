@@ -315,10 +315,7 @@
     
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
     
-    if (playStatus === 'playing' || playStatus === 'paused') {
-      stopAudio();
-    }
-    
+    // 只有在過濾條件完全改變導致清單大變動且處於播放時，才重新播放；若只是切換模式則不中斷
     renderCard();
     renderReadList();
   }
@@ -492,7 +489,7 @@
       if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
     });
     resetRevealState();
-    renderCardTextOnly();
+    renderCardTextOnly(); // 立即更新畫面文字，絕對不中斷當前的播放狀態
   }
 
   function setRepeat(times, btn) {
@@ -505,6 +502,12 @@
     playSpeed = speed;
     clearActive('speedGroup');
     btn.classList.add('active');
+    
+    // 如果正在播放中，即時更新當前語音播放速度
+    if (playStatus === 'playing' && currentUtterance) {
+      synth.cancel();
+      speakCurrent();
+    }
   }
 
   function setPlayMode(mode) {
@@ -752,7 +755,7 @@
       };
 
       synth.speak(currentUtterance);
-    }, 50);
+    }, 30);
   }
 
   function proceedToNextCard() {
@@ -782,7 +785,7 @@
     speakCurrent();
   }
 
-  function nextSentence(auto = false) {
+  function nextSentence() {
     if (filteredData.length === 0) return;
     
     currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
@@ -791,9 +794,10 @@
     resetRevealState();
     renderCard();
     
-    playStatus = 'playing';
-    updatePlayButtonUI();
-    speakCurrent();
+    // 確保只要處於播放狀態，切換下一句就立刻平順播放
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
   }
 
   function prevSentence() {
@@ -805,9 +809,10 @@
     resetRevealState();
     renderCard();
     
-    playStatus = 'playing';
-    updatePlayButtonUI();
-    speakCurrent();
+    // 確保只要處於播放狀態，切換上一句就立刻平順播放
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
   }
 
   document.addEventListener('keydown', (e) => {
