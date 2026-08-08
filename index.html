@@ -2,88 +2,324 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <title>英文單字播放複習</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英文學習資料庫</title>
   <style>
-    body { background-color: #f4f7f6; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-    .main-card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 25px; text-align: center; }
-    .card-display { border: 1px solid #ddd; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-    .star-rating { color: #ffc107; font-size: 1.5rem; margin-top: 10px; }
-    .btn-group-custom .btn { border-radius: 8px; margin: 2px; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
+    .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
+    
+    h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    
+    .tab-group { display: flex; gap: 12px; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 10px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn.active { background: #2563eb; color: #fff; }
+
+    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
+    .search-row { display: flex; align-items: center; width: 100%; gap: 8px; }
+    .search-input { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
+    
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
+    .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
+    .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .mode-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; }
+    .mode-btn { flex: 1; padding: 8px 0; border: none; background: #e2e8f0; color: #475569; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .mode-btn.active { background: #2563eb; color: #fff; }
+
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
+    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
+    
+    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
+
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+    .btn-nav { background: #e2e8f0; color: #475569; }
+    .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
+
+    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 48vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .read-content { flex: 1; padding-right: 10px; }
+    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; }
+    .read-item .zh { font-size: 14px; color: #64748b; }
+    .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+    .add-box { background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; }
+    .add-input-group { display: flex; gap: 8px; margin-top: 8px; }
+    .add-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; font-weight: bold; }
+    .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-translate { background: #10b981; color: #fff; border: none; padding: 0 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; white-space: nowrap; }
+    
+    .status-msg { color: #2563eb; font-weight: bold; font-size: 13px; margin: 8px 0; text-align: center; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-
-  <div class="main-card">
-    <div class="card-display">
-      <h2 id="englishText" class="fw-bold">載入中...</h2>
-      <p id="chineseText" class="text-muted fs-5"></p>
-      <div class="star-rating" id="starContainer"><i class="fas fa-star"></i><i class="far fa-star"></i></div>
+  <div class="container">
+    <h1>📚 英文學習資料庫</h1>
+    
+    <div class="tab-group">
+      <button class="tab-btn active" id="tabFlashcard" onclick="switchTab('flashcard')">閃卡背誦</button>
+      <button class="tab-btn" id="tabList" onclick="switchTab('list')">清單瀏覽</button>
     </div>
 
-    <div class="row g-2 mb-3">
-      <div class="col-3"><button id="btnPrev" class="btn btn-light border w-100">上一句</button></div>
-      <div class="col-3"><button id="btnPlay" class="btn btn-primary w-100"><i class="fas fa-volume-up"></i></button></div>
-      <div class="col-3"><button id="btnStop" class="btn btn-danger w-100"><i class="fas fa-stop"></i></button></div>
-      <div class="col-3"><button id="btnNext" class="btn btn-light border w-100">下一句</button></div>
+    <div id="statusMsg" class="status-msg">正在載入資料...</div>
+
+    <!-- 閃卡模式 -->
+    <div id="flashcardSection">
+      <div class="mode-group">
+        <button class="mode-btn active" id="modeEn" onclick="setCardMode('en')">看英猜中</button>
+        <button class="mode-btn" id="modeZh" onclick="setCardMode('zh')">看中猜英</button>
+        <button class="mode-btn" id="modeBoth" onclick="setCardMode('both')">中英對照</button>
+      </div>
+
+      <div class="card" id="cardContainer">
+        <div class="text-en" id="cardEn" onclick="speakCurrent()">載入中...</div>
+        <div class="text-zh" id="cardZh" onclick="toggleAnswer()">點擊顯示中文</div>
+        <div class="stars" id="cardStars">★★★★★</div>
+      </div>
+
+      <div class="control-row">
+        <button class="btn btn-nav" onclick="prevCard()">⬅ 上一張</button>
+        <button class="btn btn-play" id="playAudioBtn" onclick="speakCurrent()">🔊 朗讀</button>
+        <button class="btn btn-nav" onclick="nextCard()">下一張 ➡</button>
+      </div>
     </div>
 
-    <!-- 設定區 -->
-    <div class="btn-group w-100 mb-2" id="speedGroup">
-      <button class="btn btn-outline-primary" data-val="0.7">0.7x</button>
-      <button class="btn btn-outline-primary active" data-val="1.0">1.0x</button>
+    <!-- 清單瀏覽模式 -->
+    <div id="listSection" class="hidden">
+      <div class="filter-box">
+        <div class="search-row">
+          <input type="text" class="search-input" id="searchInput" placeholder="搜尋單字或中文..." oninput="filterData()">
+        </div>
+        <div class="type-grid" id="typeFilters">
+          <button class="type-btn active" onclick="setTypeFilter('all', this)">全部</button>
+          <button class="type-btn" onclick="setTypeFilter('word', this)">單字</button>
+          <button class="type-btn" onclick="setTypeFilter('phrase', this)">片語</button>
+          <button class="type-btn" onclick="setTypeFilter('sentence', this)">句子</button>
+        </div>
+      </div>
+      <div class="read-list" id="readListContainer"></div>
     </div>
-    <div class="btn-group w-100" id="intervalGroup">
-      <button class="btn btn-outline-secondary active" data-val="3">3秒</button>
+
+    <!-- 新增與翻譯區塊 -->
+    <div class="add-box">
+      <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 4px;">➕ 新增內容（具備一鍵雲端翻譯）</div>
+      <div class="add-input-group">
+        <input type="text" class="add-input" id="newEnInput" placeholder="輸入英文單字或句子">
+        <button class="btn-translate" onclick="handleTranslate()">自動翻譯</button>
+      </div>
+      <div class="add-input-group" style="margin-top: 6px;">
+        <input type="text" class="add-input" id="newZhInput" placeholder="中文翻譯">
+        <select id="newTypeInput" class="add-input" style="max-width: 100px;">
+          <option value="word">單字</option>
+          <option value="phrase">片語</option>
+          <option value="sentence">句子</option>
+        </select>
+        <button class="btn-submit-add" onclick="handleAdd()">新增</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // 【重要】請把這行引號內的網址，換成你剛從 Google 重新部署取得的 /exec 網址
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec"; 
-
-    let vocabList = [];
+    let allData = [];
+    let filteredData = [];
     let currentIndex = 0;
-    let currentRate = 1.0;
+    let cardMode = 'en';
+    let currentTypeFilter = 'all';
+    let showAnswerFlag = false;
 
-    async function fetchCards() {
-      try {
-        const response = await fetch(`${GAS_WEB_APP_URL}?action=read`);
-        const result = await response.json();
-        if(result.status === "success") {
-          vocabList = result.data;
-          displayCard();
-        } else {
-          throw new Error();
-        }
-      } catch(e) {
-        document.getElementById("englishText").innerText = "連線失敗";
+    window.onload = function() { loadData(); };
+
+    function loadData() {
+      document.getElementById('statusMsg').innerText = '正在從試算表同步資料...';
+      google.script.run
+        .withSuccessHandler(function(data) {
+          allData = data;
+          filterData();
+          document.getElementById('statusMsg').innerText = `已成功載入 ${allData.length} 筆資料`;
+          setTimeout(() => { document.getElementById('statusMsg').innerText = ''; }, 2000);
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('statusMsg').innerText = '載入失敗: ' + err.message;
+        })
+        .getData();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabFlashcard').classList.toggle('active', tab === 'flashcard');
+      document.getElementById('tabList').classList.toggle('active', tab === 'list');
+      document.getElementById('flashcardSection').classList.toggle('hidden', tab !== 'flashcard');
+      document.getElementById('listSection').classList.toggle('hidden', tab !== 'list');
+      if (tab === 'list') renderList();
+    }
+
+    function setCardMode(mode) {
+      cardMode = mode;
+      ['En', 'Zh', 'Both'].forEach(m => {
+        document.getElementById('mode' + m).classList.toggle('active', mode.toLowerCase() === m.toLowerCase());
+      });
+      showAnswerFlag = (mode === 'both');
+      updateCardDisplay();
+    }
+
+    function filterData() {
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      filteredData = allData.filter(item => {
+        const matchKeyword = !keyword || (item.en && item.en.toLowerCase().includes(keyword)) || (item.zh && item.zh.toLowerCase().includes(keyword));
+        const matchType = (currentTypeFilter === 'all') || (item.type === currentTypeFilter);
+        return matchKeyword && matchType;
+      });
+      currentIndex = 0;
+      updateCardDisplay();
+      if (!document.getElementById('listSection').classList.contains('hidden')) {
+        renderList();
       }
     }
 
-    function displayCard() {
-      if(vocabList.length === 0) return;
-      const item = vocabList[currentIndex];
-      document.getElementById("englishText").innerText = item["英文"] || "";
-      document.getElementById("chineseText").innerText = item["中文"] || "";
+    function setTypeFilter(type, btn) {
+      currentTypeFilter = type;
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterData();
+    }
+
+    function updateCardDisplay() {
+      if (filteredData.length === 0) {
+        document.getElementById('cardEn').innerText = '沒有符合條件的資料';
+        document.getElementById('cardZh').innerText = '請新增或調整篩選條件';
+        document.getElementById('cardStars').innerText = '☆☆☆☆☆';
+        return;
+      }
+      if (currentIndex >= filteredData.length) currentIndex = 0;
+      if (currentIndex < 0) currentIndex = filteredData.length - 1;
+
+      const item = filteredData[currentIndex];
+      document.getElementById('cardEn').innerText = item.en || '';
+      
+      const zhElem = document.getElementById('cardZh');
+      if (cardMode === 'both' || showAnswerFlag) {
+        zhElem.innerText = item.zh || '';
+      } else if (cardMode === 'en') {
+        zhElem.innerText = '📌 點擊此處顯示中文';
+      } else {
+        zhElem.innerText = '📌 點擊此處顯示英文';
+        document.getElementById('cardEn').innerText = showAnswerFlag ? (item.en || '') : '📌 點擊此處顯示英文';
+      }
+
+      const stars = parseInt(item.stars) || 3;
+      document.getElementById('cardStars').innerText = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+    }
+
+    function toggleAnswer() {
+      showAnswerFlag = !showAnswerFlag;
+      updateCardDisplay();
+    }
+
+    function nextCard() {
+      showAnswerFlag = (cardMode === 'both');
+      currentIndex = (currentIndex + 1) % filteredData.length;
+      updateCardDisplay();
+    }
+
+    function prevCard() {
+      showAnswerFlag = (cardMode === 'both');
+      currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
+      updateCardDisplay();
     }
 
     function speakCurrent() {
-      window.speechSynthesis.cancel();
-      const text = vocabList[currentIndex]["英文"];
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = currentRate;
-      window.speechSynthesis.speak(u);
+      if (filteredData.length === 0) return;
+      const item = filteredData[currentIndex];
+      if (!item.en) return;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(item.en);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+      }
     }
 
-    document.getElementById("btnPlay").onclick = speakCurrent;
-    document.getElementById("btnNext").onclick = () => { currentIndex++; displayCard(); speakCurrent(); };
-    document.getElementById("btnPrev").onclick = () => { currentIndex--; displayCard(); speakCurrent(); };
-    document.getElementById("btnStop").onclick = () => window.speechSynthesis.cancel();
-    
-    fetchCards();
+    function renderList() {
+      const container = document.getElementById('readListContainer');
+      container.innerHTML = '';
+      if (filteredData.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">無資料</div>';
+        return;
+      }
+      filteredData.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'read-item';
+        div.innerHTML = `
+          <div class="read-content">
+            <div class="en">${item.en}</div>
+            <div class="zh">${item.zh}</div>
+          </div>
+          <button class="btn-inline-play" onclick="speakText('${escapeHtml(item.en)}')">🔊</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function handleTranslate() {
+      const enText = document.getElementById('newEnInput').value.trim();
+      if (!enText) {
+        alert('請先輸入要翻譯的英文單字或句子');
+        return;
+      }
+      document.getElementById('statusMsg').innerText = '正在透過雲端翻譯...';
+      google.script.run
+        .withSuccessHandler(function(translatedText) {
+          document.getElementById('newZhInput').value = translatedText;
+          document.getElementById('statusMsg').innerText = '翻譯完成！';
+          setTimeout(() => { document.getElementById('statusMsg').innerText = ''; }, 1500);
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('statusMsg').innerText = '翻譯失敗: ' + err.message;
+        })
+        .translateText(enText, 'zh-TW');
+    }
+
+    function handleAdd() {
+      const en = document.getElementById('newEnInput').value.trim();
+      const zh = document.getElementById('newZhInput').value.trim();
+      const type = document.getElementById('newTypeInput').value;
+
+      if (!en || !zh) {
+        alert('請填寫完整英文與中文');
+        return;
+      }
+
+      document.getElementById('statusMsg').innerText = '正在儲存至雲端...';
+      const newItem = { en: en, zh: zh, type: type, stars: 3, weak: false };
+      
+      google.script.run
+        .withSuccessHandler(function(res) {
+          document.getElementById('newEnInput').value = '';
+          document.getElementById('newZhInput').value = '';
+          document.getElementById('statusMsg').innerText = '儲存成功！';
+          loadData();
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('statusMsg').innerText = '儲存失敗: ' + err.message;
+        })
+        .saveItem(newItem);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+    }
   </script>
 </body>
 </html>
