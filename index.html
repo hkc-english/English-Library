@@ -2,127 +2,64 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英文單字播放複習</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-    .main-card { background: white; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); width: 100%; max-width: 550px; padding: 30px; text-align: center; }
-    .card-display { border: 1px solid #e0e0e0; border-radius: 15px; padding: 25px; margin-bottom: 25px; background: #fff; }
+    body { background-color: #f4f7f6; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .main-card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 25px; text-align: center; }
+    .card-display { border: 1px solid #ddd; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
     .star-rating { color: #ffc107; font-size: 1.5rem; margin-top: 10px; }
-    .btn-group-custom .btn { border-radius: 10px; font-weight: 600; margin: 3px; }
-    .section-title { font-size: 0.9rem; color: #6c757d; font-weight: 600; margin: 15px 0 8px 0; }
+    .btn-group-custom .btn { border-radius: 8px; margin: 2px; }
   </style>
 </head>
 <body>
 
   <div class="main-card">
-    <div class="card-display" id="cardContainer">
-      <h2 id="englishText" class="fw-bold text-dark mb-2">載入中...</h2>
-      <p id="chineseText" class="text-muted fs-5 mb-3"></p>
-      <div class="star-rating" id="starContainer">
-        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-      </div>
+    <div class="card-display">
+      <h2 id="englishText" class="fw-bold">載入中...</h2>
+      <p id="chineseText" class="text-muted fs-5"></p>
+      <div class="star-rating" id="starContainer"><i class="fas fa-star"></i><i class="far fa-star"></i></div>
     </div>
 
-    <!-- 播放控制按鈕 -->
     <div class="row g-2 mb-3">
-      <div class="col-3"><button id="btnPrev" class="btn btn-light border w-100 py-2"><i class="fas fa-arrow-left me-1"></i>上一句</button></div>
-      <div class="col-3"><button id="btnPlay" class="btn btn-primary w-100 py-2"><i class="fas fa-volume-up me-1"></i>播放</button></div>
-      <div class="col-3"><button id="btnStop" class="btn btn-danger w-100 py-2"><i class="fas fa-stop me-1"></i>停止</button></div>
-      <div class="col-3"><button id="btnNext" class="btn btn-light border w-100 py-2">下一句<i class="fas fa-arrow-right ms-1"></i></button></div>
+      <div class="col-3"><button id="btnPrev" class="btn btn-light border w-100">上一句</button></div>
+      <div class="col-3"><button id="btnPlay" class="btn btn-primary w-100"><i class="fas fa-volume-up"></i></button></div>
+      <div class="col-3"><button id="btnStop" class="btn btn-danger w-100"><i class="fas fa-stop"></i></button></div>
+      <div class="col-3"><button id="btnNext" class="btn btn-light border w-100">下一句</button></div>
     </div>
 
-    <!-- 重複次數 -->
-    <div class="section-title">重複次數</div>
-    <div class="btn-group w-100 btn-group-custom" role="group" id="repeatGroup">
-      <button type="button" class="btn btn-outline-primary active" data-val="1">1次</button>
-      <button type="button" class="btn btn-outline-primary" data-val="2">2次</button>
-      <button type="button" class="btn btn-outline-primary" data-val="3">3次</button>
-      <button type="button" class="btn btn-outline-primary" data-val="0">無限</button>
+    <!-- 設定區 -->
+    <div class="btn-group w-100 mb-2" id="speedGroup">
+      <button class="btn btn-outline-primary" data-val="0.7">0.7x</button>
+      <button class="btn btn-outline-primary active" data-val="1.0">1.0x</button>
     </div>
-
-    <!-- 播放速度 -->
-    <div class="section-title">播放速度</div>
-    <div class="d-flex flex-wrap justify-content-center gap-1 mb-2" id="speedGroup">
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.5">0.5x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.6">0.6x</button>
-      <button type="button" class="btn btn-sm btn-primary" data-val="0.7">0.7x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.8">0.8x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="0.9">0.9x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.0">1.0x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.1">1.1x</button>
-      <button type="button" class="btn btn-sm btn-outline-primary" data-val="1.2">1.2x</button>
-    </div>
-
-    <div class="d-flex gap-2 mb-3">
-      <button id="btnAutoPlay" class="btn btn-outline-secondary w-50 py-2"><i class="fas fa-play me-1"></i>連續播放</button>
-      <button id="btnShuffle" class="btn btn-outline-secondary w-50 py-2"><i class="fas fa-random me-1"></i>隨機播放</button>
-    </div>
-
-    <!-- 播放間隔 -->
-    <div class="section-title">播放間隔</div>
-    <div class="btn-group w-100 btn-group-custom" role="group" id="intervalGroup">
-      <button type="button" class="btn btn-outline-primary" data-val="1">1秒</button>
-      <button type="button" class="btn btn-outline-primary active" data-val="3">3秒</button>
-      <button type="button" class="btn btn-outline-primary" data-val="5">5秒</button>
+    <div class="btn-group w-100" id="intervalGroup">
+      <button class="btn btn-outline-secondary active" data-val="3">3秒</button>
     </div>
   </div>
 
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw63p4iK_10n4iWq4rWq4rWq4rWq4rWq4rWq4rW/exec";
+    // 【重要】請把這行引號內的網址，換成你剛從 Google 重新部署取得的 /exec 網址
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec"; 
+
     let vocabList = [];
     let currentIndex = 0;
-    let currentRate = 0.7;
+    let currentRate = 1.0;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      fetchCards();
-
-      document.getElementById("btnPlay").addEventListener("click", speakCurrent);
-      document.getElementById("btnNext").addEventListener("click", () => {
-        if(vocabList.length > 0) {
-          currentIndex = (currentIndex + 1) % vocabList.length;
+    async function fetchCards() {
+      try {
+        const response = await fetch(`${GAS_WEB_APP_URL}?action=read`);
+        const result = await response.json();
+        if(result.status === "success") {
+          vocabList = result.data;
           displayCard();
-          speakCurrent();
+        } else {
+          throw new Error();
         }
-      });
-      document.getElementById("btnPrev").addEventListener("click", () => {
-        if(vocabList.length > 0) {
-          currentIndex = (currentIndex - 1 + vocabList.length) % vocabList.length;
-          displayCard();
-          speakCurrent();
-        }
-      });
-      document.getElementById("btnStop").addEventListener("click", () => {
-        window.speechSynthesis.cancel();
-      });
-
-      document.querySelectorAll("#speedGroup button").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          document.querySelectorAll("#speedGroup button").forEach(b => b.classList.replace("btn-primary", "btn-outline-primary"));
-          e.target.classList.replace("btn-outline-primary", "btn-primary");
-          currentRate = parseFloat(e.target.getAttribute("data-val"));
-        });
-      });
-    });
-
-    function fetchCards() {
-      fetch(`${GAS_WEB_APP_URL}?action=read`)
-        .then(res => res.json())
-        .then(res => {
-          if(res.status === "success" && res.data && res.data.length > 0) {
-            vocabList = res.data;
-            currentIndex = 0;
-            displayCard();
-          } else {
-            document.getElementById("englishText").innerText = "目前試算表沒有資料";
-            document.getElementById("chineseText").innerText = "請先確認內容";
-          }
-        })
-        .catch(err => {
-          document.getElementById("englishText").innerText = "連線失敗";
-        });
+      } catch(e) {
+        document.getElementById("englishText").innerText = "連線失敗";
+      }
     }
 
     function displayCard() {
@@ -130,24 +67,23 @@
       const item = vocabList[currentIndex];
       document.getElementById("englishText").innerText = item["英文"] || "";
       document.getElementById("chineseText").innerText = item["中文"] || "";
-      
-      const starVal = parseInt(item["熟悉度"]) || 1;
-      let starHtml = "";
-      for (let i = 1; i <= 5; i++) {
-        starHtml += `<i class="${i <= starVal ? 'fas' : 'far'} fa-star"></i>`;
-      }
-      document.getElementById("starContainer").innerHTML = starHtml;
     }
 
     function speakCurrent() {
-      if(vocabList.length === 0) return;
       window.speechSynthesis.cancel();
       const text = vocabList[currentIndex]["英文"];
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = currentRate;
-      window.speechSynthesis.speak(utterance);
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = currentRate;
+      window.speechSynthesis.speak(u);
     }
+
+    document.getElementById("btnPlay").onclick = speakCurrent;
+    document.getElementById("btnNext").onclick = () => { currentIndex++; displayCard(); speakCurrent(); };
+    document.getElementById("btnPrev").onclick = () => { currentIndex--; displayCard(); speakCurrent(); };
+    document.getElementById("btnStop").onclick = () => window.speechSynthesis.cancel();
+    
+    fetchCards();
   </script>
 </body>
 </html>
