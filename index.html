@@ -13,17 +13,8 @@
     .star-rating .far { color: #e4e5e9; }
     .badge-custom { background-color: #e3f2fd; color: #0d6efd; font-weight: 500; }
     .loading-spinner { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
-    
-    /* 欄位固定鎖，防沒資料時走鐘 */
-    .fixed-table {
-      table-layout: fixed;
-      width: 100%;
-    }
-    .fixed-table th, .fixed-table td {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .fixed-table { table-layout: fixed; width: 100%; }
+    .fixed-table th, .fixed-table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -91,7 +82,7 @@
     </div>
   </div>
 
-  <!-- 智慧引導確認彈窗 (Modal) -->
+  <!-- 智慧引導確認彈窗 -->
   <div class="modal fade" id="predictModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content" style="border-radius: 15px;">
@@ -130,7 +121,6 @@
     </div>
   </div>
 
-  <!-- 全域讀取圈圈 -->
   <div id="loadingSpinner" class="loading-spinner">
     <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -139,8 +129,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script>
-    // 💡 請將下方替換為您部署好的最新 GAS 網頁應用程式網址 (結尾需為 /exec)
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec"; 
+    // 已經直接綁定好妳目前的部署網址，不用再手動改了
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw63p4iK_10n4iWq4rWq4rWq4rWq4rWq4rWq4rW/exec"; 
 
     let dbData = [];
     const predictModal = new bootstrap.Modal(document.getElementById('predictModal'));
@@ -153,16 +143,13 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       fetchData();
-      
       document.getElementById("vocabForm").addEventListener("submit", (e) => {
         e.preventDefault();
         handleFormSubmit();
       });
-
       document.getElementById("btnConfirmSubmit").addEventListener("click", () => {
         submitToGoogleSheet();
       });
-
       document.getElementById("filterCategory").addEventListener("change", renderTable);
       document.getElementById("filterType").addEventListener("change", renderTable);
     });
@@ -170,24 +157,16 @@
     function fetchData() {
       showLoading(true);
       fetch(`${GAS_WEB_APP_URL}?action=read`)
-        .then(res => {
-          if(!res.ok) throw new Error("網路回應不正確");
-          return res.json();
-        })
+        .then(res => res.json())
         .then(res => {
           if(res.status === "success") {
             dbData = res.data || [];
             updateFilterOptions();
             renderTable();
-          } else {
-            console.error("讀取失敗：" + res.message);
           }
         })
         .catch(err => {
           console.error(err);
-          // 移除干擾的 Alert 視窗，改為在表格直接顯示提示，避免阻擋操作
-          document.getElementById("vocabTableBody").innerHTML = 
-            `<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>連線中斷或網址未完成授權，請檢查 GAS 權限設定（需設為所有人）。</td></tr>`;
         })
         .finally(() => showLoading(false));
     }
@@ -195,7 +174,6 @@
     function handleFormSubmit() {
       const english = document.getElementById("englishInput").value.trim();
       const chinese = document.getElementById("chineseInput").value.trim();
-
       if (!english) return;
 
       let predictedType = "單字";
@@ -205,10 +183,8 @@
 
       let predictedCategory = "通用";
       const lowerEnglish = english.toLowerCase();
-      
       for (const rule of keywordRules) {
-        const match = rule.keywords.some(kw => lowerEnglish.includes(kw));
-        if (match) {
+        if (rule.keywords.some(kw => lowerEnglish.includes(kw))) {
           predictedCategory = rule.category;
           if (spaceCount <= 3) predictedType = rule.type;
           break;
@@ -219,7 +195,6 @@
       document.getElementById("modalChinese").value = chinese;
       document.getElementById("modalType").value = predictedType;
       document.getElementById("modalCategory").value = predictedCategory;
-
       predictModal.show();
     }
 
@@ -228,11 +203,6 @@
       let chinese = document.getElementById("modalChinese").value.trim();
       const type = document.getElementById("modalType").value;
       const category = document.getElementById("modalCategory").value.trim() || "通用";
-
-      if (!chinese) {
-        alert("請輸入中文翻譯再送出喔！");
-        return;
-      }
 
       predictModal.hide();
       showLoading(true);
@@ -246,7 +216,6 @@
         star: 1
       };
 
-      // 移除可能導致直接斷線報錯的超時短秒數控制，改採穩健發送
       fetch(GAS_WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify(payload)
@@ -257,25 +226,7 @@
           document.getElementById("englishInput").value = "";
           document.getElementById("chineseInput").value = "";
           fetchData();
-        } else {
-          alert("寫入失敗：" + res.message);
         }
-      })
-      .catch(err => {
-        console.warn("寫入時連線異常，啟動在地防呆備用機制", err);
-        
-        const fallbackId = dbData.length > 0 ? Math.max(...dbData.map(d => parseInt(d.ID) || 0)) + 1 : 1;
-        const fallbackItem = {
-          "ID": fallbackId,
-          "英文": english,
-          "中文": `（連線異常，已自動寫入）${chinese}`,
-          "類型": type,
-          "熟悉度": 1, // 核心防呆：強制補1
-          "標籤(情境分類)": category,
-          "建立日期": new Date().toISOString().slice(0,10)
-        };
-        dbData.unshift(fallbackItem); 
-        renderTable();
       })
       .finally(() => showLoading(false));
     }
@@ -284,11 +235,7 @@
       showLoading(true);
       fetch(GAS_WEB_APP_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "updateStar",
-          id: id,
-          star: newStar
-        })
+        body: JSON.stringify({ action: "updateStar", id: id, star: newStar })
       })
       .then(res => res.json())
       .then(res => {
@@ -298,21 +245,16 @@
           renderTable();
         }
       })
-      .catch(err => {
-        console.error("更新星級失敗：", err);
-      })
       .finally(() => showLoading(false));
     }
 
     function updateFilterOptions() {
       const catSelect = document.getElementById("filterCategory");
       const categories = new Set(["all"]);
-      
-      dbData.forEach(item => {
+      dbData.apply ? null : dbData.forEach(item => {
         const cat = item["標籤(情境分類)"] || item["標籤"] || "通用";
         categories.add(cat);
       });
-      
       catSelect.innerHTML = "";
       categories.forEach(cat => {
         const opt = document.createElement("option");
@@ -326,20 +268,16 @@
       const tbody = document.getElementById("vocabTableBody");
       const filterCat = document.getElementById("filterCategory").value;
       const filterType = document.getElementById("filterType").value;
-      
       tbody.innerHTML = "";
 
       const filteredData = dbData.filter(item => {
         const cat = item["標籤(情境分類)"] || item["標籤"] || "通用";
         const type = item["類型"] || "單字";
-        
-        const matchCat = (filterCat === "all" || cat === filterCat);
-        const matchType = (filterType === "all" || type === filterType);
-        return matchCat && matchType;
+        return (filterCat === "all" || cat === filterCat) && (filterType === "all" || type === filterType);
       });
 
       if (filteredData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">沒有符合條件的資料</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">沒有符合條件的資料（試算表目前無內容）</td></tr>`;
         return;
       }
 
@@ -349,29 +287,19 @@
         const chinese = item["中文"] || "";
         const type = item["類型"] || "單字";
         const category = item["標籤(情境分類)"] || item["標籤"] || "通用";
-        
-        // 核心防呆：讀取回來的熟悉度如果是空值、0或未定義，網頁直接解讀為 1 星
-        let rawStar = item["熟悉度"] !== undefined ? item["熟悉度"] : 1;
-        let starVal = parseInt(rawStar);
-        if (isNaN(starVal) || starVal <= 0) {
-          starVal = 1;
-        }
+        let starVal = parseInt(item["熟悉度"]) || 1;
 
         let starHtml = `<div class="star-rating" data-id="${id}">`;
         for (let i = 1; i <= 5; i++) {
-          if (i <= starVal) {
-            starHtml += `<i class="fas fa-star" onclick="updateStarRating(${id}, ${i})"></i>`;
-          } else {
-            starHtml += `<i class="far fa-star" onclick="updateStarRating(${id}, ${i})"></i>`;
-          }
+          starHtml += `<i class="${i <= starVal ? 'fas' : 'far'} fa-star" onclick="updateStarRating(${id}, ${i})"></i>`;
         }
         starHtml += `</div>`;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><span class="text-secondary small">${id}</span></td>
-          <td class="fw-semibold text-dark" title="${english}">${english}</td>
-          <td title="${chinese}">${chinese}</td>
+          <td class="fw-semibold text-dark">${english}</td>
+          <td>${chinese}</td>
           <td><span class="badge bg-light text-secondary border">${type}</span></td>
           <td>${starHtml}</td>
           <td><span class="badge badge-custom">${category}</span></td>
