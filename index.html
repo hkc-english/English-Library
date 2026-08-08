@@ -63,7 +63,7 @@
     .read-item:hover { background: #f1f5f9; }
     .read-content { flex: 1; padding-right: 10px; }
     .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
-    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
+    .read-item .zh = { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
     .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
@@ -74,6 +74,19 @@
     .btn-submit-add { padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap; }
     .btn-submit-add:disabled { background: #94a3b8; cursor: not-allowed; }
 
+    /* 彈出確認視窗樣式 */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+    .modal-box { background: #fff; padding: 20px; border-radius: 20px; max-width: 400px; width: 90%; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.15); animation: popUp 0.2s ease-out; }
+    .modal-title { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+    .modal-field { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .modal-field label { font-size: 13px; font-weight: bold; color: #475569; }
+    .modal-field input, .modal-field select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; outline: none; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 15px; justify-content: flex-end; }
+    .btn-modal { padding: 8px 16px; border: none; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
+    .btn-modal-cancel { background: #e2e8f0; color: #475569; }
+    .btn-modal-confirm { background: #2563eb; color: #fff; }
+
+    @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
@@ -189,6 +202,7 @@
     <div class="read-list" id="readList"></div>
   </div>
 
+  <!-- ================= 快速新增區塊 ================= -->
   <div class="add-box">
     <div class="add-title">
       <span>⚡ 快速新增</span>
@@ -196,13 +210,48 @@
     </div>
     <div class="add-input-group">
       <input type="text" id="newEnglishInput" class="add-input" placeholder="請輸入英文單字、片語或句子...">
-      <button class="btn-submit-add" id="submitAddBtn" onclick="submitNewEnglish()">送出</button>
+      <button class="btn-submit-add" id="submitAddBtn" onclick="processNewEnglish()">送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 彈出確認視窗彈窗 ================= -->
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">🔍 確認自動分析結果</div>
+    
+    <div class="modal-field">
+      <label>英文內容</label>
+      <input type="text" id="modalEn" readonly style="background: #f1f5f9; color: #64748b;">
+    </div>
+    
+    <div class="modal-field">
+      <label>中文翻譯 (建議)</label>
+      <input type="text" id="modalZh" placeholder="請輸入或修正中文翻譯...">
+    </div>
+
+    <div class="modal-field">
+      <label>結構類型</label>
+      <select id="modalType">
+        <option value="單字">單字</option>
+        <option value="片語">片語</option>
+        <option value="句子">句子</option>
+      </select>
+    </div>
+
+    <div class="modal-field">
+      <label>標籤 (情境分類)</label>
+      <input type="text" id="modalCategory" placeholder="例如：生活、職場、棒球、貓咪...">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-modal btn-modal-confirm" onclick="finalSubmitAdd()">確認建立</button>
     </div>
   </div>
 </div>
 
 <script>
-  // 已經為您拼上最新的正確 API 網址，免手動修改
   const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
   const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
@@ -509,11 +558,9 @@
     return longest === 0 ? 1.0 : (longest - distance) / longest;
   }
 
-  // 核心修正：將 mode 設為 no-cors，並將標頭改為 text/plain，完全避開 Google 跨域預檢攔截
-  async function submitNewEnglish() {
+  /* 步驟一：處理前端快速輸入（含自動情境判斷與重複校驗） */
+  function processNewEnglish() {
     const inputEl = document.getElementById('newEnglishInput');
-    const btnEl = document.getElementById('submitAddBtn');
-    const statusEl = document.getElementById('addStatus');
     const text = inputEl.value.trim();
 
     if (!text) return;
@@ -545,6 +592,60 @@
       if (!confirmAdd) return; 
     }
 
+    // 💡 智慧自動情境分析核心
+    let guessedType = '單字';
+    let guessedCategory = '通用';
+    const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+
+    // 1. 自動區分結構類型
+    if (wordCount === 1) {
+      guessedType = '單字';
+    } else if (wordCount > 1 && wordCount <= 3) {
+      guessedType = '片語';
+    } else {
+      guessedType = '句子';
+    }
+
+    // 2. 自動判斷情境標籤 (擴增關鍵字庫)
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes('baseball') || lowerText.includes('game') || lowerText.includes('pitch') || lowerText.includes('hit') || lowerText.includes('coach')) {
+      guessedCategory = '棒球';
+    } else if (lowerText.includes('cat') || lowerText.includes('vet') || lowerText.includes('kitten') || lowerText.includes('meow') || lowerText.includes('fur')) {
+      guessedCategory = '貓咪';
+    } else if (lowerText.includes('report') || lowerText.includes('meeting') || lowerText.includes('office') || lowerText.includes('colleague') || lowerText.includes('budget') || lowerText.includes('accounting')) {
+      guessedCategory = '職場';
+    } else if (lowerText.includes('social') || lowerText.includes('help') || lowerText.includes('case') || lowerText.includes('service') || lowerText.includes('community')) {
+      guessedCategory = '社工與服務';
+    } else if (lowerText.includes('how') || lowerText.includes('what') || lowerText.includes('thank') || lowerText.includes('hello') || lowerText.includes('please')) {
+      guessedCategory = '日常社交';
+    }
+
+    // 帶入彈窗數據並開啟
+    document.getElementById('modalEn').value = text;
+    document.getElementById('modalZh').value = ''; // 留給使用者輸入或補上
+    document.getElementById('modalType').value = guessedType;
+    document.getElementById('modalCategory').value = guessedCategory;
+    
+    document.getElementById('confirmModal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+  }
+
+  /* 步驟二：使用者核對修改完畢後，發送 CORS 安全請求 */
+  async function finalSubmitAdd() {
+    const textEn = document.getElementById('modalEn').value.trim();
+    const textZh = document.getElementById('modalZh').value.trim();
+    const type = document.getElementById('modalType').value;
+    const category = document.getElementById('modalCategory').value.trim() || '通用';
+
+    closeModal(); // 先關閉視窗
+
+    const inputEl = document.getElementById('newEnglishInput');
+    const btnEl = document.getElementById('submitAddBtn');
+    const statusEl = document.getElementById('addStatus');
+
     inputEl.disabled = true;
     btnEl.disabled = true;
     statusEl.innerText = '⏳ 同步中...';
@@ -557,7 +658,10 @@
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           action: 'addEnglish',
-          english: text
+          english: textEn,
+          chinese: textZh,      // 新增傳送：中文
+          type: type,           // 新增傳送：類型
+          category: category    // 新增傳送：情境分類標籤
         })
       });
       
@@ -737,7 +841,7 @@
   }
 
   document.addEventListener('keydown', (e) => {
-    if (document.activeElement.tagName === 'INPUT') return;
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
     if (e.code === 'Space') { e.preventDefault(); handlePlayToggle(); }
     if (e.code === 'ArrowRight') { nextSentence(); }
     if (e.code === 'ArrowLeft') { prevSentence(); }
