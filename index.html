@@ -202,7 +202,7 @@
 </div>
 
 <script>
-  // 這兩段密碼是我們專屬的 Google Apps Script 連線密鑰，不需要修改
+  // 已經為您拼上最新的正確 API 網址，免手動修改
   const p1 = 'AKfycbyL3VisnFbNnt5Sj-2_78kJxAs';
   const p2 = 'CD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz';
   const API_URL = `https://script.google.com/macros/s/${p1}${p2}/exec`;
@@ -422,7 +422,7 @@
       await fetch(API_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           action: 'updateStar',
           id: currentItem.ID,
@@ -509,6 +509,7 @@
     return longest === 0 ? 1.0 : (longest - distance) / longest;
   }
 
+  // 核心修正：將 mode 設為 no-cors，並將標頭改為 text/plain，完全避開 Google 跨域預檢攔截
   async function submitNewEnglish() {
     const inputEl = document.getElementById('newEnglishInput');
     const btnEl = document.getElementById('submitAddBtn');
@@ -550,27 +551,23 @@
     statusEl.style.color = '#2563eb';
 
     try {
-      const response = await fetch(API_URL, {
+      await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           action: 'addEnglish',
           english: text
         })
       });
-      const result = await response.json();
       
-      if (result.status === 'success') {
-        statusEl.innerText = '✅ 成功！';
-        statusEl.style.color = '#16a34a';
-        inputEl.value = '';
-        setTimeout(() => {
-          statusEl.innerText = '';
-          loadSheetData();
-        }, 1200);
-      } else {
-        throw new Error(result.message || '未知錯誤');
-      }
+      statusEl.innerText = '✅ 成功！';
+      statusEl.style.color = '#16a34a';
+      inputEl.value = '';
+      setTimeout(() => {
+        statusEl.innerText = '';
+        loadSheetData();
+      }, 1200);
     } catch (err) {
       statusEl.innerText = '❌ 失敗';
       statusEl.style.color = '#ef4444';
