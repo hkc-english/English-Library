@@ -3,48 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文學習與情境標籤管理</title>
+    <title>英文學習與情境標籤管理系統</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; color: #333; }
-        h2 { color: #2c3e50; }
-        .card { background: #fff; padding: 15px 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .english { font-size: 1.1em; font-weight: bold; color: #2980b9; margin-bottom: 5px; }
-        .chinese { color: #7f8c8d; margin-bottom: 10px; }
-        select, button { padding: 8px 12px; margin-right: 5px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 1em; }
-        button { background-color: #27ae60; color: white; border: none; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; background-color: #f4f6f8; color: #333; }
+        h2 { color: #2c3e50; border-bottom: 2px solid #ddd; padding-bottom: 8px; }
+        .card { background: #fff; padding: 18px 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+        .english { font-size: 1.2em; font-weight: bold; color: #2980b9; margin-bottom: 5px; }
+        .chinese { color: #555; margin-bottom: 12px; font-size: 1.05em; }
+        select, button { padding: 8px 12px; margin-right: 8px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.95em; }
+        button { background-color: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #219653; }
-        .loading { text-align: center; color: #95a5a6; padding: 20px; }
+        .loading, .empty-msg { text-align: center; color: #7f8c8d; padding: 30px; font-size: 1.1em; background: #fff; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h2>待分類英文清單 ([待處理])</h2>
+    <h2>英文學習系統 - 待分類清單 ([待處理])</h2>
+    <p style="color: #666; font-size: 0.95em;">這裡顯示所有從 Google 試算表快速輸入、等待精細分類的英文單字與句子：</p>
+    
     <div id="todo-container">
-        <div class="loading">載入中，正在尋找需要分類的資料...</div>
+        <div class="loading">載入中，正在連接試算表...</div>
     </div>
 
     <script>
-        // 主標籤與次標籤的對應資料庫
+        // 完整的豐富主標籤與次標籤對照表（涵蓋職場、社工、日常、醫療、動保、旅遊等）
         const categoryMap = {
-            "職場": ["開會", "面試", "簡報", "談薪", "電郵", "同事互動"],
-            "日常": ["購物", "餐廳", "交通", "問路", "天氣", "居家"],
-            "情感": ["社交", "約會", "朋友聊天", "感謝", "安慰"],
-            "旅遊": ["機場", "飯店", "觀光", "緊急狀況"]
+            "職場行政": ["開會討論", "公文簽核", "財務會計", "出納管理", "人事行政", "電話溝通", "簡報報告", "email書信"],
+            "社會工作": ["個案訪視", "福利諮詢", "資源連結", "家庭訪談", "政策法規", "危機處理", "紀錄撰寫"],
+            "動物救援": ["浪貓照顧", "醫療照護", "餵食誘捕", "獸醫溝通", "送養協尋"],
+            "日常社交": ["打招呼", "購物消費", "餐廳點餐", "問路交通", "天氣氣候", "居家生活", "朋友聊天", "情感表達"],
+            "健康醫療": ["身體不適", "看診拿藥", "牙科治療", "用藥指示", "復健運動"],
+            "休閒旅遊": ["機場海關", "飯店住宿", "景點觀光", "交通工具", "緊急狀況", "拍照打卡"]
         };
 
-        // 當網頁載入時，向 Apps Script 請求所有 [待處理] 的資料
+        // 頁面載入時取得待處理資料
         window.onload = function() {
-            // 假設您的後端有提供一個取得資料的函數 (例如透過 doGet 傳回 JSON，或 google.script.run)
-            // 這裡示範使用 Google Apps Script 標準的 google.script.run 呼叫方式
             if (typeof google !== 'undefined' && google.script.run) {
                 google.script.run
                     .withSuccessHandler(renderTodoList)
                     .withFailureHandler(function(err) {
                         document.getElementById('todo-container').innerHTML = '<p style="color:red;">載入失敗：' + err.message + '</p>';
                     })
-                    .getPendingItems(); // 這需要在 Code.gs 裡寫對應的後端函式
+                    .getPendingItems();
             } else {
-                // 測試用模擬資料（當您在本地端瀏覽器測試時可看見畫面）
+                // 本地測試用模擬資料
                 renderTodoList([
                     { row: 2, english: "I'm a people person.", chinese: "我是個很好相處的人。" },
                     { row: 3, english: "Could you elaborate on that?", chinese: "您能詳細說明一下嗎？" }
@@ -52,13 +54,13 @@
             }
         };
 
-        // 渲染待處理清單到畫面上
+        // 渲染清單
         function renderTodoList(items) {
             const container = document.getElementById('todo-container');
             container.innerHTML = '';
 
             if (!items || items.length === 0) {
-                container.innerHTML = '<p>太棒了！目前沒有需要處理的未分類資料。</p>';
+                container.innerHTML = '<div class="empty-msg">太棒了！目前沒有需要處理的未分類資料，所有資料都很整齊！</div>';
                 return;
             }
 
@@ -75,7 +77,7 @@
                 card.innerHTML = `
                     <div class="english">${item.english}</div>
                     <div class="chinese">${item.chinese}</div>
-                    <div>
+                    <div style="margin-top: 10px;">
                         <select id="main-cat-${item.row}" onchange="updateSubCategories(${item.row})">
                             ${mainSelectOptions}
                         </select>
@@ -89,7 +91,7 @@
             });
         }
 
-        // 當主標籤改變時，連動更新次標籤選單
+        // 主次標籤聯動
         function updateSubCategories(row) {
             const mainCat = document.getElementById(`main-cat-${row}`).value;
             const subSelect = document.getElementById(`sub-cat-${row}`);
@@ -103,7 +105,7 @@
             }
         }
 
-        // 點擊儲存時，將選好的標籤回傳給後端寫入 Sheet
+        // 儲存並寫回試算表
         function saveCategory(row) {
             const mainCat = document.getElementById(`main-cat-${row}`).value;
             const subCat = document.getElementById(`sub-cat-${row}`).value;
@@ -118,17 +120,15 @@
             if (typeof google !== 'undefined' && google.script.run) {
                 google.script.run
                     .withSuccessHandler(function() {
-                        // 儲存成功後，把該張卡片從畫面上移除
                         document.getElementById('row-' + row).remove();
-                        // 檢查是否全部清空
                         if (document.getElementById('todo-container').children.length === 0) {
-                            document.getElementById('todo-container').innerHTML = '<p>所有待處理資料已分類完成！</p>';
+                            document.getElementById('todo-container').innerHTML = '<div class="empty-msg">太棒了！所有待處理資料已分類完成！</div>';
                         }
                     })
                     .withFailureHandler(function(err) {
                         alert('儲存失敗：' + err.message);
                     })
-                    .updateItemCategory(row, finalTag); // 這需要在 Code.gs 裡寫對應的後端函式
+                    .updateItemCategory(row, finalTag);
             } else {
                 alert(`[模擬] 第 ${row} 行已成功更新標籤為：${finalTag}`);
                 document.getElementById('row-' + row).remove();
