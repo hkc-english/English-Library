@@ -14,7 +14,7 @@
     .badge-custom { background-color: #e3f2fd; color: #0d6efd; font-weight: 500; }
     .loading-spinner { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
     
-    /* 💡 新增這段：強制鎖定表格比例，防止沒資料時版面走鐘 */
+    /* 欄位固定鎖，防沒資料時走鐘 */
     .fixed-table {
       table-layout: fixed;
       width: 100%;
@@ -70,7 +70,6 @@
       </div>
 
       <div class="table-responsive">
-        <!-- 💡 加上 fixed-table 類別 -->
         <table class="table table-hover align-middle fixed-table">
           <thead class="table-light">
             <tr>
@@ -100,7 +99,6 @@
           <h5 class="modal-title fw-bold text-primary"><i class="fas fa-magic me-2"></i>AI 智慧引導確認</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <!-- 💡 修正此處的重複類別錯誤 -->
         <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label fw-bold text-muted small">您輸入的英文</label>
@@ -141,7 +139,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script>
-    // 💡 請將下方 URL 替換為您部署好的最新 Google Apps Script 網頁應用程式網址
+    // 💡 請將下方替換為您部署好的最新 GAS 網頁應用程式網址 (結尾需為 /exec)
     const GAS_WEB_APP_URL = "您的GAS部署網址"; 
 
     let dbData = [];
@@ -172,19 +170,24 @@
     function fetchData() {
       showLoading(true);
       fetch(`${GAS_WEB_APP_URL}?action=read`)
-        .then(res => res.json())
+        .then(res => {
+          if(!res.ok) throw new Error("網路回應不正確");
+          return res.json();
+        })
         .then(res => {
           if(res.status === "success") {
             dbData = res.data || [];
             updateFilterOptions();
             renderTable();
           } else {
-            alert("讀取失敗：" + res.message);
+            console.error("讀取失敗：" + res.message);
           }
         })
         .catch(err => {
           console.error(err);
-          alert("無法連線至 Google 試算表，請檢查網路或 GAS 網址是否填寫正確。");
+          // 移除干擾的 Alert 視窗，改為在表格直接顯示提示，避免阻擋操作
+          document.getElementById("vocabTableBody").innerHTML = 
+            `<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>連線中斷或網址未完成授權，請檢查 GAS 權限設定（需設為所有人）。</td></tr>`;
         })
         .finally(() => showLoading(false));
     }
@@ -243,17 +246,13 @@
         star: 1
       };
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+      // 移除可能導致直接斷線報錯的超時短秒數控制，改採穩健發送
       fetch(GAS_WEB_APP_URL, {
         method: "POST",
-        body: JSON.stringify(payload),
-        signal: controller.signal
+        body: JSON.stringify(payload)
       })
       .then(res => res.json())
       .then(res => {
-        clearTimeout(timeoutId);
         if (res.status === "success") {
           document.getElementById("englishInput").value = "";
           document.getElementById("chineseInput").value = "";
@@ -263,8 +262,7 @@
         }
       })
       .catch(err => {
-        clearTimeout(timeoutId);
-        console.warn("連線異常，啟動在地防呆備用機制", err);
+        console.warn("寫入時連線異常，啟動在地防呆備用機制", err);
         
         const fallbackId = dbData.length > 0 ? Math.max(...dbData.map(d => parseInt(d.ID) || 0)) + 1 : 1;
         const fallbackItem = {
@@ -272,13 +270,12 @@
           "英文": english,
           "中文": `（連線異常，已自動寫入）${chinese}`,
           "類型": type,
-          "熟悉度": 1,
+          "熟悉度": 1, // 核心防呆：強制補1
           "標籤(情境分類)": category,
           "建立日期": new Date().toISOString().slice(0,10)
         };
         dbData.unshift(fallbackItem); 
         renderTable();
-        alert("偵測到網路連線異常，已先將資料暫存至本地列表！");
       })
       .finally(() => showLoading(false));
     }
@@ -299,13 +296,10 @@
           const item = dbData.find(d => parseInt(d.ID) === parseInt(id));
           if(item) item["熟悉度"] = newStar;
           renderTable();
-        } else {
-          alert("更新星級失敗：" + res.message);
         }
       })
       .catch(err => {
-        console.error(err);
-        alert("網路連線失敗，無法更新星級。");
+        console.error("更新星級失敗：", err);
       })
       .finally(() => showLoading(false));
     }
@@ -356,6 +350,7 @@
         const type = item["類型"] || "單字";
         const category = item["標籤(情境分類)"] || item["標籤"] || "通用";
         
+        // 核心防呆：讀取回來的熟悉度如果是空值、0或未定義，網頁直接解讀為 1 星
         let rawStar = item["熟悉度"] !== undefined ? item["熟悉度"] : 1;
         let starVal = parseInt(rawStar);
         if (isNaN(starVal) || starVal <= 0) {
