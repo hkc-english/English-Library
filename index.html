@@ -110,7 +110,7 @@
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗，請確認部署網址是否正確。</div>
 
-  <!-- ================= 聽力模式區塊 ================= -->
+  <!-- 聽力模式區塊 -->
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
 
@@ -167,7 +167,7 @@
     </div>
   </div>
 
-  <!-- ================= 閱讀模式區塊 ================= -->
+  <!-- 閱讀模式區塊 -->
   <div id="readSection" class="hidden">
     <div class="tool-bar">
       <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px;">共 0 筆資料</div>
@@ -190,10 +190,10 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- ================= 快速新增區塊 (含翻譯功能) ================= -->
+  <!-- 快速新增區塊 -->
   <div class="add-box">
     <div class="add-title">
-      <span>⚡ 快速新增（含雲端翻譯）</span>
+      <span>⚡ 快速新增（自動帶出翻譯與類型）</span>
       <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
     </div>
     <div class="add-input-group">
@@ -513,7 +513,6 @@
     return longest === 0 ? 1.0 : (longest - distance) / longest;
   }
 
-  // 雲端即時翻譯按鈕功能
   async function handleTranslate() {
     const inputEl = document.getElementById('newEnglishInput');
     const zhInputEl = document.getElementById('newChineseInput');
