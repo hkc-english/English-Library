@@ -63,7 +63,7 @@
     .read-item:hover { background: #f1f5f9; }
     .read-content { flex: 1; padding-right: 10px; }
     .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
-    .read-item .zh = { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
+    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; }
     .btn-inline-play { background: #2563eb; color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
 
@@ -226,12 +226,12 @@
     </div>
     
     <div class="modal-field">
-      <label>中文翻譯 (建議)</label>
-      <input type="text" id="modalZh" placeholder="請輸入或修正中文翻譯...">
+      <label style="color: #2563eb;">中文翻譯 (請手動輸入)</label>
+      <input type="text" id="modalZh" placeholder="請在此輸入您的中文翻譯（必填）..." autofocus>
     </div>
 
     <div class="modal-field">
-      <label>結構類型</label>
+      <label>結構類型 (已預判)</label>
       <select id="modalType">
         <option value="單字">單字</option>
         <option value="片語">片語</option>
@@ -240,7 +240,7 @@
     </div>
 
     <div class="modal-field">
-      <label>標籤 (情境分類)</label>
+      <label>標籤 (已預判情境分類)</label>
       <input type="text" id="modalCategory" placeholder="例如：生活、職場、棒球、貓咪...">
     </div>
 
@@ -558,7 +558,7 @@
     return longest === 0 ? 1.0 : (longest - distance) / longest;
   }
 
-  /* 步驟一：處理前端快速輸入（含自動情境判斷與重複校驗） */
+  /* 處理前端快速輸入（情境預判，中文留白） */
   function processNewEnglish() {
     const inputEl = document.getElementById('newEnglishInput');
     const text = inputEl.value.trim();
@@ -620,27 +620,39 @@
       guessedCategory = '日常社交';
     }
 
-    // 帶入彈窗數據並開啟
+    // 帶入彈窗數據（💡 中文保持留白，供使用者手動輸入）
     document.getElementById('modalEn').value = text;
-    document.getElementById('modalZh').value = ''; // 留給使用者輸入或補上
+    document.getElementById('modalZh').value = ''; 
     document.getElementById('modalType').value = guessedType;
     document.getElementById('modalCategory').value = guessedCategory;
     
     document.getElementById('confirmModal').classList.remove('hidden');
+    
+    // 延遲聚焦中文輸入框
+    setTimeout(() => {
+      document.getElementById('modalZh').focus();
+    }, 100);
   }
 
   function closeModal() {
     document.getElementById('confirmModal').classList.add('hidden');
   }
 
-  /* 步驟二：使用者核對修改完畢後，發送 CORS 安全請求 */
+  /* 使用者核對修改完畢後，發送資料 */
   async function finalSubmitAdd() {
     const textEn = document.getElementById('modalEn').value.trim();
     const textZh = document.getElementById('modalZh').value.trim();
     const type = document.getElementById('modalType').value;
     const category = document.getElementById('modalCategory').value.trim() || '通用';
 
-    closeModal(); // 先關閉視窗
+    // 💡 強制防呆：中文翻譯不能為空
+    if (!textZh) {
+      alert('📌 請手動輸入中文翻譯後再送出！');
+      document.getElementById('modalZh').focus();
+      return;
+    }
+
+    closeModal(); 
 
     const inputEl = document.getElementById('newEnglishInput');
     const btnEl = document.getElementById('submitAddBtn');
@@ -659,9 +671,9 @@
         body: JSON.stringify({
           action: 'addEnglish',
           english: textEn,
-          chinese: textZh,      // 新增傳送：中文
-          type: type,           // 新增傳送：類型
-          category: category    // 新增傳送：情境分類標籤
+          chinese: textZh,      
+          type: type,           
+          category: category    
         })
       });
       
