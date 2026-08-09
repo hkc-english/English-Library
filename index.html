@@ -224,7 +224,7 @@
   let intervalTime = 3000; 
   let selectedTypeFilter = 'all'; 
   
-  let playStatus = 'stopped'; 
+  let playStatus = 'stopped'; // 'stopped', 'playing', 'paused'
   let timeoutId = null;
   let currentSortMode = 'default'; 
 
@@ -315,7 +315,6 @@
     
     document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
     
-    // 只有在過濾條件完全改變導致清單大變動且處於播放時，才重新播放；若只是切換模式則不中斷
     renderCard();
     renderReadList();
   }
@@ -489,7 +488,7 @@
       if(m === mode) btn.classList.add('active'); else btn.classList.remove('active');
     });
     resetRevealState();
-    renderCardTextOnly(); // 立即更新畫面文字，絕對不中斷當前的播放狀態
+    renderCardTextOnly(); 
   }
 
   function setRepeat(times, btn) {
@@ -503,7 +502,6 @@
     clearActive('speedGroup');
     btn.classList.add('active');
     
-    // 如果正在播放中，即時更新當前語音播放速度
     if (playStatus === 'playing' && currentUtterance) {
       synth.cancel();
       speakCurrent();
@@ -683,6 +681,7 @@
       playStatus = 'playing';
       updatePlayButtonUI();
       
+      // 確保從暫停恢復時，直接繼續播放當前句子
       if (synth.paused) {
         synth.resume();
       } else {
@@ -739,6 +738,7 @@
         if (playStatus !== 'playing') return; 
 
         currentRepeatCount++;
+        // 如果還沒達到設定的重複次數（包含設定為 999 的無限播放）
         if (currentRepeatCount < repeatTimes) {
           timeoutId = setTimeout(() => { speakCurrent(); }, 400);
         } else {
@@ -759,8 +759,9 @@
   }
 
   function proceedToNextCard() {
-    if (autoPlayMode === 'loop') {
-      timeoutId = setTimeout(() => { nextSentence(true); }, intervalTime);
+    // 確保即使是在無限播放 (repeatTimes = 999) 或是一般播放下，也能正常跳轉下一句
+    if (autoPlayMode === 'loop' || repeatTimes >= 999) {
+      timeoutId = setTimeout(() => { nextSentence(); }, intervalTime);
     } else if (autoPlayMode === 'random') {
       timeoutId = setTimeout(() => { triggerRandomNext(); }, intervalTime);
     } else {
@@ -782,7 +783,10 @@
     
     resetRevealState();
     renderCard();
-    speakCurrent();
+    
+    if (playStatus === 'playing') {
+      speakCurrent();
+    }
   }
 
   function nextSentence() {
@@ -794,10 +798,10 @@
     resetRevealState();
     renderCard();
     
-    // 確保只要處於播放狀態，切換下一句就立刻平順播放
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
+    // 強制設定並確保持續播放狀態，不需重按播放鍵
+    playStatus = 'playing';
+    updatePlayButtonUI();
+    speakCurrent();
   }
 
   function prevSentence() {
@@ -809,10 +813,10 @@
     resetRevealState();
     renderCard();
     
-    // 確保只要處於播放狀態，切換上一句就立刻平順播放
-    if (playStatus === 'playing') {
-      speakCurrent();
-    }
+    // 強制設定並確保持續播放狀態，不需重按播放鍵
+    playStatus = 'playing';
+    updatePlayButtonUI();
+    speakCurrent();
   }
 
   document.addEventListener('keydown', (e) => {
