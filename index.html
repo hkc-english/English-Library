@@ -75,6 +75,11 @@
     .btn-submit-add:disabled { background: #94a3b8; cursor: not-allowed; }
     .btn-translate { background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 0 14px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
+    /* 標籤複選群組樣式 */
+    .tag-select-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; max-height: 100px; overflow-y: auto; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .tag-chip { padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 15px; cursor: pointer; user-select: none; transition: 0.15s; }
+    .tag-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
@@ -190,12 +195,19 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- ================= 快速新增區塊 (含翻譯功能) ================= -->
+  <!-- ================= 快速新增區塊 (含翻譯與標籤字典) ================= -->
   <div class="add-box">
     <div class="add-title">
-      <span>⚡ 快速新增（含雲端翻譯）</span>
+      <span>⚡ 快速新增（含雲端翻譯與標籤）</span>
       <span id="addStatus" style="font-size: 12px; color: #64748b;"></span>
     </div>
+    
+    <!-- 標籤字典選項區塊 -->
+    <div style="font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px;">選擇標籤 (可複選)：</div>
+    <div class="tag-select-container" id="tagSelectContainer">
+      <span style="font-size: 12px; color: #94a3b8;">載入標籤中...</span>
+    </div>
+
     <div class="add-input-group">
       <input type="text" id="newEnglishInput" class="add-input" placeholder="請輸入英文單字、片語或句子...">
       <button class="btn-translate" onclick="handleTranslate()">自動翻譯</button>
@@ -212,6 +224,7 @@
 
   let rawData = [];
   let filteredData = [];
+  let availableTags = []; // 儲存從後端抓取的標籤字典
   let currentIndex = 0;
   
   let currentTab = 'listen';
@@ -246,10 +259,33 @@
   }
   loadVoices();
 
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    
+    // 切換分頁時若在聽力模式可過濾弱項
+    const weakRow = document.getElementById('weakFilterRow');
+    if (weakRow) weakRow.style.display = (tab === 'listen') ? 'flex' : 'none';
+
+    applyFilters();
+  }
+
   async function loadSheetData() {
     try {
       const res = await fetch(API_URL);
-      rawData = await res.json();
+      const resJson = await res.json();
+      
+      // 兼容舊版陣列格式或新版物件格式 {data, tags}
+      if (Array.isArray(resJson)) {
+        rawData = resJson;
+        availableTags = [];
+      } else {
+        rawData = resJson.data || [];
+        availableTags = resJson.tags || [];
+      }
       
       rawData.forEach((item, idx) => {
         let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 1;
@@ -261,12 +297,42 @@
       });
       
       document.getElementById('statusMessage').classList.add('hidden');
+      renderTagSelector(); // 渲染標籤選擇器
       applyFilters();
     } catch (err) {
       document.getElementById('statusMessage').classList.remove('hidden');
       document.getElementById('textEn').innerText = '錯誤';
       console.error(err);
     }
+  }
+
+  // 渲染新增區塊的標籤多選按鈕
+  function renderTagSelector() {
+    const container = document.getElementById('tagSelectContainer');
+    container.innerHTML = '';
+
+    if (!availableTags || availableTags.length === 0) {
+      container.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">未偵測到「標籤字典」分頁或分頁無內容</span>';
+      return;
+    }
+
+    availableTags.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerText = tag;
+      chip.onclick = () => {
+        chip.classList.toggle('active');
+      };
+      container.appendChild(chip);
+    });
+  }
+
+  // 取得目前被勾選的標籤陣列
+  function getSelectedTags() {
+    const activeChips = document.querySelectorAll('#tagSelectContainer .tag-chip.active');
+    let tags = [];
+    activeChips.forEach(chip => tags.push(chip.innerText));
+    return tags;
   }
 
   function applyFilters() {
@@ -282,7 +348,7 @@
       if (searchKeyword) {
         const en = (item.英文 || item.english || '').toLowerCase();
         const zh = (item.中文 || item.chinese || '').toLowerCase();
-        const cat = (item['標籤(情境分類)'] || item.category || item.分類 || '').toLowerCase();
+        const cat = (item['標籤(情境分類)'] || item.category || item.分類 || item.tags || '').toLowerCase();
         if (!en.includes(searchKeyword) && !zh.includes(searchKeyword) && !cat.includes(searchKeyword)) {
           return false;
         }
@@ -445,7 +511,7 @@
       const en = item.英文 || item.english || '';
       const zh = item.中文 || item.chinese || '';
       const star = item.star;
-      const cat = item['標籤(情境分類)'] || item.category || '未分類';
+      const cat = item['標籤(情境分類)'] || item.category || item.tags || '待處理';
       const type = item.類型 || item.type || '未定';
       
       const div = document.createElement('div');
@@ -590,6 +656,7 @@
     const statusEl = document.getElementById('addStatus');
     const text = inputEl.value.trim();
     const chineseText = zhInputEl.value.trim();
+    const selectedTags = getSelectedTags(); // 取得選取的標籤陣列
 
     if (!text) return;
 
@@ -632,7 +699,8 @@
         body: JSON.stringify({
           action: 'addEnglish',
           english: text,
-          chinese: chineseText
+          chinese: chineseText,
+          tags: selectedTags // 傳送勾選的標籤
         })
       });
       const result = await response.json();
@@ -642,6 +710,8 @@
         statusEl.style.color = '#16a34a';
         inputEl.value = '';
         zhInputEl.value = '';
+        // 清除標籤勾選狀態
+        document.querySelectorAll('#tagSelectContainer .tag-chip.active').forEach(c => c.classList.remove('active'));
         setTimeout(() => {
           statusEl.innerText = '';
           loadSheetData();
@@ -720,7 +790,6 @@
 
     synth.cancel();
 
-    // 透過輪詢確保瀏覽器引擎已完全清除，才送出新的發音要求
     let checkInterval = setInterval(() => {
       if (playStatus !== 'playing') {
         clearInterval(checkInterval);
@@ -790,51 +859,27 @@
 
   function nextSentence() {
     if (filteredData.length === 0) return;
-    
-    currentIndex = (currentIndex < filteredData.length - 1) ? currentIndex + 1 : 0;
+    currentIndex = (currentIndex + 1) % filteredData.length;
     currentRepeatCount = 0;
-    
     resetRevealState();
     renderCard();
-    
-    playStatus = 'playing';
-    updatePlayButtonUI();
-    speakCurrent();
+    if (playStatus === 'playing') speakCurrent();
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
-    
-    currentIndex = (currentIndex > 0) ? currentIndex - 1 : filteredData.length - 1;
+    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     currentRepeatCount = 0;
-    
     resetRevealState();
     renderCard();
-    
-    playStatus = 'playing';
-    updatePlayButtonUI();
-    speakCurrent();
+    if (playStatus === 'playing') speakCurrent();
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (document.activeElement.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); handlePlayToggle(); }
-    if (e.code === 'ArrowRight') { nextSentence(); }
-    if (e.code === 'ArrowLeft') { prevSentence(); }
-  });
-
-  function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
-    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
-    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
-    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    document.getElementById('weakFilterRow').classList.toggle('hidden', tab !== 'listen');
-  }
-
-  window.onload = function() {
+  // 初始化載入
+  window.onload = () => {
     loadSheetData();
   };
 </script>
+
 </body>
 </html>
