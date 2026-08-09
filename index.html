@@ -28,20 +28,37 @@
     .type-btn { padding: 6px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
-    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
+    .sub-filter-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 4px; font-size: 13px; font-weight: bold; color: #c2410c; }
+    .view-mode-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; margin-top: 6px; }
+    .view-btn { padding: 6px 2px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
+    .view-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .quick-add-container { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 15px; background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 10px; }
+    .quick-add-input { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; font-weight: bold; }
+    .quick-add-btn { padding: 8px 16px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; white-space: nowrap; }
+
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 25px 20px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
+    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
     .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
     .stars span { transition: transform 0.1s; display: inline-block; }
     .stars span:hover { transform: scale(1.2); }
 
-    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
+    /* 進階播放控制區塊 */
+    .controls-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
     .btn-nav { background: #e2e8f0; color: #475569; }
-    .btn-play { background: #2563eb; color: #fff; padding: 10px 24px; font-size: 15px; }
+    .btn-play { background: #2563eb; color: #fff; padding: 10px 22px; font-size: 15px; }
     .btn-stop { background: #ef4444; color: #fff; }
 
-    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 48vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
+    .settings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .setting-sub-btn { padding: 6px 2px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; }
+    .setting-sub-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .sub-section-title { font-size: 11px; font-weight: bold; color: #64748b; text-align: left; margin-bottom: 2px; }
+
+    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 45vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
     .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
     .read-content { flex: 1; padding-right: 10px; }
     .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
@@ -52,7 +69,7 @@
     .tag-chip { padding: 4px 10px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 15px; cursor: pointer; user-select: none; }
     .tag-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .btn-submit-add { width: 100%; padding: 12px; background: #ea580c; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; }
+    .btn-submit-confirm { width: 100%; padding: 10px; background: #ea580c; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 6px; }
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
@@ -62,7 +79,7 @@
 <div class="container">
   <h1>📚 英文學習資料庫</h1>
 
-  <!-- 🎯 智慧檢核區塊 (含AI自動預測) -->
+  <!-- 🎯 AI 智慧待分類檢核區塊 -->
   <div id="checkSection" class="check-box hidden">
     <div class="check-title">
       <span>🎯 AI 智慧待分類檢核</span>
@@ -70,7 +87,13 @@
     </div>
     <div id="checkTarget" class="check-target">讀取中...</div>
     <div class="tag-select-container" id="checkTagContainer"></div>
-    <button class="btn-submit-add" id="btnConfirm" onclick="confirmTag()">確認並更新標籤</button>
+    <button class="btn-submit-confirm" id="btnConfirm" onclick="confirmTag()">確認並更新標籤</button>
+  </div>
+
+  <!-- ⚡ 快速新增區塊 -->
+  <div class="quick-add-container">
+    <input type="text" id="quickAddInput" class="quick-add-input" placeholder="⚡ 快速新增 (輸入英文)..." onkeydown="if(event.key==='Enter') quickAddNewWord()">
+    <button class="quick-add-btn" id="quickAddBtn" onclick="quickAddNewWord()">送出</button>
   </div>
 
   <div class="tab-group">
@@ -90,13 +113,27 @@
       <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
+
+    <!-- 弱項過濾與檢視模式切換 -->
+    <div class="sub-filter-row">
+      <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="checkbox" id="weakFilterCheck" onchange="applyFilters()"> ⚡ 僅聽弱項（排除 4~5 星）
+      </label>
+    </div>
+
+    <div class="view-mode-grid">
+      <button class="view-btn active" id="view-both" onclick="changeViewMode('both')">英 + 中</button>
+      <button class="view-btn" id="view-en" onclick="changeViewMode('en')">僅看英文</button>
+      <button class="view-btn" id="view-zh" onclick="changeViewMode('zh')">僅看中文</button>
+      <button class="view-btn" id="view-blind" onclick="changeViewMode('blind')">盲聽模式</button>
+    </div>
   </div>
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
 
   <!-- 聽力模式區塊 -->
   <div id="listenSection">
-    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 10px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     <div class="card">
       <div class="text-en" id="textEn" onclick="playCurrentAudio()">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
@@ -104,11 +141,54 @@
         <span onclick="setStar(1)">☆</span><span onclick="setStar(2)">☆</span><span onclick="setStar(3)">☆</span><span onclick="setStar(4)">☆</span><span onclick="setStar(5)">☆</span>
       </div>
     </div>
-    <div class="control-row">
-      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
-      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
-      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+
+    <!-- 進階播放控制面板 -->
+    <div class="controls-panel">
+      <div class="control-row">
+        <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+        <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
+        <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+        <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+      </div>
+
+      <div>
+        <div class="sub-section-title">重複次數</div>
+        <div class="settings-grid">
+          <button class="setting-sub-btn active" id="rep-1" onclick="setRepeat(1)">1次</button>
+          <button class="setting-sub-btn" id="rep-2" onclick="setRepeat(2)">2次</button>
+          <button class="setting-sub-btn" id="rep-3" onclick="setRepeat(3)">3次</button>
+          <button class="setting-sub-btn" id="rep-inf" onclick="setRepeat('inf')">無限</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="sub-section-title">播放速度</div>
+        <div class="settings-grid">
+          <button class="setting-sub-btn" id="spd-0.5" onclick="setSpeed(0.5)">0.5x</button>
+          <button class="setting-sub-btn" id="spd-0.6" onclick="setSpeed(0.6)">0.6x</button>
+          <button class="setting-sub-btn" id="spd-0.7" onclick="setSpeed(0.7)">0.7x</button>
+          <button class="setting-sub-btn" id="spd-0.8" onclick="setSpeed(0.8)">0.8x</button>
+          <button class="setting-sub-btn" id="spd-0.9" onclick="setSpeed(0.9)">0.9x</button>
+          <button class="setting-sub-btn active" id="spd-1.0" onclick="setSpeed(1.0)">1.0x</button>
+          <button class="setting-sub-btn" id="spd-1.1" onclick="setSpeed(1.1)">1.1x</button>
+          <button class="setting-sub-btn" id="spd-1.2" onclick="setSpeed(1.2)">1.2x</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="flex: 1;">
+          <div class="sub-section-title">播放間隔</div>
+          <div class="settings-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <button class="setting-sub-btn active" id="int-1" onclick="setIntervalTime(1)">1秒</button>
+            <button class="setting-sub-btn" id="int-3" onclick="setIntervalTime(3)">3秒</button>
+            <button class="setting-sub-btn" id="int-5" onclick="setIntervalTime(5)">5秒</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; justify-content: flex-end;">
+          <button class="setting-sub-btn" id="btnContinuous" onclick="toggleContinuous()" style="padding: 8px 10px; font-weight: bold;">▶ 連續播放</button>
+          <button class="setting-sub-btn" id="btnShuffle" onclick="toggleShuffle()" style="padding: 8px 10px; font-weight: bold;">🔀 隨機播放</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -129,8 +209,15 @@
   let currentIndex = 0;
   let currentTab = 'listen';
   let selectedTypeFilter = 'all';
+  let viewMode = 'both'; // both, en, zh, blind
+  let repeatCount = 1;
+  let playbackSpeed = 1.0;
+  let intervalSec = 1;
+  let isContinuous = false;
+  let isShuffle = false;
   let synth = window.speechSynthesis;
   let isPlaying = false;
+  let timeoutId = null;
 
   async function loadSheetData() {
     try {
@@ -163,7 +250,6 @@
 
   function checkPendingData() {
     pendingData = rawData.filter(item => item.tagStr === '' || item.tagStr === '待處理' || item.tagStr.includes('待處理'));
-    
     const section = document.getElementById('checkSection');
     const countEl = document.getElementById('checkCount');
     
@@ -183,20 +269,13 @@
     const container = document.getElementById('checkTagContainer');
     container.innerHTML = '';
 
-    if (!availableTags || availableTags.length === 0) {
-      container.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">未偵測到標籤字典</span>';
-      return;
-    }
-
     const predicted = autoPredictTags(en.toLowerCase(), zh.toLowerCase());
 
     availableTags.forEach(tag => {
       const chip = document.createElement('div');
       chip.className = 'tag-chip';
       chip.innerText = tag;
-      if (predicted.has(tag)) {
-        chip.classList.add('active');
-      }
+      if (predicted.has(tag)) chip.classList.add('active');
       chip.onclick = () => { chip.classList.toggle('active'); };
       container.appendChild(chip);
     });
@@ -252,6 +331,36 @@
     }
   }
 
+  async function quickAddNewWord() {
+    const input = document.getElementById('quickAddInput');
+    const english = input.value.trim();
+    if (!english) return;
+
+    const btn = document.getElementById('quickAddBtn');
+    btn.innerText = '送出中...';
+    btn.disabled = true;
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'addEnglish', 
+          english: english, 
+          chinese: '',
+          tags: [] 
+        })
+      });
+      input.value = '';
+      loadSheetData();
+    } catch(e) {
+      alert('新增失敗');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = '送出';
+    }
+  }
+
   function switchTab(tab) {
     currentTab = tab;
     document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
@@ -267,12 +376,60 @@
     applyFilters();
   }
 
+  function changeViewMode(mode) {
+    viewMode = mode;
+    ['both', 'en', 'zh', 'blind'].forEach(m => {
+      document.getElementById(`view-${m}`).classList.toggle('active', m === mode);
+    });
+    renderCard();
+  }
+
+  function setRepeat(val) {
+    repeatCount = val;
+    ['1', '2', '3', 'inf'].forEach(v => {
+      document.getElementById(`rep-${v}`).classList.toggle('active', v == val);
+    });
+  }
+
+  function setSpeed(spd) {
+    playbackSpeed = spd;
+    [0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].forEach(s => {
+      document.getElementById(`spd-${s}`).classList.toggle('active', s === spd);
+    });
+  }
+
+  function setIntervalTime(sec) {
+    intervalSec = sec;
+    [1, 3, 5].forEach(s => {
+      document.getElementById(`int-${s}`).classList.toggle('active', s === sec);
+    });
+  }
+
+  function toggleContinuous() {
+    isContinuous = !isContinuous;
+    const btn = document.getElementById('btnContinuous');
+    btn.classList.toggle('active', isContinuous);
+    btn.style.background = isContinuous ? '#2563eb' : '#fff';
+    btn.style.color = isContinuous ? '#fff' : '#475569';
+  }
+
+  function toggleShuffle() {
+    isShuffle = !isShuffle;
+    const btn = document.getElementById('btnShuffle');
+    btn.classList.toggle('active', isShuffle);
+    btn.style.background = isShuffle ? '#2563eb' : '#fff';
+    btn.style.color = isShuffle ? '#fff' : '#475569';
+  }
+
   function applyFilters() {
+    const isWeakOnly = document.getElementById('weakFilterCheck').checked;
     filteredData = rawData.filter(item => {
       if (selectedTypeFilter !== 'all') {
         const itemType = (item.類型 || item.type || '').trim();
         if (itemType !== selectedTypeFilter) return false;
       }
+      if (isWeakOnly && item.star >= 4) return false;
+
       const keyword = document.getElementById('searchInput').value.toLowerCase();
       if (keyword) {
         const en = (item.英文 || item.english || '').toLowerCase();
@@ -296,8 +453,26 @@
       return;
     }
     const item = filteredData[currentIndex];
-    document.getElementById('textEn').innerText = item.英文 || item.english || '';
-    document.getElementById('textZh').innerText = item.中文 || item.chinese || '';
+    const enEl = document.getElementById('textEn');
+    const zhEl = document.getElementById('textZh');
+
+    enEl.innerText = item.英文 || item.english || '';
+    zhEl.innerText = item.中文 || item.chinese || '';
+
+    // 視圖模式套用
+    if (viewMode === 'en') {
+      zhEl.style.display = 'none';
+      enEl.style.display = 'block';
+    } else if (viewMode === 'zh') {
+      zhEl.style.display = 'block';
+      enEl.style.display = 'none';
+    } else if (viewMode === 'blind') {
+      zhEl.style.display = 'none';
+      enEl.style.display = 'none';
+    } else {
+      zhEl.style.display = 'block';
+      enEl.style.display = 'block';
+    }
     
     const starContainer = document.getElementById('textStar');
     let starHTML = '';
@@ -327,7 +502,11 @@
   function nextSentence() {
     if (filteredData.length === 0) return;
     stopAudio();
-    currentIndex = (currentIndex + 1) % filteredData.length;
+    if (isShuffle) {
+      currentIndex = Math.floor(Math.random() * filteredData.length);
+    } else {
+      currentIndex = (currentIndex + 1) % filteredData.length;
+    }
     renderCard();
   }
 
@@ -338,7 +517,7 @@
     renderCard();
   }
 
-  function playCurrentAudio() {
+  function playCurrentAudio(currentRepeat = 1) {
     if (filteredData.length === 0) return;
     const item = filteredData[currentIndex];
     const text = item.英文 || item.english || '';
@@ -348,16 +527,31 @@
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
-    utterance.rate = 1.0;
+    utterance.rate = playbackSpeed;
     
     utterance.onstart = () => {
       isPlaying = true;
-      document.getElementById('playBtn').innerText = '🔊 播放中...';
+      document.getElementById('playBtn').innerText = `🔊 播放中 (${currentRepeat})`;
     };
+    
     utterance.onend = () => {
-      isPlaying = false;
-      document.getElementById('playBtn').innerText = '🔊 播放';
+      if (!isPlaying) return; // 被中斷
+      if (repeatCount === 'inf' || currentRepeat < repeatCount) {
+        timeoutId = setTimeout(() => {
+          playCurrentAudio(currentRepeat + 1);
+        }, intervalSec * 1000);
+      } else {
+        isPlaying = false;
+        document.getElementById('playBtn').innerText = '🔊 播放';
+        if (isContinuous) {
+          timeoutId = setTimeout(() => {
+            nextSentence();
+            playCurrentAudio(1);
+          }, intervalSec * 1000);
+        }
+      }
     };
+
     utterance.onerror = () => {
       isPlaying = false;
       document.getElementById('playBtn').innerText = '🔊 播放';
@@ -370,12 +564,13 @@
     if (isPlaying) {
       stopAudio();
     } else {
-      playCurrentAudio();
+      playCurrentAudio(1);
     }
   }
 
   function stopAudio() {
     if (synth.speaking) synth.cancel();
+    if (timeoutId) clearTimeout(timeoutId);
     isPlaying = false;
     document.getElementById('playBtn').innerText = '🔊 播放';
   }
