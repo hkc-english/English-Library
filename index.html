@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英文學習資料庫</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSysteａmFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
     .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
     
@@ -28,6 +28,14 @@
     .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
     .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    /* 僅聽弱項方框按鈕樣式 */
+    .weak-filter-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; color: #475569; text-align: left; transition: 0.2s; }
+    .weak-filter-btn.active { background: #eff6ff; border-color: #2563eb; color: #1e40af; }
+    .checkbox-square { width: 16px; height: 16px; border: 2px solid #cbd5e1; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; background: #fff; transition: 0.2s; }
+    .weak-filter-btn.active .checkbox-square { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .checkbox-square::after { content: ""; display: none; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
+    .weak-filter-btn.active .checkbox-square::after { display: block; }
 
     /* 閱讀模式排序按鈕網格 */
     .sort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 15px; }
@@ -108,6 +116,14 @@
       <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
+
+    <!-- 移至上方的僅聽弱項方框按鈕 -->
+    <div id="weakFilterWrapper" style="width: 100%;">
+      <button class="weak-filter-btn" id="btnWeakOnly" onclick="toggleWeakOnly()">
+        <span class="checkbox-square"></span>
+        <span>⚡ 僅聽弱項（排除 4~5 星）</span>
+      </button>
+    </div>
   </div>
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
@@ -124,11 +140,6 @@
 
     <!-- 聽力模式控制面板 -->
     <div class="control-panel">
-      <div class="ctrl-group-title">播放篩選與條件</div>
-      <div class="control-sub-row">
-        <button class="ctrl-btn" id="btnWeakOnly" onclick="toggleWeakOnly()" style="flex: 1;">僅聽弱項（排除4~5星）</button>
-      </div>
-
       <div class="ctrl-group-title">重複次數</div>
       <div class="control-sub-row">
         <button class="ctrl-btn active" onclick="setRepeat(1)" id="rep-1">1次</button>
@@ -328,7 +339,10 @@
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    // 切換分頁時重新套用篩選
+    
+    // 切換分頁時，如果是閱讀模式則隱藏「僅聽弱項」勾選框，聽力模式則顯示
+    document.getElementById('weakFilterWrapper').style.display = (tab === 'listen') ? 'block' : 'none';
+    
     applyFilters();
   }
 
@@ -422,7 +436,7 @@
     });
   }
 
-  // 聽力模式設定按鈕動作
+  // 僅聽弱項按鈕動作
   function toggleWeakOnly() {
     isWeakOnly = !isWeakOnly;
     document.getElementById('btnWeakOnly').classList.toggle('active', isWeakOnly);
