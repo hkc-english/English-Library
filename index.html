@@ -674,19 +674,13 @@
 
     if (playStatus === 'playing') {
       playStatus = 'paused';
-      synth.pause();
+      synth.cancel(); // 徹底清除瀏覽器內部的暫停卡死狀態
       if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
       updatePlayButtonUI();
     } else if (playStatus === 'paused') {
       playStatus = 'playing';
       updatePlayButtonUI();
-      
-      // 確保從暫停恢復時，直接繼續播放當前句子
-      if (synth.paused) {
-        synth.resume();
-      } else {
-        speakCurrent();
-      }
+      speakCurrent(); // 透過直接重新發音，確保 100% 順暢發聲
     } else {
       playStatus = 'playing';
       currentRepeatCount = 0;
@@ -738,7 +732,6 @@
         if (playStatus !== 'playing') return; 
 
         currentRepeatCount++;
-        // 如果還沒達到設定的重複次數（包含設定為 999 的無限播放）
         if (currentRepeatCount < repeatTimes) {
           timeoutId = setTimeout(() => { speakCurrent(); }, 400);
         } else {
@@ -759,7 +752,6 @@
   }
 
   function proceedToNextCard() {
-    // 確保即使是在無限播放 (repeatTimes = 999) 或是一般播放下，也能正常跳轉下一句
     if (autoPlayMode === 'loop' || repeatTimes >= 999) {
       timeoutId = setTimeout(() => { nextSentence(); }, intervalTime);
     } else if (autoPlayMode === 'random') {
@@ -798,7 +790,6 @@
     resetRevealState();
     renderCard();
     
-    // 強制設定並確保持續播放狀態，不需重按播放鍵
     playStatus = 'playing';
     updatePlayButtonUI();
     speakCurrent();
@@ -813,7 +804,6 @@
     resetRevealState();
     renderCard();
     
-    // 強制設定並確保持續播放狀態，不需重按播放鍵
     playStatus = 'playing';
     updatePlayButtonUI();
     speakCurrent();
