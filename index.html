@@ -34,18 +34,25 @@
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
-    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
-    .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
-    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px 16px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; cursor: pointer; width: 100%; }
+    .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; cursor: pointer; width: 100%; }
+    .stars { color: #f59e0b; font-size: 22px; letter-spacing: 4px; cursor: pointer; z-index: 10; }
 
-    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; width: 100%; }
-    .btn { padding: 12px 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; flex: 1; }
+    /* 聽力模式控制控制面板樣式 */
+    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .ctrl-group-title { font-size: 11px; font-weight: bold; color: #64748b; width: 100%; text-align: left; margin-bottom: -4px; }
+    .ctrl-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 6px; cursor: pointer; text-align: center; min-width: 60px; }
+    .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 5px; width: 100%; }
+    .btn { padding: 10px 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; flex: 1; }
     .btn-nav { background: #e2e8f0; color: #475569; }
     .btn-play { background: #2563eb; color: #fff; flex: 1.5; }
     .btn-stop { background: #ef4444; color: #fff; flex: 1; }
 
-    /* 下方新增/輸入區塊 */
+    /* 下方新增/輸入區塊連同情境分類 */
     .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
     .input-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-group { margin-bottom: 10px; }
@@ -73,7 +80,7 @@
 <div class="container">
   <h1>📚 英文學習資料庫</h1>
 
-  <!-- 🎯 智慧檢核區塊 -->
+  <!-- 🎯 待分類檢核區塊 -->
   <div id="checkSection" class="check-box hidden">
     <div class="check-title">
       <span>🎯 待分類資料檢核</span>
@@ -107,12 +114,41 @@
 
   <!-- 聽力模式區塊 -->
   <div id="listenSection">
-    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    
     <div class="card">
       <div class="text-en" id="textEn">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
       <div class="stars" id="textStar">☆☆☆☆•</div>
     </div>
+
+    <!-- 聽力模式控制面板 (重複次數、連續播放、隨機、間隔、速度) -->
+    <div class="control-panel">
+      <div class="ctrl-group-title">重複次數</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn active" onclick="setRepeat(1)" id="rep-1">1次</button>
+        <button class="ctrl-btn" onclick="setRepeat(2)" id="rep-2">2次</button>
+        <button class="ctrl-btn" onclick="setRepeat(3)" id="rep-3">3次</button>
+        <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
+      </div>
+
+      <div class="ctrl-group-title">播放速度</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" onclick="setSpeed(0.5)" id="spd-0.5">0.5x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.7)" id="spd-0.7">0.7x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
+        <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
+      </div>
+
+      <div class="ctrl-group-title">播放模式與間隔</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" id="btnContinuous" onclick="toggleContinuous()">連續播放</button>
+        <button class="ctrl-btn" id="btnRandomPlay" onclick="toggleRandomPlay()">隨機播放</button>
+        <button class="ctrl-btn active" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
+        <button class="ctrl-btn" onclick="setIntervalTime(5)" id="int-5">間隔5秒</button>
+      </div>
+    </div>
+
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
@@ -125,22 +161,22 @@
   <div id="readSection" class="hidden">
     <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px; margin-bottom: 8px; text-align: left;">共 0 筆資料</div>
     
-    <!-- 您指定的六個排序按鈕 -->
+    <!-- 六個美化箭頭排序按鈕 -->
     <div class="sort-grid">
       <button class="sort-btn active" id="sort-default" onclick="changeSort('default')">預設</button>
-      <button class="sort-btn" id="sort-asc" onclick="changeSort('asc')">熟悉度 (低->高)</button>
-      <button class="sort-btn" id="sort-desc" onclick="changeSort('desc')">熟悉度 (高->低)</button>
-      <button class="sort-btn" id="sort-az" onclick="changeSort('az')">A -> Z</button>
-      <button class="sort-btn" id="sort-za" onclick="changeSort('za')">Z -> A</button>
+      <button class="sort-btn" id="sort-asc" onclick="changeSort('asc')">熟悉度 (低 ➔ 高)</button>
+      <button class="sort-btn" id="sort-desc" onclick="changeSort('desc')">熟悉度 (高 ➔ 降)</button>
+      <button class="sort-btn" id="sort-az" onclick="changeSort('az')">A ➔ Z</button>
+      <button class="sort-btn" id="sort-za" onclick="changeSort('za')">Z ➔ A</button>
       <button class="sort-btn" id="sort-random" onclick="changeSort('random')">隨機排列</button>
     </div>
 
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- 英文輸入與自訂翻譯區塊 (固定移至下方) -->
+  <!-- 自訂翻譯與情境分類輸入區塊 -->
   <div class="input-section">
-    <div class="input-title">✍️ 新增學習資料</div>
+    <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
       <label>英文 (English)</label>
       <input type="text" id="inputEnglish" class="form-input" placeholder="輸入英文單字、片語或句子">
@@ -148,6 +184,12 @@
     <div class="form-group">
       <label>中文翻譯 (Chinese)</label>
       <input type="text" id="inputChinese" class="form-input" placeholder="輸入中文意思">
+    </div>
+    <div class="form-group">
+      <label>選擇情境分類標籤</label>
+      <div class="tag-select-container" id="inputTagContainer">
+        <!-- 動態帶入可用標籤 -->
+      </div>
     </div>
     <button class="btn-submit-add" onclick="submitNewData()">新增至資料庫</button>
   </div>
@@ -165,6 +207,15 @@
   let selectedTypeFilter = 'all';
   let currentSort = 'default';
 
+  // 聽力設定變數
+  let repeatCount = 1;
+  let playbackSpeed = 1.0;
+  let isContinuous = false;
+  let isRandomPlay = false;
+  let intervalSeconds = 3;
+  let isPlaying = false;
+  let speechTimer = null;
+
   async function loadSheetData() {
     try {
       const res = await fetch(API_URL);
@@ -172,10 +223,10 @@
       
       if (Array.isArray(resJson)) {
         rawData = resJson;
-        availableTags = [];
+        availableTags = ['生活', '職場', '旅遊', '餐飲', '購物', '交通', '醫療', '社交', '科技'];
       } else {
         rawData = resJson.data || [];
-        availableTags = resJson.tags || [];
+        availableTags = resJson.tags || ['生活', '職場', '旅遊', '餐飲', '購物', '交通', '醫療', '社交', '科技'];
       }
       
       rawData.forEach((item, idx) => {
@@ -187,11 +238,24 @@
       
       document.getElementById('statusMessage').classList.add('hidden');
       checkPendingData();
+      renderInputTags();
       applyFilters();
     } catch (err) {
       document.getElementById('statusMessage').classList.remove('hidden');
       console.error(err);
     }
+  }
+
+  function renderInputTags() {
+    const container = document.getElementById('inputTagContainer');
+    container.innerHTML = '';
+    availableTags.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerText = tag;
+      chip.onclick = () => { chip.classList.toggle('active'); };
+      container.appendChild(chip);
+    });
   }
 
   function checkPendingData() {
@@ -215,41 +279,13 @@
     const container = document.getElementById('checkTagContainer');
     container.innerHTML = '';
 
-    if (!availableTags || availableTags.length === 0) {
-      container.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">未偵測到標籤字典</span>';
-      return;
-    }
-
-    const predicted = autoPredictTags(en.toLowerCase(), zh.toLowerCase());
-
     availableTags.forEach(tag => {
       const chip = document.createElement('div');
       chip.className = 'tag-chip';
       chip.innerText = tag;
-      if (predicted.has(tag)) chip.classList.add('active');
       chip.onclick = () => { chip.classList.toggle('active'); };
       container.appendChild(chip);
     });
-  }
-
-  function autoPredictTags(text, translated) {
-    const combined = text + ' ' + translated;
-    const keywordMap = {
-      '生活': ['life', 'home', 'house', 'day', 'time', 'sleep', 'bed', 'food', 'eat'],
-      '職場': ['work', 'job', 'office', 'boss', 'colleague', 'salary', 'meeting', 'company'],
-      '旅遊': ['travel', 'trip', 'tour', 'flight', 'hotel', 'luggage', 'passport'],
-      '餐飲': ['eat', 'food', 'restaurant', 'hungry', 'drink', 'coffee', 'menu', 'dinner', 'lunch'],
-      '購物': ['buy', 'shop', 'price', 'store', 'discount', 'mall', 'pay'],
-      '交通': ['traffic', 'car', 'bus', 'train', 'subway', 'drive', 'ride'],
-      '醫療': ['doctor', 'hospital', 'sick', 'medicine', 'pain', 'health', 'clinic'],
-      '社交': ['party', 'friend', 'talk', 'chat', 'meet', 'hello'],
-      '科技': ['phone', 'computer', 'app', 'software', 'tech', 'digital', 'screen']
-    };
-    let tags = new Set();
-    for (let [cat, kws] of Object.entries(keywordMap)) {
-      if (kws.some(kw => combined.includes(kw))) tags.add(cat);
-    }
-    return tags;
   }
 
   async function confirmTag() {
@@ -299,7 +335,7 @@
   function changeSort(sortType) {
     currentSort = sortType;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`sort-${sortType === 'default' ? 'default' : sortType === 'asc' ? 'asc' : sortType === 'desc' ? 'desc' : sortType === 'az' ? 'az' : sortType === 'za' ? 'za' : 'random'}`).classList.add('active');
+    document.getElementById(`sort-${sortType}`).classList.add('active');
     applyFilters();
   }
 
@@ -319,7 +355,6 @@
       return true;
     });
 
-    // 排序邏輯
     if (currentSort === 'asc') {
       filteredData.sort((a, b) => a.star - b.star);
     } else if (currentSort === 'desc') {
@@ -375,33 +410,101 @@
     });
   }
 
+  // 聽力模式設定按鈕動作
+  function setRepeat(n) {
+    repeatCount = n;
+    ['1', '2', '3', 'inf'].forEach(id => document.getElementById(`rep-${id}`).classList.remove('active'));
+    document.getElementById(`rep-${n === 99 ? 'inf' : n}`).classList.add('active');
+  }
+
+  function setSpeed(spd) {
+    playbackSpeed = spd;
+    [0.5, 0.7, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
+    document.getElementById(`spd-${spd}`).classList.add('active');
+  }
+
+  function toggleContinuous() {
+    isContinuous = !isContinuous;
+    document.getElementById('btnContinuous').classList.toggle('active', isContinuous);
+  }
+
+  function toggleRandomPlay() {
+    isRandomPlay = !isRandomPlay;
+    document.getElementById('btnRandomPlay').classList.toggle('active', isRandomPlay);
+  }
+
+  function setIntervalTime(sec) {
+    intervalSeconds = sec;
+    [3, 5].forEach(s => document.getElementById(`int-${s}`).classList.remove('active'));
+    document.getElementById(`int-${sec}`).classList.add('active');
+  }
+
   function nextSentence() {
     if (filteredData.length === 0) return;
-    currentIndex = (currentIndex + 1) % filteredData.length;
+    if (isRandomPlay) {
+      currentIndex = Math.floor(Math.random() * filteredData.length);
+    } else {
+      currentIndex = (currentIndex + 1) % filteredData.length;
+    }
     renderCard();
+    if (isPlaying) playCurrentAudio();
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
+    if (isPlaying) playCurrentAudio();
   }
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
+    isPlaying = true;
+    playCurrentAudio();
+  }
+
+  function playCurrentAudio() {
+    if (!isPlaying || filteredData.length === 0) return;
     const text = document.getElementById('textEn').innerText;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.cancel();
+
+    let timesPlayed = 0;
+
+    function speakOnce() {
+      if (!isPlaying) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = playbackSpeed;
+      
+      utterance.onend = () => {
+        timesPlayed++;
+        if (repeatCount === 99 || timesPlayed < repeatCount) {
+          setTimeout(speakOnce, 500);
+        } else if (isContinuous) {
+          speechTimer = setTimeout(() => {
+            nextSentence();
+          }, intervalSeconds * 1000);
+        } else {
+          isPlaying = false;
+        }
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+    speakOnce();
   }
 
   function stopAudio() {
+    isPlaying = false;
     window.speechSynthesis.cancel();
+    if (speechTimer) clearTimeout(speechTimer);
   }
 
   async function submitNewData() {
     const en = document.getElementById('inputEnglish').value.trim();
     const zh = document.getElementById('inputChinese').value.trim();
+    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
+    const tags = Array.from(activeChips).map(c => c.innerText);
+
     if (!en || !zh) {
       alert('請完整輸入英文與中文翻譯');
       return;
@@ -410,11 +513,12 @@
       await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'add', english: en, chinese: zh })
+        body: JSON.stringify({ action: 'add', english: en, chinese: zh, tags: tags })
       });
       alert('新增成功！');
       document.getElementById('inputEnglish').value = '';
       document.getElementById('inputChinese').value = '';
+      document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
       loadSheetData();
     } catch(e) {
       alert('新增失敗');
