@@ -32,6 +32,8 @@
     .text-en { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px; line-height: 1.4; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
     .text-zh { font-size: 16px; font-weight: 500; color: #64748b; margin-bottom: 16px; word-break: break-word; cursor: pointer; user-select: none; width: 100%; }
     .stars { color: #f59e0b; font-size: 24px; letter-spacing: 4px; cursor: pointer; user-select: none; z-index: 10; }
+    .stars span { transition: transform 0.1s; display: inline-block; }
+    .stars span:hover { transform: scale(1.2); }
 
     .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
@@ -96,9 +98,11 @@
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 12px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     <div class="card">
-      <div class="text-en" id="textEn">讀取中...</div>
+      <div class="text-en" id="textEn" onclick="playCurrentAudio()">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
-      <div class="stars" id="textStar">☆☆☆☆•</div>
+      <div class="stars" id="textStar">
+        <span onclick="setStar(1)">☆</span><span onclick="setStar(2)">☆</span><span onclick="setStar(3)">☆</span><span onclick="setStar(4)">☆</span><span onclick="setStar(5)">☆</span>
+      </div>
     </div>
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
@@ -125,6 +129,8 @@
   let currentIndex = 0;
   let currentTab = 'listen';
   let selectedTypeFilter = 'all';
+  let synth = window.speechSynthesis;
+  let isPlaying = false;
 
   async function loadSheetData() {
     try {
@@ -282,11 +288,24 @@
   }
 
   function renderCard() {
-    if (filteredData.length === 0) return;
+    if (filteredData.length === 0) {
+      document.getElementById('textEn').innerText = '無符合資料';
+      document.getElementById('textZh').innerText = '--';
+      document.getElementById('textStar').innerHTML = '☆☆☆☆☆';
+      document.getElementById('infoText').innerText = `第 0 / 0 筆`;
+      return;
+    }
     const item = filteredData[currentIndex];
     document.getElementById('textEn').innerText = item.英文 || item.english || '';
     document.getElementById('textZh').innerText = item.中文 || item.chinese || '';
-    document.getElementById('textStar').innerText = '★'.repeat(item.star) + '☆'.repeat(5 - item.star);
+    
+    const starContainer = document.getElementById('textStar');
+    let starHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      starHTML += `<span onclick="setStar(${i})">${i <= item.star ? '★' : '☆'}</span>`;
+    }
+    starContainer.innerHTML = starHTML;
+    
     document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
   }
 
@@ -307,18 +326,80 @@
 
   function nextSentence() {
     if (filteredData.length === 0) return;
+    stopAudio();
     currentIndex = (currentIndex + 1) % filteredData.length;
     renderCard();
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
+    stopAudio();
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
   }
 
-  function handlePlayToggle() { alert('播放功能'); }
-  function stopAudio() {}
+  function playCurrentAudio() {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const text = item.英文 || item.english || '';
+    if (!text) return;
+
+    if (synth.speaking) synth.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 1.0;
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      document.getElementById('playBtn').innerText = '🔊 播放中...';
+    };
+    utterance.onend = () => {
+      isPlaying = false;
+      document.getElementById('playBtn').innerText = '🔊 播放';
+    };
+    utterance.onerror = () => {
+      isPlaying = false;
+      document.getElementById('playBtn').innerText = '🔊 播放';
+    };
+
+    synth.speak(utterance);
+  }
+
+  function handlePlayToggle() {
+    if (isPlaying) {
+      stopAudio();
+    } else {
+      playCurrentAudio();
+    }
+  }
+
+  function stopAudio() {
+    if (synth.speaking) synth.cancel();
+    isPlaying = false;
+    document.getElementById('playBtn').innerText = '🔊 播放';
+  }
+
+  async function setStar(starCount) {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    item.star = starCount;
+    renderCard();
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'updateStar', 
+          id: item.ID, 
+          star: starCount 
+        })
+      });
+    } catch(e) {
+      console.error('星級更新失敗', e);
+    }
+  }
 
   window.onload = loadSheetData;
 </script>
