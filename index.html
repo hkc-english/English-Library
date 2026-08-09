@@ -143,7 +143,7 @@
         let rawStar = item.熟悉度 ?? item.star ?? item.星級 ?? 1;
         item.star = isNaN(parseInt(rawStar)) ? 1 : parseInt(rawStar);
         item.originalIndex = idx;
-        item.tagStr = (item['標籤(情境分類)'] || item.category || item.tags || '').toString().trim();
+        item.tagStr = (item['標籤(情境分類)'] || item.category || item.tags || item.tagStr || '').toString().trim();
       });
       
       document.getElementById('statusMessage').classList.add('hidden');
@@ -182,14 +182,12 @@
       return;
     }
 
-    // 呼叫 AI 預測符合的標籤
     const predicted = autoPredictTags(en.toLowerCase(), zh.toLowerCase());
 
     availableTags.forEach(tag => {
       const chip = document.createElement('div');
       chip.className = 'tag-chip';
       chip.innerText = tag;
-      // 如果 AI 預測命中，自動加上 active 樣式
       if (predicted.has(tag)) {
         chip.classList.add('active');
       }
@@ -208,6 +206,7 @@
       '購物': ['buy', 'shop', 'price', 'store', 'discount', 'mall', 'pay'],
       '交通': ['traffic', 'car', 'bus', 'train', 'subway', 'drive', 'ride'],
       '醫療': ['doctor', 'hospital', 'sick', 'medicine', 'pain', 'health', 'clinic'],
+      '健康': ['health', 'healthy', 'doctor', 'hospital', 'sick', 'medicine', 'pain', 'clinic', 'fit'],
       '社交': ['party', 'friend', 'talk', 'chat', 'meet', 'hello'],
       '科技': ['phone', 'computer', 'app', 'software', 'tech', 'digital', 'screen']
     };
