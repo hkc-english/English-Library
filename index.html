@@ -141,12 +141,9 @@
         <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
       </div>
 
-      <div class="ctrl-group-title">播放速度</div>
+      <div class="ctrl-group-title">播放速度 (標準真人發音)</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
-        <button class="ctrl-btn" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
-        <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
-        <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x (標準)</button>
       </div>
 
       <div class="ctrl-group-title">播放模式與間隔</div>
@@ -207,13 +204,13 @@
   let currentSort = 'default';
 
   let repeatCount = 1;
-  let playbackSpeed = 1.0;
   let isContinuous = false;
   let isRandomPlay = false;
   let intervalSeconds = 1;
   
   let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
+  let currentAudio = null;
   let timesPlayed = 0;
 
   async function loadSheetData() {
@@ -417,16 +414,7 @@
   }
 
   function setSpeed(spd) {
-    playbackSpeed = parseFloat(spd);
-    [0.6, 0.8, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
-    document.getElementById(`spd-${spd}`).classList.add('active');
-    
-    // 播放中即時切換速度
-    if (playerState === 'playing') {
-      window.speechSynthesis.cancel();
-      if (speechTimer) clearTimeout(speechTimer);
-      playSpeechSequence();
-    }
+    // 固定為 1.0 支援原生物語音
   }
 
   function toggleContinuous() {
@@ -470,7 +458,7 @@
     
     playerState = 'playing';
     updatePlayButtonUI('playing');
-    playSpeechSequence();
+    playCurrentAudio();
   }
 
   function prevSentence() {
@@ -480,53 +468,59 @@
     
     playerState = 'playing';
     updatePlayButtonUI('playing');
-    playSpeechSequence();
+    playCurrentAudio();
   }
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      window.speechSynthesis.pause();
+      if (currentAudio) currentAudio.pause();
       if (speechTimer) clearTimeout(speechTimer);
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
       playerState = 'playing';
       updatePlayButtonUI('playing');
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
+      if (currentAudio) {
+        currentAudio.play().catch(() => playCurrentAudio());
       } else {
-        playSpeechSequence();
+        playCurrentAudio();
       }
     } else {
       playerState = 'playing';
       timesPlayed = 0;
       updatePlayButtonUI('playing');
-      playSpeechSequence();
+      playCurrentAudio();
     }
   }
 
-  function playSpeechSequence() {
+  function playCurrentAudio(isResume = false) {
     if (playerState !== 'playing' || filteredData.length === 0) return;
     const text = document.getElementById('textEn').innerText;
     
-    window.speechSynthesis.cancel();
-    timesPlayed = 0;
+    if (!isResume) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      timesPlayed = 0;
+    }
 
-    function speakWord() {
+    function playAudioOnce() {
       if (playerState !== 'playing') return;
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = playbackSpeed; // 0.6 / 0.8 / 1.0 / 1.2
-
-      utterance.onend = () => {
+      
+      const encodedText = encodeURIComponent(text);
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
+      
+      currentAudio = new Audio(audioUrl);
+      
+      currentAudio.onended = () => {
         if (playerState !== 'playing') return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           if (playerState === 'playing') {
-            speechTimer = setTimeout(speakWord, 400);
+            speechTimer = setTimeout(playAudioOnce, 400);
           }
         } else if (isContinuous) {
           speechTimer = setTimeout(() => {
@@ -540,7 +534,7 @@
         }
       };
 
-      utterance.onerror = () => {
+      currentAudio.onerror = () => {
         if (playerState === 'playing' && isContinuous) {
           nextSentence();
         } else {
@@ -549,14 +543,19 @@
         }
       };
 
-      window.speechSynthesis.speak(utterance);
+      currentAudio.play().catch(err => {
+        console.error("播放失敗:", err);
+      });
     }
 
-    speakWord();
+    playAudioOnce();
   }
 
   function stopAudioCompletely() {
-    window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
     if (speechTimer) clearTimeout(speechTimer);
     playerState = 'stopped';
     timesPlayed = 0;
