@@ -46,11 +46,12 @@
     .ctrl-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 6px; cursor: pointer; text-align: center; min-width: 60px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 5px; width: 100%; }
-    .btn { padding: 10px 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; flex: 1; }
+    /* 四個播放控制按鈕大小平均分配 */
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; }
+    .btn { padding: 10px 4px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; flex: 1; white-space: nowrap; }
     .btn-nav { background: #e2e8f0; color: #475569; }
-    .btn-play { background: #2563eb; color: #fff; flex: 1.5; }
-    .btn-stop { background: #ef4444; color: #fff; flex: 1; }
+    .btn-play { background: #2563eb; color: #fff; }
+    .btn-stop { background: #ef4444; color: #fff; }
 
     /* 下方新增/輸入區塊 */
     .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
@@ -122,7 +123,7 @@
       <div class="stars" id="textStar">☆☆☆☆•</div>
     </div>
 
-    <!-- 播放控制按鈕列 -->
+    <!-- 播放控制按鈕列 (平均分配寬度) -->
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
@@ -456,14 +457,14 @@
   function updatePlayButtonUI(playing, paused) {
     const btn = document.getElementById('playBtn');
     if (paused) {
-      btn.innerText = '▶ 繼續';
-      btn.style.background = '#d97706'; // 橘色代表暫停中
+      btn.innerText = '⏸ 暫停中';
+      btn.style.background = '#f97316'; // 淺橘色
     } else if (playing) {
-      btn.innerText = '⏸ 暫停';
-      btn.style.background = '#2563eb'; // 藍色代表播放中
+      btn.innerText = '▶ 繼續播放';
+      btn.style.background = '#22c55e'; // 淺綠色
     } else {
       btn.innerText = '🔊 播放';
-      btn.style.background = '#2563eb';
+      btn.style.background = '#2563eb'; // 預設藍色
     }
   }
 
@@ -475,7 +476,10 @@
       currentIndex = (currentIndex + 1) % filteredData.length;
     }
     renderCard();
-    if (isPlaying) {
+    if (isPlaying || isPaused) {
+      isPlaying = true;
+      isPaused = false;
+      updatePlayButtonUI(true, false);
       playCurrentAudio();
     }
   }
@@ -484,7 +488,10 @@
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
-    if (isPlaying) {
+    if (isPlaying || isPaused) {
+      isPlaying = true;
+      isPaused = false;
+      updatePlayButtonUI(true, false);
       playCurrentAudio();
     }
   }
