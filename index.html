@@ -43,7 +43,7 @@
     .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
     
-    /* 標題改回靠左對齊、字體變大、加粗 (font-size: 14px) */
+    /* 標題靠左對齊、字體放大、加粗 */
     .ctrl-group-title { font-size: 14px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 6px; margin-bottom: -2px; }
     
     /* 統一按鈕大小與「播放」按鈕相同 */
@@ -218,24 +218,8 @@
   
   let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
-  let englishVoices = [];
-  let currentUtterance = null;
+  let currentAudio = null;
   let timesPlayed = 0;
-
-  function loadVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    englishVoices = voices.filter(v => v.lang.startsWith('en'));
-    englishVoices.sort((a, b) => {
-      const aIsGood = a.name.includes('Natural') || a.name.includes('Google') || a.name.includes('Samantha') || a.name.includes('Zira');
-      const bIsGood = b.name.includes('Natural') || b.name.includes('Google') || b.name.includes('Samantha') || b.name.includes('Zira');
-      return bIsGood - aIsGood;
-    });
-  }
-
-  if ('speechSynthesis' in window) {
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }
 
   async function loadSheetData() {
     try {
@@ -442,9 +426,9 @@
     [0.6, 0.8, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
     document.getElementById(`spd-${spd}`).classList.add('active');
     
-    // 如果正在播放中，即時更新當前語音的速度
-    if (playerState === 'playing' && currentUtterance) {
-      window.speechSynthesis.cancel();
+    // 如果正在播放中，即時切換速度
+    if (playerState === 'playing' && currentAudio) {
+      currentAudio.pause();
       if (speechTimer) clearTimeout(speechTimer);
       playCurrentAudio(true);
     }
@@ -508,7 +492,7 @@
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      window.speechSynthesis.cancel();
+      if (currentAudio) currentAudio.pause();
       if (speechTimer) clearTimeout(speechTimer);
       playerState = 'paused';
       updatePlayButtonUI('paused');
@@ -529,26 +513,28 @@
     const text = document.getElementById('textEn').innerText;
     
     if (!isResume) {
-      window.speechSynthesis.cancel();
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
       timesPlayed = 0;
     }
 
-    function speakOnce() {
+    function playAudioOnce() {
       if (playerState !== 'playing') return;
-      currentUtterance = new SpeechSynthesisUtterance(text);
-      currentUtterance.lang = 'en-US';
-      currentUtterance.rate = Number(playbackSpeed); // 確保每次建立物件時強制套用目前選取的速度數值
       
-      if (englishVoices.length > 0) {
-        currentUtterance.voice = englishVoices[0];
-      }
+      // 使用 Google 翻譯語音源，並透過速度參數調整播放速度
+      const encodedText = encodeURIComponent(text);
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob&ttsspeed=${playbackSpeed}`;
       
-      currentUtterance.onend = () => {
+      currentAudio = new Audio(audioUrl);
+      
+      currentAudio.onended = () => {
         if (playerState !== 'playing') return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           if (playerState === 'playing') {
-            speechTimer = setTimeout(speakOnce, 400);
+            speechTimer = setTimeout(playAudioOnce, 400);
           }
         } else if (isContinuous) {
           speechTimer = setTimeout(() => {
@@ -561,13 +547,30 @@
           updatePlayButtonUI('default');
         }
       };
-      window.speechSynthesis.speak(currentUtterance);
+
+      currentAudio.onerror = () => {
+        // 若語音載入失敗則自動跳過，避免卡住
+        if (playerState === 'playing' && isContinuous) {
+          nextSentence();
+        } else {
+          playerState = 'stopped';
+          updatePlayButtonUI('default');
+        }
+      };
+
+      currentAudio.play().catch(err => {
+        console.error("播放失敗:", err);
+      });
     }
-    speakOnce();
+
+    playAudioOnce();
   }
 
   function stopAudioCompletely() {
-    window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
     if (speechTimer) clearTimeout(speechTimer);
     playerState = 'stopped';
     timesPlayed = 0;
