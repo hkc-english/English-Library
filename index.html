@@ -43,10 +43,10 @@
     .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
     
-    /* 調整標題置中、放大、加粗 */
-    .ctrl-group-title { font-size: 13px; font-weight: 800; color: #334155; width: 100%; text-align: center; margin-top: 4px; margin-bottom: -2px; }
+    /* 標題改回靠左對齊、字體變大、加粗 (font-size: 14px) */
+    .ctrl-group-title { font-size: 14px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 6px; margin-bottom: -2px; }
     
-    /* 統一按鈕大小與「播放」按鈕相同 (font-size: 13px; padding: 10px 4px;) */
+    /* 統一按鈕大小與「播放」按鈕相同 */
     .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 60px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
@@ -214,7 +214,7 @@
   let playbackSpeed = 1.0;
   let isContinuous = false;
   let isRandomPlay = false;
-  let intervalSeconds = 1; // 預設間隔改成1秒
+  let intervalSeconds = 1;
   
   let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
@@ -438,9 +438,16 @@
   }
 
   function setSpeed(spd) {
-    playbackSpeed = spd;
+    playbackSpeed = parseFloat(spd);
     [0.6, 0.8, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
     document.getElementById(`spd-${spd}`).classList.add('active');
+    
+    // 如果正在播放中，即時更新當前語音的速度
+    if (playerState === 'playing' && currentUtterance) {
+      window.speechSynthesis.cancel();
+      if (speechTimer) clearTimeout(speechTimer);
+      playCurrentAudio(true);
+    }
   }
 
   function toggleContinuous() {
@@ -530,7 +537,7 @@
       if (playerState !== 'playing') return;
       currentUtterance = new SpeechSynthesisUtterance(text);
       currentUtterance.lang = 'en-US';
-      currentUtterance.rate = playbackSpeed;
+      currentUtterance.rate = Number(playbackSpeed); // 確保每次建立物件時強制套用目前選取的速度數值
       
       if (englishVoices.length > 0) {
         currentUtterance.voice = englishVoices[0];
