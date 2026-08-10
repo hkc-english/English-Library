@@ -42,13 +42,10 @@
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
-    /* 聽力主畫面佈局：左右分欄（左側顯示模式切換，右側卡片與控制區） */
-    .listen-layout { display: flex; gap: 10px; align-items: flex-start; }
-    .display-mode-col { display: flex; flex-direction: column; gap: 6px; width: 95px; flex-shrink: 0; }
-    .mode-btn { padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
+    /* 聽力模式：上方顯示模式橫向一列 */
+    .display-mode-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; width: 100%; }
+    .mode-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
     .mode-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-    
-    .listen-main-col { flex: 1; min-width: 0; }
 
     .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 12px; margin-bottom: 12px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 130px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
     .text-en { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 10px; line-height: 1.4; word-break: break-word; cursor: pointer; width: 100%; }
@@ -66,6 +63,7 @@
     .btn { padding: 10px 8px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; flex: 1; }
     .btn-nav { background: #e2e8f0; color: #475569; }
     .btn-play { background: #2563eb; color: #fff; flex: 1.4; }
+    .btn-play.paused { background: #d97706; color: #fff; } /* 暫停時的黃橘色提醒 */
     .btn-stop { background: #ef4444; color: #fff; flex: 0.9; }
 
     /* 下方新增/輸入區塊連同情境分類 */
@@ -115,7 +113,7 @@
   <div class="filter-box">
     <div class="search-row">
       <span class="filter-label">🔍 搜尋：</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類..." oninput="applyFilters()">
+      <input type="text" id="searchInput" class="search-input" placeholder="英文、中文或情境分類..." oninput="applyFilters()">
     </div>
     
     <div class="type-grid" id="typeGroup">
@@ -140,57 +138,53 @@
   <div id="listenSection">
     <div style="font-size: 13px; color: #475569; font-weight: bold; margin-bottom: 6px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     
-    <div class="listen-layout">
-      <!-- 左側顯示模式切換按鈕 -->
-      <div class="display-mode-col">
-        <button class="mode-btn active" id="mode-both" onclick="changeDisplayMode('both')">英 ＋ 中</button>
-        <button class="mode-btn" id="mode-en" onclick="changeDisplayMode('en')">僅看英文</button>
-        <button class="mode-btn" id="mode-zh" onclick="changeDisplayMode('zh')">僅看中文</button>
-        <button class="mode-btn" id="mode-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
+    <!-- 顯示模式切換按鈕（橫向一列排開） -->
+    <div class="display-mode-row">
+      <button class="mode-btn active" id="mode-both" onclick="changeDisplayMode('both')">英 ＋ 中</button>
+      <button class="mode-btn" id="mode-en" onclick="changeDisplayMode('en')">僅看英文</button>
+      <button class="mode-btn" id="mode-zh" onclick="changeDisplayMode('zh')">僅看中文</button>
+      <button class="mode-btn" id="mode-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
+    </div>
+
+    <!-- 主卡片與控制面板 -->
+    <div class="card">
+      <div class="text-en" id="textEn">讀取中...</div>
+      <div class="text-zh" id="textZh">--</div>
+      <div class="stars" id="textStar">☆☆☆☆•</div>
+    </div>
+
+    <!-- 聽力模式控制面板 -->
+    <div class="control-panel">
+      <div class="ctrl-group-title">重複次數</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn active" onclick="setRepeat(1)" id="rep-1">1次</button>
+        <button class="ctrl-btn" onclick="setRepeat(2)" id="rep-2">2次</button>
+        <button class="ctrl-btn" onclick="setRepeat(3)" id="rep-3">3次</button>
+        <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
       </div>
 
-      <!-- 右側主卡片與控制面板 -->
-      <div class="listen-main-col">
-        <div class="card">
-          <div class="text-en" id="textEn">讀取中...</div>
-          <div class="text-zh" id="textZh">--</div>
-          <div class="stars" id="textStar">☆☆☆☆•</div>
-        </div>
-
-        <!-- 聽力模式控制面板 -->
-        <div class="control-panel">
-          <div class="ctrl-group-title">重複次數</div>
-          <div class="control-sub-row">
-            <button class="ctrl-btn active" onclick="setRepeat(1)" id="rep-1">1次</button>
-            <button class="ctrl-btn" onclick="setRepeat(2)" id="rep-2">2次</button>
-            <button class="ctrl-btn" onclick="setRepeat(3)" id="rep-3">3次</button>
-            <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
-          </div>
-
-          <div class="ctrl-group-title">播放速度</div>
-          <div class="control-sub-row">
-            <button class="ctrl-btn" onclick="setSpeed(0.5)" id="spd-0.5">0.5x</button>
-            <button class="ctrl-btn" onclick="setSpeed(0.7)" id="spd-0.7">0.7x</button>
-            <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
-            <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
-          </div>
-
-          <div class="ctrl-group-title">播放模式與間隔</div>
-          <div class="control-sub-row">
-            <button class="ctrl-btn" id="btnContinuous" onclick="toggleContinuous()">連續播放</button>
-            <button class="ctrl-btn" id="btnRandomPlay" onclick="toggleRandomPlay()">隨機播放</button>
-            <button class="ctrl-btn active" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
-            <button class="ctrl-btn" onclick="setIntervalTime(5)" id="int-5">間隔5秒</button>
-          </div>
-        </div>
-
-        <div class="control-row">
-          <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-          <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
-          <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
-          <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
-        </div>
+      <div class="ctrl-group-title">播放速度</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" onclick="setSpeed(0.5)" id="spd-0.5">0.5x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.7)" id="spd-0.7">0.7x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
+        <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
       </div>
+
+      <div class="ctrl-group-title">播放模式與間隔</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" id="btnContinuous" onclick="toggleContinuous()">連續播放</button>
+        <button class="ctrl-btn" id="btnRandomPlay" onclick="toggleRandomPlay()">隨機播放</button>
+        <button class="ctrl-btn active" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
+        <button class="ctrl-btn" onclick="setIntervalTime(5)" id="int-5">間隔5秒</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
+      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
   </div>
 
@@ -252,7 +246,9 @@
   let isWeakOnly = false;
   let intervalSeconds = 3;
   let isPlaying = false;
+  let isPaused = false;
   let speechTimer = null;
+  let currentUtterance = null;
 
   async function loadSheetData() {
     try {
@@ -444,7 +440,6 @@
     const enEl = document.getElementById('textEn');
     const zhEl = document.getElementById('textZh');
 
-    // 依照顯示模式（displayMode）控制內容與隱藏狀態
     if (displayMode === 'both') {
       enEl.innerText = enText;
       enEl.style.display = 'block';
@@ -546,8 +541,32 @@
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
-    isPlaying = true;
-    playCurrentAudio();
+    
+    const playBtn = document.getElementById('playBtn');
+
+    if (isPlaying) {
+      // 正在播放中 -> 點擊變為暫停
+      window.speechSynthesis.cancel();
+      if (speechTimer) clearTimeout(speechTimer);
+      isPlaying = false;
+      isPaused = true;
+      playBtn.innerHTML = '▶️ 繼續播放';
+      playBtn.classList.add('paused');
+    } else if (isPaused) {
+      // 處於暫停狀態 -> 點擊繼續播放
+      isPaused = false;
+      isPlaying = true;
+      playBtn.innerHTML = '⏸️ 暫停';
+      playBtn.classList.remove('paused');
+      playCurrentAudio();
+    } else {
+      // 全新開始播放
+      isPlaying = true;
+      isPaused = false;
+      playBtn.innerHTML = '⏸️ 暫停';
+      playBtn.classList.remove('paused');
+      playCurrentAudio();
+    }
   }
 
   function playCurrentAudio() {
@@ -560,11 +579,12 @@
 
     function speakOnce() {
       if (!isPlaying) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = playbackSpeed;
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = playbackSpeed;
       
-      utterance.onend = () => {
+      currentUtterance.onend = () => {
+        if (!isPlaying) return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           setTimeout(speakOnce, 500);
@@ -574,17 +594,25 @@
           }, intervalSeconds * 1000);
         } else {
           isPlaying = false;
+          isPaused = false;
+          const playBtn = document.getElementById('playBtn');
+          playBtn.innerHTML = '🔊 播放';
+          playBtn.classList.remove('paused');
         }
       };
-      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(currentUtterance);
     }
     speakOnce();
   }
 
   function stopAudio() {
     isPlaying = false;
+    isPaused = false;
     window.speechSynthesis.cancel();
     if (speechTimer) clearTimeout(speechTimer);
+    const playBtn = document.getElementById('playBtn');
+    playBtn.innerHTML = '🔊 播放';
+    playBtn.classList.remove('paused');
   }
 
   async function submitNewData() {
