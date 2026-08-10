@@ -127,7 +127,7 @@
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
-      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+      <button class="btn btn-stop" onclick="stopAudioCompletely()">■ 停止</button>
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
@@ -211,11 +211,13 @@
   let isContinuous = false;
   let isRandomPlay = false;
   let intervalSeconds = 3;
-  let isPlaying = false;
-  let isPaused = false;
+  
+  // 狀態機變數：'stopped' | 'playing' | 'paused'
+  let playerState = 'stopped'; 
   let speechTimer = null;
   let englishVoices = [];
   let currentUtterance = null;
+  let timesPlayed = 0;
 
   function loadVoices() {
     const voices = window.speechSynthesis.getVoices();
@@ -476,7 +478,7 @@
       currentIndex = (currentIndex + 1) % filteredData.length;
     }
     renderCard();
-    if (isPlaying) {
+    if (playerState === 'playing') {
       playCurrentAudio();
     }
   }
@@ -485,42 +487,46 @@
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
-    if (isPlaying) {
+    if (playerState === 'playing') {
       playCurrentAudio();
     }
   }
 
+  // 核心控制開關：點擊播放按鈕
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
-    
-    if (isPlaying) {
-      // 正在播放 -> 第一次按：按鈕變為「暫停」但繼續播放 (不中斷語音)
-      // 如果已經顯示暫停過，則按第二次才會真正暫停
-      stopAudio(true);
-    } else if (isPaused) {
-      // 暫停中 -> 點擊變為「繼續播放」，真正恢復朗讀
-      isPaused = false;
-      isPlaying = true;
+
+    if (playerState === 'playing') {
+      // 狀態1：正在播放 -> 點擊後「真正暫停」語音，按鈕轉為「繼續播放」
+      window.speechSynthesis.cancel();
+      if (speechTimer) clearTimeout(speechTimer);
+      playerState = 'paused';
+      updatePlayButtonUI('paused');
+    } else if (playerState === 'paused') {
+      // 狀態2：暫停中 -> 點擊後「繼續播放」，恢復朗讀
+      playerState = 'playing';
       updatePlayButtonUI('playing');
-      playCurrentAudio();
+      playCurrentAudio(true); // 從當前句繼續
     } else {
-      // 全新開始播放
-      isPlaying = true;
-      isPaused = false;
+      // 狀態3：完全停止中 -> 從頭開始播放
+      playerState = 'playing';
+      timesPlayed = 0;
       updatePlayButtonUI('playing');
       playCurrentAudio();
     }
   }
 
-  function playCurrentAudio() {
-    if (!isPlaying || filteredData.length === 0) return;
+  function playCurrentAudio(isResume = false) {
+    if (playerState !== 'playing' || filteredData.length === 0) return;
     const text = document.getElementById('textEn').innerText;
-    window.speechSynthesis.cancel();
-
-    let timesPlayed = 0;
+    
+    if (!isResume) {
+      window.speechSynthesis.cancel();
+      timesPlayed = 0;
+    }
 
     function speakOnce() {
-      if (!isPlaying) return;
+      if (playerState !== 'playing') return;
       currentUtterance = new SpeechSynthesisUtterance(text);
       currentUtterance.lang = 'en-US';
       currentUtterance.rate = playbackSpeed;
@@ -530,17 +536,20 @@
       }
       
       currentUtterance.onend = () => {
-        if (!isPlaying) return;
+        if (playerState !== 'playing') return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
-          setTimeout(speakOnce, 400);
+          if (playerState === 'playing') {
+            speechTimer = setTimeout(speakOnce, 400);
+          }
         } else if (isContinuous) {
           speechTimer = setTimeout(() => {
-            nextSentence();
+            if (playerState === 'playing') {
+              nextSentence();
+            }
           }, intervalSeconds * 1000);
         } else {
-          isPlaying = false;
-          isPaused = false;
+          playerState = 'stopped';
           updatePlayButtonUI('default');
         }
       };
@@ -549,19 +558,13 @@
     speakOnce();
   }
 
-  function stopAudio(wantPause = false) {
-    if (wantPause && isPlaying && !isPaused) {
-      // 第一次按：語音繼續播放，但按鈕文字切換為「暫停」（淺橘色），讓使用者可以按第二次來真正暫停
-      isPaused = true;
-      updatePlayButtonUI('paused');
-    } else {
-      // 真正暫停或停止
-      window.speechSynthesis.cancel();
-      if (speechTimer) clearTimeout(speechTimer);
-      isPlaying = false;
-      isPaused = true;
-      updatePlayButtonUI('paused');
-    }
+  // ■ 停止按鈕：完全歸零重置
+  function stopAudioCompletely() {
+    window.speechSynthesis.cancel();
+    if (speechTimer) clearTimeout(speechTimer);
+    playerState = 'stopped';
+    timesPlayed = 0;
+    updatePlayButtonUI('default');
   }
 
   async function submitNewData() {
