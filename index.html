@@ -214,7 +214,6 @@
   
   let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
-  let currentAudio = null;
   let timesPlayed = 0;
 
   async function loadSheetData() {
@@ -422,9 +421,11 @@
     [0.6, 0.8, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
     document.getElementById(`spd-${spd}`).classList.add('active');
     
-    // 即時調整目前播放中音訊的速度，不變調、不卡住
-    if (currentAudio) {
-      currentAudio.playbackRate = playbackSpeed;
+    // 播放中即時切換速度
+    if (playerState === 'playing') {
+      window.speechSynthesis.cancel();
+      if (speechTimer) clearTimeout(speechTimer);
+      playSpeechSequence();
     }
   }
 
@@ -469,7 +470,7 @@
     
     playerState = 'playing';
     updatePlayButtonUI('playing');
-    playCurrentAudio();
+    playSpeechSequence();
   }
 
   function prevSentence() {
@@ -479,62 +480,53 @@
     
     playerState = 'playing';
     updatePlayButtonUI('playing');
-    playCurrentAudio();
+    playSpeechSequence();
   }
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      if (currentAudio) currentAudio.pause();
+      window.speechSynthesis.pause();
       if (speechTimer) clearTimeout(speechTimer);
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
       playerState = 'playing';
       updatePlayButtonUI('playing');
-      if (currentAudio) {
-        currentAudio.playbackRate = playbackSpeed;
-        currentAudio.play().catch(() => playCurrentAudio());
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
       } else {
-        playCurrentAudio();
+        playSpeechSequence();
       }
     } else {
       playerState = 'playing';
       timesPlayed = 0;
       updatePlayButtonUI('playing');
-      playCurrentAudio();
+      playSpeechSequence();
     }
   }
 
-  function playCurrentAudio(isResume = false) {
+  function playSpeechSequence() {
     if (playerState !== 'playing' || filteredData.length === 0) return;
     const text = document.getElementById('textEn').innerText;
     
-    if (!isResume) {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-      timesPlayed = 0;
-    }
+    window.speechSynthesis.cancel();
+    timesPlayed = 0;
 
-    function playAudioOnce() {
+    function speakWord() {
       if (playerState !== 'playing') return;
-      
-      // 使用標準真人語音源（不帶錯誤的伺服器變速參數）
-      const encodedText = encodeURIComponent(text);
-      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
-      
-      currentAudio = new Audio(audioUrl);
-      currentAudio.playbackRate = playbackSpeed; // 透過 HTML5 核心進行高品質、不變調的變速
-      
-      currentAudio.onended = () => {
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = playbackSpeed; // 0.6 / 0.8 / 1.0 / 1.2
+
+      utterance.onend = () => {
         if (playerState !== 'playing') return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           if (playerState === 'playing') {
-            speechTimer = setTimeout(playAudioOnce, 400);
+            speechTimer = setTimeout(speakWord, 400);
           }
         } else if (isContinuous) {
           speechTimer = setTimeout(() => {
@@ -548,7 +540,7 @@
         }
       };
 
-      currentAudio.onerror = () => {
+      utterance.onerror = () => {
         if (playerState === 'playing' && isContinuous) {
           nextSentence();
         } else {
@@ -557,19 +549,14 @@
         }
       };
 
-      currentAudio.play().catch(err => {
-        console.error("播放失敗:", err);
-      });
+      window.speechSynthesis.speak(utterance);
     }
 
-    playAudioOnce();
+    speakWord();
   }
 
   function stopAudioCompletely() {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
+    window.speechSynthesis.cancel();
     if (speechTimer) clearTimeout(speechTimer);
     playerState = 'stopped';
     timesPlayed = 0;
