@@ -29,44 +29,30 @@
     .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 僅聽弱項方框按鈕樣式 */
-    .weak-filter-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; color: #475569; text-align: left; transition: 0.2s; }
-    .weak-filter-btn.active { background: #eff6ff; border-color: #2563eb; color: #1e40af; }
-    .checkbox-square { width: 16px; height: 16px; border: 2px solid #cbd5e1; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; background: #fff; transition: 0.2s; }
-    .weak-filter-btn.active .checkbox-square { background: #2563eb; border-color: #2563eb; color: #fff; }
-    .checkbox-square::after { content: ""; display: none; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
-    .weak-filter-btn.active .checkbox-square::after { display: block; }
-
     /* 閱讀模式排序按鈕網格 */
     .sort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 15px; }
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
-    /* 聽力模式：上方顯示模式橫向一列 */
-    .display-mode-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; width: 100%; }
-    .mode-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
-    .mode-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-
-    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 12px; margin-bottom: 12px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 130px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 10px; line-height: 1.4; word-break: break-word; cursor: pointer; width: 100%; }
-    .text-zh { font-size: 14px; font-weight: 500; color: #64748b; margin-bottom: 10px; word-break: break-word; cursor: pointer; width: 100%; }
-    .stars { color: #f59e0b; font-size: 20px; letter-spacing: 4px; cursor: pointer; z-index: 10; }
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px 16px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; cursor: pointer; width: 100%; }
+    .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; cursor: pointer; width: 100%; }
+    .stars { color: #f59e0b; font-size: 22px; letter-spacing: 4px; cursor: pointer; z-index: 10; }
 
     /* 聽力模式控制面板樣式 */
-    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .ctrl-group-title { font-size: 11px; font-weight: bold; color: #64748b; width: 100%; text-align: left; margin-bottom: -4px; }
-    .ctrl-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 6px; cursor: pointer; text-align: center; min-width: 50px; }
+    .ctrl-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 6px; cursor: pointer; text-align: center; min-width: 60px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .control-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; }
-    .btn { padding: 10px 8px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; flex: 1; }
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 5px; width: 100%; }
+    .btn { padding: 10px 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; transition: 0.2s; flex: 1; }
     .btn-nav { background: #e2e8f0; color: #475569; }
-    .btn-play { background: #2563eb; color: #fff; flex: 1.4; }
-    .btn-play.paused { background: #d97706; color: #fff; } /* 暫停時的黃橘色提醒 */
-    .btn-stop { background: #ef4444; color: #fff; flex: 0.9; }
+    .btn-play { background: #2563eb; color: #fff; flex: 1.5; }
+    .btn-stop { background: #ef4444; color: #fff; flex: 1; }
 
-    /* 下方新增/輸入區塊連同情境分類 */
+    /* 下方新增/輸入區塊 */
     .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
     .input-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-group { margin-bottom: 10px; }
@@ -113,7 +99,7 @@
   <div class="filter-box">
     <div class="search-row">
       <span class="filter-label">🔍 搜尋：</span>
-      <input type="text" id="searchInput" class="search-input" placeholder="英文、中文或情境分類..." oninput="applyFilters()">
+      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類..." oninput="applyFilters()">
     </div>
     
     <div class="type-grid" id="typeGroup">
@@ -122,38 +108,29 @@
       <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
-
-    <!-- 僅聽弱項方框按鈕 -->
-    <div id="weakFilterWrapper" style="width: 100%;">
-      <button class="weak-filter-btn" id="btnWeakOnly" onclick="toggleWeakOnly()">
-        <span class="checkbox-square"></span>
-        <span>⚡ 僅聽弱項（排除 4~5 星）</span>
-      </button>
-    </div>
   </div>
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
 
   <!-- 聽力模式區塊 -->
   <div id="listenSection">
-    <div style="font-size: 13px; color: #475569; font-weight: bold; margin-bottom: 6px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     
-    <!-- 顯示模式切換按鈕（橫向一列排開） -->
-    <div class="display-mode-row">
-      <button class="mode-btn active" id="mode-both" onclick="changeDisplayMode('both')">英 ＋ 中</button>
-      <button class="mode-btn" id="mode-en" onclick="changeDisplayMode('en')">僅看英文</button>
-      <button class="mode-btn" id="mode-zh" onclick="changeDisplayMode('zh')">僅看中文</button>
-      <button class="mode-btn" id="mode-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
-    </div>
-
-    <!-- 主卡片與控制面板 -->
     <div class="card">
       <div class="text-en" id="textEn">讀取中...</div>
       <div class="text-zh" id="textZh">--</div>
       <div class="stars" id="textStar">☆☆☆☆•</div>
     </div>
 
-    <!-- 聽力模式控制面板 -->
+    <!-- 播放控制按鈕列 (已移至卡片下方第一順位) -->
+    <div class="control-row">
+      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
+      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+    </div>
+
+    <!-- 聽力模式設定面板 (已移至播放按鈕下方) -->
     <div class="control-panel">
       <div class="ctrl-group-title">重複次數</div>
       <div class="control-sub-row">
@@ -178,13 +155,6 @@
         <button class="ctrl-btn active" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
         <button class="ctrl-btn" onclick="setIntervalTime(5)" id="int-5">間隔5秒</button>
       </div>
-    </div>
-
-    <div class="control-row">
-      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
-      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
-      <button class="btn btn-stop" onclick="stopAudio()">■ 停止</button>
-      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
   </div>
 
@@ -217,9 +187,7 @@
     </div>
     <div class="form-group">
       <label>選擇情境分類標籤</label>
-      <div class="tag-select-container" id="inputTagContainer">
-        <!-- 動態帶入可用標籤 -->
-      </div>
+      <div class="tag-select-container" id="inputTagContainer"></div>
     </div>
     <button class="btn-submit-add" onclick="submitNewData()">新增至資料庫</button>
   </div>
@@ -236,19 +204,32 @@
   let currentTab = 'listen';
   let selectedTypeFilter = 'all';
   let currentSort = 'default';
-  let displayMode = 'both'; // 'both', 'en', 'zh', 'blind'
 
-  // 聽力設定變數
   let repeatCount = 1;
   let playbackSpeed = 1.0;
   let isContinuous = false;
   let isRandomPlay = false;
-  let isWeakOnly = false;
   let intervalSeconds = 3;
   let isPlaying = false;
-  let isPaused = false;
   let speechTimer = null;
-  let currentUtterance = null;
+  let englishVoices = [];
+
+  // 載入並挑選自然流暢的英語語音（避開機械感）
+  function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    // 優先挑選自然或高品質的英文語音 (如 Google 美國英文、Samantha、Karen 等)
+    englishVoices = voices.filter(v => v.lang.startsWith('en'));
+    englishVoices.sort((a, b) => {
+      const aIsGood = a.name.includes('Natural') || a.name.includes('Google') || a.name.includes('Samantha') || a.name.includes('Zira');
+      const bIsGood = b.name.includes('Natural') || b.name.includes('Google') || b.name.includes('Samantha') || b.name.includes('Zira');
+      return bIsGood - aIsGood;
+    });
+  }
+
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
 
   async function loadSheetData() {
     try {
@@ -357,19 +338,6 @@
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
-    
-    document.getElementById('weakFilterWrapper').style.display = (tab === 'listen') ? 'block' : 'none';
-    
-    applyFilters();
-  }
-
-  function changeDisplayMode(mode) {
-    displayMode = mode;
-    ['both', 'en', 'zh', 'blind'].forEach(m => {
-      document.getElementById(`mode-${m}`).classList.remove('active');
-    });
-    document.getElementById(`mode-${mode}`).classList.add('active');
-    renderCard();
   }
 
   function changeTypeFilter(type) {
@@ -388,10 +356,6 @@
 
   function applyFilters() {
     filteredData = rawData.filter(item => {
-      if (currentTab === 'listen' && isWeakOnly && item.star >= 4) {
-        return false;
-      }
-
       if (selectedTypeFilter !== 'all') {
         const itemType = (item.類型 || item.type || '').trim();
         if (itemType !== selectedTypeFilter) return false;
@@ -434,34 +398,8 @@
       return;
     }
     const item = filteredData[currentIndex];
-    const enText = item.英文 || item.english || '';
-    const zhText = item.中文 || item.chinese || '';
-
-    const enEl = document.getElementById('textEn');
-    const zhEl = document.getElementById('textZh');
-
-    if (displayMode === 'both') {
-      enEl.innerText = enText;
-      enEl.style.display = 'block';
-      zhEl.innerText = zhText;
-      zhEl.style.display = 'block';
-    } else if (displayMode === 'en') {
-      enEl.innerText = enText;
-      enEl.style.display = 'block';
-      zhEl.innerText = '';
-      zhEl.style.display = 'none';
-    } else if (displayMode === 'zh') {
-      enEl.innerText = '';
-      enEl.style.display = 'none';
-      zhEl.innerText = zhText;
-      zhEl.style.display = 'block';
-    } else if (displayMode === 'blind') {
-      enEl.innerText = '🎧 盲聽模式（隱藏文字）';
-      enEl.style.display = 'block';
-      zhEl.innerText = '';
-      zhEl.style.display = 'none';
-    }
-
+    document.getElementById('textEn').innerText = item.英文 || item.english || '';
+    document.getElementById('textZh').innerText = item.中文 || item.chinese || '';
     document.getElementById('textStar').innerText = '★'.repeat(item.star) + '☆'.repeat(5 - item.star);
     document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
   }
@@ -485,12 +423,6 @@
       div.innerHTML = `<div class="read-content"><div class="en">${index + 1}. ${en}</div><div class="zh">${zh}</div><div class="meta"><span>🏷️ ${cat}</span><span>⭐ ${item.star}星</span></div></div>`;
       listContainer.appendChild(div);
     });
-  }
-
-  function toggleWeakOnly() {
-    isWeakOnly = !isWeakOnly;
-    document.getElementById('btnWeakOnly').classList.toggle('active', isWeakOnly);
-    applyFilters();
   }
 
   function setRepeat(n) {
@@ -541,78 +473,49 @@
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
-    
-    const playBtn = document.getElementById('playBtn');
-
-    if (isPlaying) {
-      // 正在播放中 -> 點擊變為暫停
-      window.speechSynthesis.cancel();
-      if (speechTimer) clearTimeout(speechTimer);
-      isPlaying = false;
-      isPaused = true;
-      playBtn.innerHTML = '▶️ 繼續播放';
-      playBtn.classList.add('paused');
-    } else if (isPaused) {
-      // 處於暫停狀態 -> 點擊繼續播放
-      isPaused = false;
-      isPlaying = true;
-      playBtn.innerHTML = '⏸️ 暫停';
-      playBtn.classList.remove('paused');
-      playCurrentAudio();
-    } else {
-      // 全新開始播放
-      isPlaying = true;
-      isPaused = false;
-      playBtn.innerHTML = '⏸️ 暫停';
-      playBtn.classList.remove('paused');
-      playCurrentAudio();
-    }
+    isPlaying = true;
+    playCurrentAudio();
   }
 
   function playCurrentAudio() {
     if (!isPlaying || filteredData.length === 0) return;
-    const item = filteredData[currentIndex];
-    const text = item.英文 || item.english || '';
+    const text = document.getElementById('textEn').innerText;
     window.speechSynthesis.cancel();
 
     let timesPlayed = 0;
 
     function speakOnce() {
       if (!isPlaying) return;
-      currentUtterance = new SpeechSynthesisUtterance(text);
-      currentUtterance.lang = 'en-US';
-      currentUtterance.rate = playbackSpeed;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = playbackSpeed;
       
-      currentUtterance.onend = () => {
-        if (!isPlaying) return;
+      // 自動套用最自然的語音流暢度
+      if (englishVoices.length > 0) {
+        utterance.voice = englishVoices[0];
+      }
+      
+      utterance.onend = () => {
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
-          setTimeout(speakOnce, 500);
+          setTimeout(speakOnce, 400);
         } else if (isContinuous) {
           speechTimer = setTimeout(() => {
             nextSentence();
           }, intervalSeconds * 1000);
         } else {
           isPlaying = false;
-          isPaused = false;
-          const playBtn = document.getElementById('playBtn');
-          playBtn.innerHTML = '🔊 播放';
-          playBtn.classList.remove('paused');
         }
       };
-      window.speechSynthesis.speak(currentUtterance);
+      window.speechSynthesis.speak(utterance);
     }
     speakOnce();
   }
 
   function stopAudio() {
     isPlaying = false;
-    isPaused = false;
     window.speechSynthesis.cancel();
     if (speechTimer) clearTimeout(speechTimer);
-    const playBtn = document.getElementById('playBtn');
-    playBtn.innerHTML = '🔊 播放';
-    playBtn.classList.remove('paused');
   }
 
   async function submitNewData() {
