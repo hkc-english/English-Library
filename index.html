@@ -40,10 +40,14 @@
     .stars { color: #f59e0b; font-size: 22px; letter-spacing: 4px; cursor: pointer; z-index: 10; }
 
     /* 聽力模式控制面板樣式 */
-    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
-    .ctrl-group-title { font-size: 11px; font-weight: bold; color: #64748b; width: 100%; text-align: left; margin-bottom: -4px; }
-    .ctrl-btn { flex: 1; padding: 6px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 6px; cursor: pointer; text-align: center; min-width: 60px; }
+    
+    /* 調整標題置中、放大、加粗 */
+    .ctrl-group-title { font-size: 13px; font-weight: 800; color: #334155; width: 100%; text-align: center; margin-top: 4px; margin-bottom: -2px; }
+    
+    /* 統一按鈕大小與「播放」按鈕相同 (font-size: 13px; padding: 10px 4px;) */
+    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 60px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     /* 四個播放控制按鈕大小平均分配 */
@@ -143,8 +147,8 @@
 
       <div class="ctrl-group-title">播放速度</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn" onclick="setSpeed(0.5)" id="spd-0.5">0.5x</button>
-        <button class="ctrl-btn" onclick="setSpeed(0.7)" id="spd-0.7">0.7x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
         <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
         <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
       </div>
@@ -153,8 +157,8 @@
       <div class="control-sub-row">
         <button class="ctrl-btn" id="btnContinuous" onclick="toggleContinuous()">連續播放</button>
         <button class="ctrl-btn" id="btnRandomPlay" onclick="toggleRandomPlay()">隨機播放</button>
-        <button class="ctrl-btn active" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
-        <button class="ctrl-btn" onclick="setIntervalTime(5)" id="int-5">間隔5秒</button>
+        <button class="ctrl-btn active" onclick="setIntervalTime(1)" id="int-1">間隔1秒</button>
+        <button class="ctrl-btn" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
       </div>
     </div>
   </div>
@@ -210,7 +214,7 @@
   let playbackSpeed = 1.0;
   let isContinuous = false;
   let isRandomPlay = false;
-  let intervalSeconds = 3;
+  let intervalSeconds = 1; // 預設間隔改成1秒
   
   let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
@@ -435,7 +439,7 @@
 
   function setSpeed(spd) {
     playbackSpeed = spd;
-    [0.5, 0.7, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
+    [0.6, 0.8, 1.0, 1.2].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
     document.getElementById(`spd-${spd}`).classList.add('active');
   }
 
@@ -451,7 +455,7 @@
 
   function setIntervalTime(sec) {
     intervalSeconds = sec;
-    [3, 5].forEach(s => document.getElementById(`int-${s}`).classList.remove('active'));
+    [1, 3].forEach(s => document.getElementById(`int-${s}`).classList.remove('active'));
     document.getElementById(`int-${sec}`).classList.add('active');
   }
 
@@ -459,13 +463,13 @@
     const btn = document.getElementById('playBtn');
     if (state === 'playing') {
       btn.innerText = '⏸ 暫停';
-      btn.style.background = '#f97316'; // 淺橘色
+      btn.style.background = '#f97316';
     } else if (state === 'paused') {
       btn.innerText = '▶ 繼續播放';
-      btn.style.background = '#22c55e'; // 淺綠色
+      btn.style.background = '#22c55e';
     } else {
       btn.innerText = '🔊 播放';
-      btn.style.background = '#2563eb'; // 預設藍色
+      btn.style.background = '#2563eb';
     }
   }
 
@@ -478,7 +482,6 @@
     }
     renderCard();
     
-    // 切換句子時自動直接發音，並將狀態設為播放中
     playerState = 'playing';
     updatePlayButtonUI('playing');
     playCurrentAudio();
@@ -489,7 +492,6 @@
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
     
-    // 切換句子時自動直接發音，並將狀態設為播放中
     playerState = 'playing';
     updatePlayButtonUI('playing');
     playCurrentAudio();
