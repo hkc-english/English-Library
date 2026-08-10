@@ -122,7 +122,7 @@
       <div class="stars" id="textStar">☆☆☆☆•</div>
     </div>
 
-    <!-- 播放控制按鈕列 (已移至卡片下方第一順位) -->
+    <!-- 播放控制按鈕列 -->
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
@@ -130,7 +130,7 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <!-- 聽力模式設定面板 (已移至播放按鈕下方) -->
+    <!-- 聽力模式設定面板 -->
     <div class="control-panel">
       <div class="ctrl-group-title">重複次數</div>
       <div class="control-sub-row">
@@ -211,13 +211,13 @@
   let isRandomPlay = false;
   let intervalSeconds = 3;
   let isPlaying = false;
+  let isPaused = false;
   let speechTimer = null;
   let englishVoices = [];
+  let currentUtterance = null;
 
-  // 載入並挑選自然流暢的英語語音（避開機械感）
   function loadVoices() {
     const voices = window.speechSynthesis.getVoices();
-    // 優先挑選自然或高品質的英文語音 (如 Google 美國英文、Samantha、Karen 等)
     englishVoices = voices.filter(v => v.lang.startsWith('en'));
     englishVoices.sort((a, b) => {
       const aIsGood = a.name.includes('Natural') || a.name.includes('Google') || a.name.includes('Samantha') || a.name.includes('Zira');
@@ -453,6 +453,20 @@
     document.getElementById(`int-${sec}`).classList.add('active');
   }
 
+  function updatePlayButtonUI(playing, paused) {
+    const btn = document.getElementById('playBtn');
+    if (paused) {
+      btn.innerText = '▶ 繼續';
+      btn.style.background = '#d97706'; // 橘色代表暫停中
+    } else if (playing) {
+      btn.innerText = '⏸ 暫停';
+      btn.style.background = '#2563eb'; // 藍色代表播放中
+    } else {
+      btn.innerText = '🔊 播放';
+      btn.style.background = '#2563eb';
+    }
+  }
+
   function nextSentence() {
     if (filteredData.length === 0) return;
     if (isRandomPlay) {
@@ -461,20 +475,39 @@
       currentIndex = (currentIndex + 1) % filteredData.length;
     }
     renderCard();
-    if (isPlaying) playCurrentAudio();
+    if (isPlaying) {
+      playCurrentAudio();
+    }
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
-    if (isPlaying) playCurrentAudio();
+    if (isPlaying) {
+      playCurrentAudio();
+    }
   }
 
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
-    isPlaying = true;
-    playCurrentAudio();
+    
+    if (isPlaying) {
+      // 正在播放中 -> 點擊變為暫停
+      stopAudio(true);
+    } else if (isPaused) {
+      // 暫停中 -> 點擊繼續播放
+      isPaused = false;
+      isPlaying = true;
+      updatePlayButtonUI(true, false);
+      playCurrentAudio();
+    } else {
+      // 全新開始播放
+      isPlaying = true;
+      isPaused = false;
+      updatePlayButtonUI(true, false);
+      playCurrentAudio();
+    }
   }
 
   function playCurrentAudio() {
@@ -486,16 +519,16 @@
 
     function speakOnce() {
       if (!isPlaying) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = playbackSpeed;
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = playbackSpeed;
       
-      // 自動套用最自然的語音流暢度
       if (englishVoices.length > 0) {
-        utterance.voice = englishVoices[0];
+        currentUtterance.voice = englishVoices[0];
       }
       
-      utterance.onend = () => {
+      currentUtterance.onend = () => {
+        if (!isPlaying) return;
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           setTimeout(speakOnce, 400);
@@ -505,17 +538,26 @@
           }, intervalSeconds * 1000);
         } else {
           isPlaying = false;
+          isPaused = false;
+          updatePlayButtonUI(false, false);
         }
       };
-      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(currentUtterance);
     }
     speakOnce();
   }
 
-  function stopAudio() {
-    isPlaying = false;
+  function stopAudio(pausedState = false) {
     window.speechSynthesis.cancel();
     if (speechTimer) clearTimeout(speechTimer);
+    isPlaying = false;
+    if (pausedState) {
+      isPaused = true;
+      updatePlayButtonUI(false, true);
+    } else {
+      isPaused = false;
+      updatePlayButtonUI(false, false);
+    }
   }
 
   async function submitNewData() {
