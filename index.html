@@ -454,12 +454,12 @@
     document.getElementById(`int-${sec}`).classList.add('active');
   }
 
-  function updatePlayButtonUI(playing, paused) {
+  function updatePlayButtonUI(state) {
     const btn = document.getElementById('playBtn');
-    if (paused) {
-      btn.innerText = '⏸ 暫停中';
+    if (state === 'playing') {
+      btn.innerText = '⏸ 暫停';
       btn.style.background = '#f97316'; // 淺橘色
-    } else if (playing) {
+    } else if (state === 'paused') {
       btn.innerText = '▶ 繼續播放';
       btn.style.background = '#22c55e'; // 淺綠色
     } else {
@@ -476,10 +476,7 @@
       currentIndex = (currentIndex + 1) % filteredData.length;
     }
     renderCard();
-    if (isPlaying || isPaused) {
-      isPlaying = true;
-      isPaused = false;
-      updatePlayButtonUI(true, false);
+    if (isPlaying) {
       playCurrentAudio();
     }
   }
@@ -488,10 +485,7 @@
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
-    if (isPlaying || isPaused) {
-      isPlaying = true;
-      isPaused = false;
-      updatePlayButtonUI(true, false);
+    if (isPlaying) {
       playCurrentAudio();
     }
   }
@@ -500,19 +494,20 @@
     if (filteredData.length === 0) return;
     
     if (isPlaying) {
-      // 正在播放中 -> 點擊變為暫停
+      // 正在播放 -> 第一次按：按鈕變為「暫停」但繼續播放 (不中斷語音)
+      // 如果已經顯示暫停過，則按第二次才會真正暫停
       stopAudio(true);
     } else if (isPaused) {
-      // 暫停中 -> 點擊繼續播放
+      // 暫停中 -> 點擊變為「繼續播放」，真正恢復朗讀
       isPaused = false;
       isPlaying = true;
-      updatePlayButtonUI(true, false);
+      updatePlayButtonUI('playing');
       playCurrentAudio();
     } else {
       // 全新開始播放
       isPlaying = true;
       isPaused = false;
-      updatePlayButtonUI(true, false);
+      updatePlayButtonUI('playing');
       playCurrentAudio();
     }
   }
@@ -546,7 +541,7 @@
         } else {
           isPlaying = false;
           isPaused = false;
-          updatePlayButtonUI(false, false);
+          updatePlayButtonUI('default');
         }
       };
       window.speechSynthesis.speak(currentUtterance);
@@ -554,16 +549,18 @@
     speakOnce();
   }
 
-  function stopAudio(pausedState = false) {
-    window.speechSynthesis.cancel();
-    if (speechTimer) clearTimeout(speechTimer);
-    isPlaying = false;
-    if (pausedState) {
+  function stopAudio(wantPause = false) {
+    if (wantPause && isPlaying && !isPaused) {
+      // 第一次按：語音繼續播放，但按鈕文字切換為「暫停」（淺橘色），讓使用者可以按第二次來真正暫停
       isPaused = true;
-      updatePlayButtonUI(false, true);
+      updatePlayButtonUI('paused');
     } else {
-      isPaused = false;
-      updatePlayButtonUI(false, false);
+      // 真正暫停或停止
+      window.speechSynthesis.cancel();
+      if (speechTimer) clearTimeout(speechTimer);
+      isPlaying = false;
+      isPaused = true;
+      updatePlayButtonUI('paused');
     }
   }
 
