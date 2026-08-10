@@ -212,8 +212,7 @@
   let isRandomPlay = false;
   let intervalSeconds = 3;
   
-  // 狀態機變數：'stopped' | 'playing' | 'paused'
-  let playerState = 'stopped'; 
+  let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
   let speechTimer = null;
   let englishVoices = [];
   let currentUtterance = null;
@@ -478,37 +477,37 @@
       currentIndex = (currentIndex + 1) % filteredData.length;
     }
     renderCard();
-    if (playerState === 'playing') {
-      playCurrentAudio();
-    }
+    
+    // 切換句子時自動直接發音，並將狀態設為播放中
+    playerState = 'playing';
+    updatePlayButtonUI('playing');
+    playCurrentAudio();
   }
 
   function prevSentence() {
     if (filteredData.length === 0) return;
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
-    if (playerState === 'playing') {
-      playCurrentAudio();
-    }
+    
+    // 切換句子時自動直接發音，並將狀態設為播放中
+    playerState = 'playing';
+    updatePlayButtonUI('playing');
+    playCurrentAudio();
   }
 
-  // 核心控制開關：點擊播放按鈕
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      // 狀態1：正在播放 -> 點擊後「真正暫停」語音，按鈕轉為「繼續播放」
       window.speechSynthesis.cancel();
       if (speechTimer) clearTimeout(speechTimer);
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
-      // 狀態2：暫停中 -> 點擊後「繼續播放」，恢復朗讀
       playerState = 'playing';
       updatePlayButtonUI('playing');
-      playCurrentAudio(true); // 從當前句繼續
+      playCurrentAudio(true);
     } else {
-      // 狀態3：完全停止中 -> 從頭開始播放
       playerState = 'playing';
       timesPlayed = 0;
       updatePlayButtonUI('playing');
@@ -558,7 +557,6 @@
     speakOnce();
   }
 
-  // ■ 停止按鈕：完全歸零重置
   function stopAudioCompletely() {
     window.speechSynthesis.cancel();
     if (speechTimer) clearTimeout(speechTimer);
