@@ -144,8 +144,7 @@
 
       <div class="ctrl-group-title">播放模式與間隔</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn active" id="btnSingle" onclick="setPlayMode('single')">單句循環</button>
-        <button class="ctrl-btn" id="btnContinuous" onclick="setPlayMode('continuous')">依序連續</button>
+        <button class="ctrl-btn active" id="btnContinuous" onclick="setPlayMode('continuous')">連續播放</button>
         <button class="ctrl-btn" id="btnRandomPlay" onclick="setPlayMode('random')">隨機播放</button>
         <button class="ctrl-btn active" onclick="setIntervalTime(1)" id="int-1">間隔1秒</button>
         <button class="ctrl-btn" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
@@ -200,7 +199,7 @@
 
   let repeatCount = 1;
   let playbackSpeed = 0.6;
-  let playMode = 'single';
+  let playMode = 'continuous';
   let intervalSeconds = 1;
   
   let playerState = 'stopped';
@@ -437,13 +436,10 @@
 
   function setPlayMode(mode) {
     playMode = mode;
-    document.getElementById('btnSingle').classList.remove('active');
     document.getElementById('btnContinuous').classList.remove('active');
     document.getElementById('btnRandomPlay').classList.remove('active');
 
-    if (mode === 'single') {
-      document.getElementById('btnSingle').classList.add('active');
-    } else if (mode === 'continuous') {
+    if (mode === 'continuous') {
       document.getElementById('btnContinuous').classList.add('active');
     } else if (mode === 'random') {
       document.getElementById('btnRandomPlay').classList.add('active');
