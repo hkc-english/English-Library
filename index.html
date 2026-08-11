@@ -202,7 +202,7 @@
   let playMode = 'single'; 
   let intervalSeconds = 1;
   
-  let playerState = 'stopped';
+  let playerState = 'stopped'; // 'stopped', 'playing', 'paused'
   let speechTimer = null;
   let timesPlayed = 0;
 
@@ -474,7 +474,6 @@
     }
     renderCard();
     
-    // 強制重置計數與狀態，解決延遲或狀態錯亂
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
@@ -491,7 +490,6 @@
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
     
-    // 強制重置計數與狀態，解決延遲或狀態錯亂
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
@@ -506,7 +504,6 @@
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
-    // 清除既有計時，避免狀態切換衝突
     if (speechTimer) {
       clearTimeout(speechTimer);
       speechTimer = null;
@@ -535,7 +532,6 @@
     window.speechSynthesis.cancel();
 
     function speakWord() {
-      // 確保在準備發聲的瞬間，狀態依然是 playing
       if (playerState !== 'playing') return;
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -561,12 +557,21 @@
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           if (playerState === 'playing') {
-            speechTimer = setTimeout(speakWord, 300); // 縮短間隔優化流暢度
+            speechTimer = setTimeout(speakWord, 300);
           }
         } else if (playMode === 'continuous' || playMode === 'random') {
+          // [修正重點] 預先切換索引與 UI，確保在計時等待期間按暫停時狀態精準對應
+          if (playMode === 'random') {
+            currentIndex = Math.floor(Math.random() * filteredData.length);
+          } else {
+            currentIndex = (currentIndex + 1) % filteredData.length;
+          }
+          renderCard();
+          timesPlayed = 0;
+
           speechTimer = setTimeout(() => {
             if (playerState === 'playing') {
-              nextSentence();
+              playSpeechSequence();
             }
           }, intervalSeconds * 1000);
         } else {
@@ -577,7 +582,8 @@
       };
 
       utterance.onerror = () => {
-        if (playerState === 'playing' && (playMode === 'continuous' || playMode === 'random')) {
+        if (playerState !== 'playing') return;
+        if (playMode === 'continuous' || playMode === 'random') {
           nextSentence();
         } else {
           playerState = 'stopped';
@@ -620,8 +626,8 @@
         body: JSON.stringify({ action: 'add', english: en, chinese: zh, tags: tags })
       });
       alert('新增成功！');
-      document.getElementById('inputEnglish').value = '';
-      document.getElementById('inputChinese').value = '';
+      document.getElementById('inputEnglish').value = ``;
+      document.getElementById('inputChinese').value = ``;
       document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
       loadSheetData();
     } catch(e) {
