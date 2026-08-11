@@ -197,8 +197,8 @@
   let selectedTypeFilter = 'all';
   let currentSort = 'default';
 
-  let repeatCount = 2; // 預設 2 次對應畫面狀態
-  let playbackSpeed = 0.8; // 對應畫面狀態
+  let repeatCount = 2;
+  let playbackSpeed = 0.8;
   let playMode = 'single'; 
   let intervalSeconds = 1;
   
@@ -457,6 +457,7 @@
       btn.innerText = '⏸ 暫停';
       btn.style.background = '#f97316';
     } else if (state === 'paused') {
+      // 【修正重點】：補上暫停狀態時要顯示「繼續播放」與綠色背景
       btn.innerText = '▶ 繼續播放';
       btn.style.background = '#22c55e';
     } else {
@@ -474,7 +475,6 @@
     }
     renderCard();
     
-    // 【修正重點】：手動切換下一句時，重置播放次數計數器並開始播放
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
@@ -491,7 +491,6 @@
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
     
-    // 【修正重點】：手動切換上一句時，重置播放次數計數器並開始播放
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
