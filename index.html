@@ -457,7 +457,6 @@
       btn.innerText = '⏸ 暫停';
       btn.style.background = '#f97316';
     } else if (state === 'paused') {
-      // 【修正重點】：補上暫停狀態時要顯示「繼續播放」與綠色背景
       btn.innerText = '▶ 繼續播放';
       btn.style.background = '#22c55e';
     } else {
@@ -475,6 +474,7 @@
     }
     renderCard();
     
+    // 強制重置計數與狀態，解決延遲或狀態錯亂
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
@@ -491,6 +491,7 @@
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
     
+    // 強制重置計數與狀態，解決延遲或狀態錯亂
     window.speechSynthesis.cancel();
     if (speechTimer) {
       clearTimeout(speechTimer);
@@ -505,12 +506,14 @@
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
+    // 清除既有計時，避免狀態切換衝突
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
+
     if (playerState === 'playing') {
       window.speechSynthesis.cancel();
-      if (speechTimer) {
-        clearTimeout(speechTimer);
-        speechTimer = null;
-      }
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
@@ -532,6 +535,7 @@
     window.speechSynthesis.cancel();
 
     function speakWord() {
+      // 確保在準備發聲的瞬間，狀態依然是 playing
       if (playerState !== 'playing') return;
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -557,7 +561,7 @@
         timesPlayed++;
         if (repeatCount === 99 || timesPlayed < repeatCount) {
           if (playerState === 'playing') {
-            speechTimer = setTimeout(speakWord, 400);
+            speechTimer = setTimeout(speakWord, 300); // 縮短間隔優化流暢度
           }
         } else if (playMode === 'continuous' || playMode === 'random') {
           speechTimer = setTimeout(() => {
@@ -567,6 +571,7 @@
           }, intervalSeconds * 1000);
         } else {
           playerState = 'stopped';
+          timesPlayed = 0;
           updatePlayButtonUI('default');
         }
       };
@@ -576,6 +581,7 @@
           nextSentence();
         } else {
           playerState = 'stopped';
+          timesPlayed = 0;
           updatePlayButtonUI('default');
         }
       };
@@ -588,7 +594,10 @@
 
   function stopAudioCompletely() {
     window.speechSynthesis.cancel();
-    if (speechTimer) clearTimeout(speechTimer);
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
     playerState = 'stopped';
     timesPlayed = 0;
     updatePlayButtonUI('default');
