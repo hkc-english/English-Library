@@ -216,7 +216,6 @@
   let speechTimer = null;
   let timesPlayed = 0;
 
-  // Chrome/Safari 的語音清單可能在頁面載入後才出現
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
@@ -426,7 +425,6 @@
   function setSpeed(spd) {
     playbackSpeed = parseFloat(spd);
 
-    // 固定使用字串 ID，避免 1.0 被 JavaScript 轉成 1
     ['0.6', '0.8', '1.0', '1.2'].forEach(s => {
       const btn = document.getElementById(`spd-${s}`);
       if (btn) btn.classList.remove('active');
@@ -436,7 +434,6 @@
     const activeBtn = document.getElementById(`spd-${speedKey}`);
     if (activeBtn) activeBtn.classList.add('active');
 
-    // 播放中即時切換速度
     if (playerState === 'playing') {
       window.speechSynthesis.cancel();
       if (speechTimer) {
@@ -467,13 +464,13 @@
     const btn = document.getElementById('playBtn');
     if (state === 'playing') {
       btn.innerText = '⏸ 暫停';
-      btn.style.background = '#f97316';
+      btn.style.background = '#f97316'; // 淺橘色
     } else if (state === 'paused') {
       btn.innerText = '▶ 繼續播放';
-      btn.style.background = '#22c55e';
+      btn.style.background = '#22c55e'; // 淺綠色
     } else {
       btn.innerText = '🔊 播放';
-      btn.style.background = '#2563eb';
+      btn.style.background = '#2563eb'; // 預設藍色
     }
   }
 
@@ -501,23 +498,26 @@
     playSpeechSequence();
   }
 
+  // 依照您的截圖明確定義：播放中點擊 => 真正中斷聲音並切換為「繼續播放」；暫停後點擊 => 從當前句子恢復
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      window.speechSynthesis.pause();
-      if (speechTimer) clearTimeout(speechTimer);
+      // 1. 播放中 -> 真正中斷聲音並切換為「繼續播放」
+      window.speechSynthesis.cancel();
+      if (speechTimer) {
+        clearTimeout(speechTimer);
+        speechTimer = null;
+      }
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
+      // 2. 暫停後 -> 從當前句子恢復朗讀
       playerState = 'playing';
       updatePlayButtonUI('playing');
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
-        playSpeechSequence();
-      }
+      playSpeechSequence();
     } else {
+      // 3. 停止或初始狀態 -> 開始播放
       playerState = 'playing';
       timesPlayed = 0;
       updatePlayButtonUI('playing');
@@ -530,14 +530,12 @@
     const text = document.getElementById('textEn').innerText;
     
     window.speechSynthesis.cancel();
-    timesPlayed = 0;
 
     function speakWord() {
       if (playerState !== 'playing') return;
 
       const utterance = new SpeechSynthesisUtterance(text);
 
-      // 優先選擇英文語音，避免瀏覽器使用不理想的預設語音
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice =
         voices.find(v => v.lang === 'en-US' && /Google US English/i.test(v.name)) ||
@@ -552,7 +550,7 @@
         utterance.lang = 'en-US';
       }
 
-      utterance.rate = playbackSpeed; // 0.6 / 0.8 / 1.0 / 1.2
+      utterance.rate = playbackSpeed;
 
       utterance.onend = () => {
         if (playerState !== 'playing') return;
@@ -562,6 +560,7 @@
             speechTimer = setTimeout(speakWord, 400);
           }
         } else if (isContinuous) {
+          // 連續播放的間隔（Interval）倒數中，如果點擊暫停，speechTimer 會被清除並凍結
           speechTimer = setTimeout(() => {
             if (playerState === 'playing') {
               nextSentence();
