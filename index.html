@@ -128,8 +128,8 @@
     <div class="control-panel">
       <div class="ctrl-group-title">重複次數</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn active" onclick="setRepeat(1)" id="rep-1">1次</button>
-        <button class="ctrl-btn" onclick="setRepeat(2)" id="rep-2">2次</button>
+        <button class="ctrl-btn" onclick="setRepeat(1)" id="rep-1">1次</button>
+        <button class="ctrl-btn active" onclick="setRepeat(2)" id="rep-2">2次</button>
         <button class="ctrl-btn" onclick="setRepeat(3)" id="rep-3">3次</button>
         <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
       </div>
@@ -137,8 +137,8 @@
       <div class="ctrl-group-title">播放速度</div>
       <div class="control-sub-row">
         <button class="ctrl-btn" onclick="setSpeed(0.4)" id="spd-0.4">0.4x</button>
-        <button class="ctrl-btn active" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
-        <button class="ctrl-btn" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
         <button class="ctrl-btn" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
       </div>
 
@@ -197,9 +197,9 @@
   let selectedTypeFilter = 'all';
   let currentSort = 'default';
 
-  let repeatCount = 1;
-  let playbackSpeed = 0.6;
-  let playMode = 'single'; // 預設單句播放 (無按鈕高亮)
+  let repeatCount = 2; // 預設 2 次對應畫面狀態
+  let playbackSpeed = 0.8; // 對應畫面狀態
+  let playMode = 'single'; 
   let intervalSeconds = 1;
   
   let playerState = 'stopped';
@@ -436,7 +436,6 @@
 
   function setPlayMode(mode) {
     if (playMode === mode) {
-      // 再次點擊同一個按鈕則取消，恢復為預設單句播放
       playMode = 'single';
     } else {
       playMode = mode;
@@ -475,7 +474,14 @@
     }
     renderCard();
     
+    // 【修正重點】：手動切換下一句時，重置播放次數計數器並開始播放
+    window.speechSynthesis.cancel();
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
     playerState = 'playing';
+    timesPlayed = 0; 
     updatePlayButtonUI('playing');
     playSpeechSequence();
   }
@@ -485,7 +491,14 @@
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
     
+    // 【修正重點】：手動切換上一句時，重置播放次數計數器並開始播放
+    window.speechSynthesis.cancel();
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
     playerState = 'playing';
+    timesPlayed = 0; 
     updatePlayButtonUI('playing');
     playSpeechSequence();
   }
