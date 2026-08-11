@@ -9,7 +9,6 @@
     body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
     .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
     
-    /* 智慧檢核區塊樣式 */
     .check-box { background: #fff7ed; border: 2px solid #fdba74; border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left; }
     .check-title { font-size: 14px; font-weight: bold; color: #c2410c; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .check-target { font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px; line-height: 1.4; word-break: break-word; }
@@ -29,7 +28,6 @@
     .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 閱讀模式排序按鈕網格 */
     .sort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 15px; }
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
@@ -39,13 +37,12 @@
     .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; cursor: pointer; width: 100%; }
     .stars { color: #f59e0b; font-size: 22px; letter-spacing: 4px; cursor: pointer; z-index: 10; }
 
-    /* 聽力模式控制面板樣式 */
     .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
     
     .ctrl-group-title { font-size: 14px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 6px; margin-bottom: -2px; }
     
-    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 60px; }
+    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 55px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     .control-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; }
@@ -81,7 +78,6 @@
 <div class="container">
   <h1>📚 英文學習資料庫</h1>
 
-  <!-- 🎯 待分類檢核區塊 -->
   <div id="checkSection" class="check-box hidden">
     <div class="check-title">
       <span>🎯 待分類資料檢核</span>
@@ -113,7 +109,6 @@
 
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
 
-  <!-- 聽力模式區塊 -->
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     
@@ -123,7 +118,6 @@
       <div class="stars" id="textStar">☆☆☆☆•</div>
     </div>
 
-    <!-- 播放控制按鈕列 -->
     <div class="control-row">
       <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
       <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
@@ -131,7 +125,6 @@
       <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
     </div>
 
-    <!-- 聽力模式設定面板 -->
     <div class="control-panel">
       <div class="ctrl-group-title">重複次數</div>
       <div class="control-sub-row">
@@ -143,23 +136,23 @@
 
       <div class="ctrl-group-title">播放速度</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.4)" id="spd-0.4">0.4x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
         <button class="ctrl-btn" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
-        <button class="ctrl-btn active" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
-        <button class="ctrl-btn" onclick="setSpeed(1.2)" id="spd-1.2">1.2x</button>
+        <button class="ctrl-btn" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
       </div>
 
       <div class="ctrl-group-title">播放模式與間隔</div>
       <div class="control-sub-row">
-        <button class="ctrl-btn" id="btnContinuous" onclick="toggleContinuous()">連續播放</button>
-        <button class="ctrl-btn" id="btnRandomPlay" onclick="toggleRandomPlay()">隨機播放</button>
+        <button class="ctrl-btn active" id="btnSingle" onclick="setPlayMode('single')">單句循環</button>
+        <button class="ctrl-btn" id="btnContinuous" onclick="setPlayMode('continuous')">依序連續</button>
+        <button class="ctrl-btn" id="btnRandomPlay" onclick="setPlayMode('random')">隨機播放</button>
         <button class="ctrl-btn active" onclick="setIntervalTime(1)" id="int-1">間隔1秒</button>
         <button class="ctrl-btn" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
       </div>
     </div>
   </div>
 
-  <!-- 閱讀模式區塊 -->
   <div id="readSection" class="hidden">
     <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px; margin-bottom: 8px; text-align: left;">共 0 筆資料</div>
     
@@ -175,7 +168,6 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- 自訂翻譯與情境分類輸入區塊 -->
   <div class="input-section">
     <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
@@ -207,12 +199,11 @@
   let currentSort = 'default';
 
   let repeatCount = 1;
-  let playbackSpeed = 1.0;
-  let isContinuous = false;
-  let isRandomPlay = false;
+  let playbackSpeed = 0.6;
+  let playMode = 'single';
   let intervalSeconds = 1;
   
-  let playerState = 'stopped'; // 'stopped' | 'playing' | 'paused'
+  let playerState = 'stopped';
   let speechTimer = null;
   let timesPlayed = 0;
 
@@ -425,7 +416,7 @@
   function setSpeed(spd) {
     playbackSpeed = parseFloat(spd);
 
-    ['0.6', '0.8', '1.0', '1.2'].forEach(s => {
+    ['0.4', '0.6', '0.8', '1.0'].forEach(s => {
       const btn = document.getElementById(`spd-${s}`);
       if (btn) btn.classList.remove('active');
     });
@@ -444,14 +435,19 @@
     }
   }
 
-  function toggleContinuous() {
-    isContinuous = !isContinuous;
-    document.getElementById('btnContinuous').classList.toggle('active', isContinuous);
-  }
+  function setPlayMode(mode) {
+    playMode = mode;
+    document.getElementById('btnSingle').classList.remove('active');
+    document.getElementById('btnContinuous').classList.remove('active');
+    document.getElementById('btnRandomPlay').classList.remove('active');
 
-  function toggleRandomPlay() {
-    isRandomPlay = !isRandomPlay;
-    document.getElementById('btnRandomPlay').classList.toggle('active', isRandomPlay);
+    if (mode === 'single') {
+      document.getElementById('btnSingle').classList.add('active');
+    } else if (mode === 'continuous') {
+      document.getElementById('btnContinuous').classList.add('active');
+    } else if (mode === 'random') {
+      document.getElementById('btnRandomPlay').classList.add('active');
+    }
   }
 
   function setIntervalTime(sec) {
@@ -464,19 +460,19 @@
     const btn = document.getElementById('playBtn');
     if (state === 'playing') {
       btn.innerText = '⏸ 暫停';
-      btn.style.background = '#f97316'; // 淺橘色
+      btn.style.background = '#f97316';
     } else if (state === 'paused') {
       btn.innerText = '▶ 繼續播放';
-      btn.style.background = '#22c55e'; // 淺綠色
+      btn.style.background = '#22c55e';
     } else {
       btn.innerText = '🔊 播放';
-      btn.style.background = '#2563eb'; // 預設藍色
+      btn.style.background = '#2563eb';
     }
   }
 
   function nextSentence() {
     if (filteredData.length === 0) return;
-    if (isRandomPlay) {
+    if (playMode === 'random') {
       currentIndex = Math.floor(Math.random() * filteredData.length);
     } else {
       currentIndex = (currentIndex + 1) % filteredData.length;
@@ -498,12 +494,10 @@
     playSpeechSequence();
   }
 
-  // 依照您的截圖明確定義：播放中點擊 => 真正中斷聲音並切換為「繼續播放」；暫停後點擊 => 從當前句子恢復
   function handlePlayToggle() {
     if (filteredData.length === 0) return;
 
     if (playerState === 'playing') {
-      // 1. 播放中 -> 真正中斷聲音並切換為「繼續播放」
       window.speechSynthesis.cancel();
       if (speechTimer) {
         clearTimeout(speechTimer);
@@ -512,12 +506,10 @@
       playerState = 'paused';
       updatePlayButtonUI('paused');
     } else if (playerState === 'paused') {
-      // 2. 暫停後 -> 從當前句子恢復朗讀
       playerState = 'playing';
       updatePlayButtonUI('playing');
       playSpeechSequence();
     } else {
-      // 3. 停止或初始狀態 -> 開始播放
       playerState = 'playing';
       timesPlayed = 0;
       updatePlayButtonUI('playing');
@@ -559,8 +551,7 @@
           if (playerState === 'playing') {
             speechTimer = setTimeout(speakWord, 400);
           }
-        } else if (isContinuous) {
-          // 連續播放的間隔（Interval）倒數中，如果點擊暫停，speechTimer 會被清除並凍結
+        } else if (playMode === 'continuous' || playMode === 'random') {
           speechTimer = setTimeout(() => {
             if (playerState === 'playing') {
               nextSentence();
@@ -573,7 +564,7 @@
       };
 
       utterance.onerror = () => {
-        if (playerState === 'playing' && isContinuous) {
+        if (playerState === 'playing' && (playMode === 'continuous' || playMode === 'random')) {
           nextSentence();
         } else {
           playerState = 'stopped';
