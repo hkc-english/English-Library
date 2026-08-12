@@ -339,16 +339,36 @@
     applyFilters();
   }
 
+  // 透過英文內容特徵自動判定類型（不依賴試算表特定欄位名稱）
+  function getItemType(enText) {
+    const text = (enText || '').trim();
+    const hasSpace = text.includes(' ');
+    const hasPunctuation = /[.?!,;:]/.test(text);
+    const wordCount = text.split(/\s+/).length;
+
+    if (!hasSpace && wordCount === 1) {
+      return '單字';
+    } else if (hasSpace && wordCount <= 4 && !hasPunctuation) {
+      return '片語';
+    } else {
+      return '句子';
+    }
+  }
+
   function applyFilters() {
     const isWeakOnly = document.getElementById('weakOnlyCheckbox').checked;
 
     filteredData = rawData.filter(item => {
+      // 1. 僅聽弱項篩選（排除 4~5 星）
       if (isWeakOnly && item.star >= 4) return false;
 
+      // 2. 類型篩選（透過內容特徵自動判定，避免欄位名稱不合）
       if (selectedTypeFilter !== 'all') {
-        const itemType = (item.類型 || item.type || '').trim();
-        if (itemType !== selectedTypeFilter) return false;
+        const inferredType = getItemType(item.english);
+        if (inferredType !== selectedTypeFilter) return false;
       }
+
+      // 3. 關鍵字搜尋篩選
       const keyword = document.getElementById('searchInput').value.toLowerCase();
       if (keyword) {
         const en = (item.english || '').toLowerCase();
