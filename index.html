@@ -28,6 +28,10 @@
     .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
+    .filter-checkbox-row { width: 100%; display: flex; align-items: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-top: 4px; text-align: left; }
+    .filter-checkbox-row input { margin-right: 8px; width: 16px; height: 16px; cursor: pointer; }
+    .filter-checkbox-row label { font-size: 13px; font-weight: bold; color: #475569; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; width: 100%; }
+
     .sort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 15px; }
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
@@ -104,6 +108,12 @@
       <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
       <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
+    </div>
+
+    <div class="filter-checkbox-row">
+      <label>
+        <input type="checkbox" id="weakOnlyCheckbox" onchange="applyFilters()"> ⚡ 僅聽弱項 (排除 4~5 星)
+      </label>
     </div>
   </div>
 
@@ -330,7 +340,11 @@
   }
 
   function applyFilters() {
+    const isWeakOnly = document.getElementById('weakOnlyCheckbox').checked;
+
     filteredData = rawData.filter(item => {
+      if (isWeakOnly && item.star >= 4) return false;
+
       if (selectedTypeFilter !== 'all') {
         const itemType = (item.類型 || item.type || '').trim();
         if (itemType !== selectedTypeFilter) return false;
@@ -540,7 +554,6 @@
     }
   }
 
-  // 修正後的播放迴圈邏輯，避免重複次數卡死
   function playSpeechSequence() {
     if (playerState !== 'playing' || filteredData.length === 0) return;
     const text = document.getElementById('textEn').innerText;
