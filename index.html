@@ -24,6 +24,10 @@
     .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
     .search-input { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
     
+    /* 僅聽弱項勾選框樣式 */
+    .weak-filter-row { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 4px; background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; font-weight: bold; color: #c2410c; cursor: pointer; text-align: left; }
+    .weak-filter-row input { width: 18px; height: 18px; cursor: pointer; accent-color: #ea580c; }
+
     .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
     .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
@@ -32,17 +36,23 @@
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
-    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px 16px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-    .text-en { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; width: 100%; }
-    .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; width: 100%; }
-    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 6px; cursor: pointer; z-index: 10; user-select: none; padding: 4px; }
+    .listen-layout { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+    .display-mode-col { display: flex; flex-direction: column; gap: 6px; width: 100px; flex-shrink: 0; }
+    .mode-btn { padding: 10px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; width: 100%; }
+    .mode-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .card-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px 12px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 10px; line-height: 1.4; word-break: break-word; width: 100%; }
+    .text-zh { font-size: 14px; font-weight: 500; color: #64748b; margin-bottom: 10px; word-break: break-word; width: 100%; }
+    .stars { color: #f59e0b; font-size: 22px; letter-spacing: 4px; cursor: pointer; z-index: 10; user-select: none; padding: 2px; }
     .stars span { transition: transform 0.1s; display: inline-block; }
     .stars span:hover { transform: scale(1.2); }
 
-    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
     .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
-    .ctrl-group-title { font-size: 14px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 6px; margin-bottom: -2px; }
-    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 55px; }
+    .ctrl-group-title { font-size: 13px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 4px; margin-bottom: -2px; }
+    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 50px; }
     .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
     .control-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; }
@@ -99,6 +109,12 @@
       <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類..." oninput="applyFilters()">
     </div>
     
+    <!-- 紅線圈起來的「僅聽弱項」勾選框 -->
+    <label class="weak-filter-row">
+      <input type="checkbox" id="weakFilterCheck" onchange="applyFilters()">
+      <span>⚡ 僅聽弱項（排除 4~5 星）</span>
+    </label>
+
     <div class="type-grid" id="typeGroup">
       <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
       <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
@@ -112,10 +128,23 @@
   <div id="listenSection">
     <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
     
-    <div class="card">
-      <div class="text-en" id="textEn">讀取中...</div>
-      <div class="text-zh" id="textZh">--</div>
-      <div class="stars" id="textStar"></div>
+    <div class="listen-layout">
+      <!-- 顯示模式按鈕直排 -->
+      <div class="display-mode-col">
+        <button class="mode-btn active" id="mode-both" onclick="setDisplayMode('both')">英 + 中</button>
+        <button class="mode-btn" id="mode-en" onclick="setDisplayMode('en')">僅看英文</button>
+        <button class="mode-btn" id="mode-zh" onclick="setDisplayMode('zh')">僅看中文</button>
+        <button class="mode-btn" id="mode-blind" onclick="setDisplayMode('blind')">盲聽模式</button>
+      </div>
+
+      <!-- 卡片區 -->
+      <div class="card-col">
+        <div class="card">
+          <div class="text-en" id="textEn">讀取中...</div>
+          <div class="text-zh" id="textZh">--</div>
+          <div class="stars" id="textStar"></div>
+        </div>
+      </div>
     </div>
 
     <div class="control-row">
@@ -134,7 +163,7 @@
         <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
       </div>
 
-      <div class="ctrl-group-title">播放速度</div>
+      <div class="ctrl-group-title">播放速度（維持 0.4x 開始）</div>
       <div class="control-sub-row">
         <button class="ctrl-btn" onclick="setSpeed(0.4)" id="spd-0.4">0.4x</button>
         <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
@@ -201,6 +230,7 @@
   let playbackSpeed = 0.8;
   let playMode = 'single'; 
   let intervalSeconds = 1;
+  let displayMode = 'both'; 
   
   let playerState = 'stopped';
   let speechTimer = null;
@@ -315,6 +345,15 @@
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
   }
 
+  function setDisplayMode(mode) {
+    displayMode = mode;
+    ['both', 'en', 'zh', 'blind'].forEach(m => {
+      document.getElementById(`mode-${m}`).classList.remove('active');
+    });
+    document.getElementById(`mode-${mode}`).classList.add('active');
+    renderCard();
+  }
+
   function changeTypeFilter(type) {
     selectedTypeFilter = type;
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -330,7 +369,12 @@
   }
 
   function applyFilters() {
+    const isWeakOnly = document.getElementById('weakFilterCheck').checked;
+
     filteredData = rawData.filter(item => {
+      // 僅聽弱項篩選（排除 4~5 星）
+      if (isWeakOnly && item.star >= 4) return false;
+
       if (selectedTypeFilter !== 'all') {
         const itemType = (item.類型 || item.type || '').trim();
         if (itemType !== selectedTypeFilter) return false;
@@ -373,8 +417,30 @@
       return;
     }
     const item = filteredData[currentIndex];
-    document.getElementById('textEn').innerText = item.english || '';
-    document.getElementById('textZh').innerText = item.chinese || '';
+    const enEl = document.getElementById('textEn');
+    const zhEl = document.getElementById('textZh');
+
+    if (displayMode === 'both') {
+      enEl.innerText = item.english || '';
+      enEl.style.display = 'block';
+      zhEl.innerText = item.chinese || '';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'en') {
+      enEl.innerText = item.english || '';
+      enEl.style.display = 'block';
+      zhEl.innerText = '--';
+      zhEl.style.display = 'none';
+    } else if (displayMode === 'zh') {
+      enEl.innerText = '--';
+      enEl.style.display = 'none';
+      zhEl.innerText = item.chinese || '';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'blind') {
+      enEl.innerText = '盲聽模式（隱藏文字）';
+      enEl.style.display = 'block';
+      zhEl.innerText = '--';
+      zhEl.style.display = 'none';
+    }
     
     const starContainer = document.getElementById('textStar');
     starContainer.innerHTML = '';
@@ -540,10 +606,10 @@
     }
   }
 
-  // 修正後的播放迴圈邏輯，避免重複次數卡死
   function playSpeechSequence() {
     if (playerState !== 'playing' || filteredData.length === 0) return;
-    const text = document.getElementById('textEn').innerText;
+    const item = filteredData[currentIndex];
+    const text = item.english || '';
     
     window.speechSynthesis.cancel();
 
