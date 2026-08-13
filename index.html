@@ -36,6 +36,10 @@
     .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
+    .display-mode-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-bottom: 10px; }
+    .display-mode-btn { padding: 8px 2px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; text-align: center; }
+    .display-mode-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
     .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px 16px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
     .text-en { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; width: 100%; }
     .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; width: 100%; }
@@ -120,7 +124,16 @@
   <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
 
   <div id="listenSection">
-    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; text-align: left;" id="infoText">第 -- / -- 筆</div>
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <span id="infoText">第 -- / -- 筆</span>
+    </div>
+
+    <div class="display-mode-grid" id="displayModeGroup">
+      <button class="display-mode-btn active" id="mode-en-zh" onclick="changeDisplayMode('en-zh')">英 + 中</button>
+      <button class="display-mode-btn" id="mode-en-only" onclick="changeDisplayMode('en-only')">僅看英文</button>
+      <button class="display-mode-btn" id="mode-zh-only" onclick="changeDisplayMode('zh-only')">僅看中文</button>
+      <button class="display-mode-btn" id="mode-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
+    </div>
     
     <div class="card">
       <div class="text-en" id="textEn">讀取中...</div>
@@ -206,6 +219,7 @@
   let currentTab = 'listen';
   let selectedTypeFilter = 'all';
   let currentSort = 'default';
+  let displayMode = 'en-zh'; // en-zh, en-only, zh-only, blind
 
   let repeatCount = 2;
   let playbackSpeed = 0.8;
@@ -332,6 +346,17 @@
     applyFilters();
   }
 
+  function changeDisplayMode(mode) {
+    displayMode = mode;
+    ['en-zh', 'en-only', 'zh-only', 'blind'].forEach(m => {
+      const btnId = m === 'en-zh' ? 'mode-en-zh' : m === 'en-only' ? 'mode-en-only' : m === 'zh-only' ? 'mode-zh-only' : 'mode-blind';
+      document.getElementById(btnId).classList.remove('active');
+    });
+    const activeBtnId = mode === 'en-zh' ? 'mode-en-zh' : mode === 'en-only' ? 'mode-en-only' : mode === 'zh-only' ? 'mode-zh-only' : 'mode-blind';
+    document.getElementById(activeBtnId).classList.add('active');
+    renderCard();
+  }
+
   function changeSort(sortType) {
     currentSort = sortType;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -339,7 +364,6 @@
     applyFilters();
   }
 
-  // 透過英文內容特徵自動判定類型（不依賴試算表特定欄位名稱）
   function getItemType(enText) {
     const text = (enText || '').trim();
     const hasSpace = text.includes(' ');
@@ -359,16 +383,13 @@
     const isWeakOnly = document.getElementById('weakOnlyCheckbox').checked;
 
     filteredData = rawData.filter(item => {
-      // 1. 僅聽弱項篩選（排除 4~5 星）
       if (isWeakOnly && item.star >= 4) return false;
 
-      // 2. 類型篩選（透過內容特徵自動判定，避免欄位名稱不合）
       if (selectedTypeFilter !== 'all') {
         const inferredType = getItemType(item.english);
         if (inferredType !== selectedTypeFilter) return false;
       }
 
-      // 3. 關鍵字搜尋篩選
       const keyword = document.getElementById('searchInput').value.toLowerCase();
       if (keyword) {
         const en = (item.english || '').toLowerCase();
@@ -407,8 +428,30 @@
       return;
     }
     const item = filteredData[currentIndex];
-    document.getElementById('textEn').innerText = item.english || '';
-    document.getElementById('textZh').innerText = item.chinese || '';
+    const enEl = document.getElementById('textEn');
+    const zhEl = document.getElementById('textZh');
+
+    if (displayMode === 'en-zh') {
+      enEl.innerText = item.english || '';
+      zhEl.innerText = item.chinese || '';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'en-only') {
+      enEl.innerText = item.english || '';
+      zhEl.innerText = '';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'none';
+    } else if (displayMode === 'zh-only') {
+      enEl.innerText = '';
+      zhEl.innerText = item.chinese || '';
+      enEl.style.display = 'none';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'blind') {
+      enEl.innerText = '🔒 盲聽模式（隱藏文字）';
+      zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
+    }
     
     const starContainer = document.getElementById('textStar');
     starContainer.innerHTML = '';
@@ -576,7 +619,8 @@
 
   function playSpeechSequence() {
     if (playerState !== 'playing' || filteredData.length === 0) return;
-    const text = document.getElementById('textEn').innerText;
+    const item = filteredData[currentIndex];
+    const text = item.english || '';
     
     window.speechSynthesis.cancel();
 
