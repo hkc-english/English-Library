@@ -114,7 +114,7 @@
       <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
     </div>
 
-    <div class="filter-checkbox-row">
+    <div class="filter-checkbox-row" id="weakOnlyRow">
       <label>
         <input type="checkbox" id="weakOnlyCheckbox" onchange="applyFilters()"> ⚡ 僅聽弱項 (排除 4~5 星)
       </label>
@@ -337,6 +337,10 @@
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    
+    // 控制「僅聽弱項」按鍵在閱讀模式隱藏、聽力模式顯示
+    document.getElementById('weakOnlyRow').classList.toggle('hidden', tab === 'read');
+    applyFilters();
   }
 
   function changeTypeFilter(type) {
@@ -380,7 +384,8 @@
   }
 
   function applyFilters() {
-    const isWeakOnly = document.getElementById('weakOnlyCheckbox').checked;
+    const checkbox = document.getElementById('weakOnlyCheckbox');
+    const isWeakOnly = (currentTab === 'listen') && checkbox && checkbox.checked;
 
     filteredData = rawData.filter(item => {
       if (isWeakOnly && item.star >= 4) return false;
