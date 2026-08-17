@@ -241,11 +241,11 @@
 <div id="aiModalOverlay" class="ai-modal-overlay hidden">
   <div class="ai-modal">
     <div class="ai-modal-header">
-      <div class="ai-modal-title">✨ AI 智慧衍生句與相反例句</div>
+      <div class="ai-modal-title">✨ AI 情境化衍生與對比句</div>
       <button class="ai-close-btn" onclick="closeAiModal()">✕</button>
     </div>
     <div id="aiModalContent">
-      <div class="ai-loading">正在透過 AI 產生相關與相反例句，請稍候...</div>
+      <div class="ai-loading">AI 教練正在構思自然情境句，請稍候...</div>
     </div>
   </div>
 </div>
@@ -615,17 +615,15 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  // AI 智慧衍生功能邏輯
+  // 升級版：情境化 AI 智慧衍生功能
   async function openAiModal(enText, zhText, tagText) {
     const overlay = document.getElementById('aiModalOverlay');
     const content = document.getElementById('aiModalContent');
     overlay.classList.remove('hidden');
-    content.innerHTML = `<div class="ai-loading">正在針對「${enText}」透過 AI 產生相關與相反例句，請稍候...</div>`;
+    content.innerHTML = `<div class="ai-loading">AI 教練正在針對「${enText} (${zhText})」構思實用情境與多變句型，請稍候...</div>`;
 
     try {
-      // 這裡您可以串接真實的免費 API (例如 Gemini API 或自訂 GAS 端點轉發)。此處以介面內建模擬與提示詞生成結構示範：
-      // 實際專案中可透過 fetch 呼叫您的 Google Apps Script 進行 AI 生成
-      const aiResult = await simulateAiGeneration(enText, zhText);
+      const aiResult = await simulateAiContextualGeneration(enText, zhText);
       renderAiModalContent(aiResult, tagText);
     } catch (err) {
       content.innerHTML = `<div class="status-msg">AI 生成失敗，請稍後再試。</div>`;
@@ -636,29 +634,44 @@
     document.getElementById('aiModalOverlay').classList.add('hidden');
   }
 
-  // 模擬前端AI生成（您可以替換成實際呼叫您的 GAS AI 函數）
-  async function simulateAiGeneration(en, zh) {
+  // 升級後的模擬 AI 邏輯（產出多變句型與真實生活情境）
+  async function simulateAiContextualGeneration(en, zh) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // 根據不同詞彙回傳 3 個相關延伸句與 1 個相反對比句
+        const keyword = en.trim();
+        const meaning = zh.trim();
+        
+        // 依據字詞特性或模擬 AI 回傳不同情境的多變句型
         resolve({
-          source: en,
+          source: keyword,
           related: [
-            { en: `It's important to understand ${en.toLowerCase()}.`, zh: `理解${zh}是很重要的。` },
-            { en: `She tried her best regarding ${en.toLowerCase()}.`, zh: `關於${zh}，她盡了最大努力。` },
-            { en: `Everyone should know more about ${en.toLowerCase()}.`, zh: `每個人都應該對${zh}了解更多。` }
+            { 
+              en: `Have you ever found yourself trying to ${keyword.toLowerCase()} in a rush?`, 
+              zh: `你曾發現在趕時間時手忙腳亂地${meaning}嗎？（生活情境詢問）` 
+            },
+            { 
+              en: `Keep this in mind: don't start until you are fully ready to ${keyword.toLowerCase()}.`, 
+              zh: `記住這點：在完全準備好${meaning}之前，先別開始。（實用提醒情境）` 
+            },
+            { 
+              en: `Things got complicated once we decided to ${keyword.toLowerCase()}.`, 
+              zh: `一旦我們決定要${meaning}，事情就變得複雜了。（經驗分享情境）` 
+            }
           ],
-          opposite: { en: `Unlike ${en.toLowerCase()}, things are different here.`, zh: `與${zh}不同，這裡的情況有所不同。` }
+          opposite: { 
+            en: `Instead of rushing to ${keyword.toLowerCase()}, let's take a step back and plan carefully.`, 
+            zh: `與其急著${meaning}，不如退一步好好擬定計畫。（轉折對比情境）` 
+          }
         });
-      }, 1000);
+      }, 900);
     });
   }
 
   function renderAiModalContent(data, defaultTag) {
     const content = document.getElementById('aiModalContent');
-    let html = `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">來源詞彙：<b style="color:#1e293b;">${data.source}</b></div>`;
+    let html = `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">核心字詞：<b style="color:#1e293b;">${data.source}</b></div>`;
     
-    html += `<div class="ai-section-title">🔗 3 個相關延伸句</div>`;
+    html += `<div class="ai-section-title">🌟 3 個高情境化衍生句（句型各異）</div>`;
     data.related.forEach((item, idx) => {
       html += `
         <div class="ai-suggestion-card" id="sug-rel-${idx}">
@@ -671,7 +684,7 @@
       `;
     });
 
-    html += `<div class="ai-section-title" style="margin-top: 15px;">⚡ 1 個相反對比句</div>`;
+    html += `<div class="ai-section-title" style="margin-top: 15px;">⚡ 1 個轉折對比句</div>`;
     html += `
       <div class="ai-suggestion-card" id="sug-opp">
         <div class="ai-suggestion-info">
@@ -685,7 +698,6 @@
     content.innerHTML = html;
   }
 
-  // 一鍵收藏：寫入後端試算表
   async function collectAiItem(btnElement, en, zh, tag) {
     btnElement.innerText = '收藏中...';
     btnElement.disabled = true;
@@ -702,7 +714,7 @@
       });
       btnElement.innerText = '✓ 已收藏';
       btnElement.style.background = '#10b981';
-      loadSheetData(); // 重新載入資料庫
+      loadSheetData();
     } catch (e) {
       btnElement.innerText = '收藏失敗';
       btnElement.disabled = false;
