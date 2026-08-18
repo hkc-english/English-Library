@@ -82,6 +82,10 @@
     .inline-ai-box.show { display: block; }
     .inline-ai-title { font-size: 12px; font-weight: bold; color: #166534; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .inline-ai-content { font-size: 13px; color: #14532d; line-height: 1.4; }
+    
+    /* 衍生句內的加入按鈕 */
+    .btn-add-derived { background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 2px 6px; font-size: 11px; cursor: pointer; margin-left: 6px; }
+    .btn-add-derived:hover { background: #1d4ed8; }
 
     .read-toggle-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
     .toggle-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; user-select: none; }
@@ -566,12 +570,12 @@
           </div>
           <div class="read-btn-group">
             <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
-            <button class="read-ai-btn" onclick="toggleInlineAI(${index}, '${en.replace(/'/g, "\\'")}')">🤖 AI衍生</button>
+            <button class="read-ai-btn" onclick="toggleInlineAI(${index}, '${en.replace(/'/g, "\\'")}', '${cat}')">🤖 AI衍生</button>
           </div>
         </div>
         <div class="inline-ai-box" id="ai-box-${index}">
           <div class="inline-ai-title">
-            <span>✨ 3句內正反情境衍生練習</span>
+            <span>✨ AI 口語衍生情境與應用</span>
             <span style="cursor:pointer;" onclick="toggleInlineAI(${index})">✕</span>
           </div>
           <div class="inline-ai-content" id="ai-content-${index}">載入中...</div>
@@ -581,8 +585,8 @@
     });
   }
 
-  // 閱讀模式中每一句旁邊的 AI 衍生切換與 3 句正反情境生成
-  function toggleInlineAI(index, enText) {
+  // 透過後端 Google Apps Script 呼叫真正的 Gemini API 產生 3 句內正反口語衍生句
+  async function toggleInlineAI(index, enText, category) {
     const box = document.getElementById(`ai-box-${index}`);
     const contentEl = document.getElementById(`ai-content-${index}`);
     
@@ -590,14 +594,57 @@
       box.classList.remove('show');
     } else {
       box.classList.add('show');
-      if (enText) {
-        // 產生 3 句內正反情境（含正向與反向/負面用法）
-        contentEl.innerHTML = `
-          <div style="margin-bottom: 4px;">1. (正向) Successfully mastering <b>${enText}</b> leads to great confidence. <br><span style="color:#166534;">➔ 成功掌握此用法能帶來極大的自信。</span></div>
-          <div style="margin-bottom: 4px;">2. (反向) Failing to apply <b>${enText}</b> correctly often causes misunderstandings. <br><span style="color:#b91c1c;">➔ 無法正確應用往往會造成誤解。</span></div>
-          <div>3. (應用) Even in difficult situations, using <b>${enText}</b> makes communication clearer. <br><span style="color:#166534;">➔ 即使在困難的情況下，使用它也能讓溝通更清晰。</span></div>
-        `;
+      if (enText && contentEl.innerText.includes('載入中')) {
+        contentEl.innerHTML = '🤖 Gemini 正在雲端思考口語情境...';
+        try {
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'generateAI',
+              english: enText
+            })
+          });
+          const result = await response.json();
+          if (result && result.derived) {
+            let htmlStr = '';
+            result.derived.forEach((item, idx) => {
+              const safeEn = item.en.replace(/'/g, "\\'");
+              const safeZh = item.zh.replace(/'/g, "\\'");
+              htmlStr += `
+                <div style="margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;">
+                  <div><b>${idx + 1}. ${item.en}</b><br><span style="color:#166534;">➔ ${item.zh}</span></div>
+                  <button class="btn-add-derived" onclick="addDerivedToSheet('${safeEn}', '${safeZh}', '${category}')">➕ 加入</button>
+                </div>
+              `;
+            });
+            contentEl.innerHTML = htmlStr;
+          } else {
+            contentEl.innerHTML = '❌ 產生失敗，請稍後再試';
+          }
+        } catch (e) {
+          contentEl.innerHTML = '❌ 連線錯誤，請檢查網路或後端設定';
+        }
       }
+    }
+  }
+
+  // 將選定的衍生句加回 Google Sheet 資料庫
+  async function addDerivedToSheet(en, zh, category) {
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'add',
+          english: en,
+          chinese: zh,
+          tags: category ? [category] : []
+        })
+      });
+      const result = await res.json();
+      alert('已成功加入 Google Sheet 資料庫！');
+      loadSheetData();
+    } catch(e) {
+      alert('加入資料庫失敗');
     }
   }
 
