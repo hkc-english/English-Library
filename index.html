@@ -60,7 +60,6 @@
     .btn-stop { background: #ef4444; color: #fff; }
 
     .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
-    .ai-section { margin-top: 25px; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 16px; padding: 15px; text-align: left; }
     .input-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
@@ -72,7 +71,19 @@
     .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
     .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
+    
+    .read-btn-group { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
     .read-speak-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+    .read-ai-btn { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+
+    /* AI 衍生彈窗樣式 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-card { background: #fff; padding: 20px; border-radius: 16px; width: 90%; max-width: 400px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .modal-title { font-size: 16px; font-weight: bold; color: #166534; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .modal-content-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+    .modal-en { font-size: 15px; font-weight: bold; color: #14532d; margin-bottom: 6px; word-break: break-word; }
+    .modal-zh { font-size: 13px; color: #166534; word-break: break-word; }
+    .modal-btn-row { display: flex; gap: 8px; }
 
     .read-toggle-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
     .toggle-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; user-select: none; }
@@ -202,17 +213,6 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- AI 智慧助手衍生句專區 -->
-  <div class="ai-section">
-    <div class="input-title" style="color: #166534;">🤖 AI 智慧助手 (衍生學習)</div>
-    <button class="btn-submit-add" id="aiBtn" style="background: #16a34a;" onclick="generateAISentence()">生成衍生練習句</button>
-    <div id="aiPreviewArea" class="hidden" style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #bbf7d0; border-radius: 8px;">
-      <div id="aiTextEn" style="font-weight: bold; color: #166534; margin-bottom: 4px; font-size: 15px;"></div>
-      <div id="aiTextZh" style="font-size: 13px; color: #15803d; margin-bottom: 8px;"></div>
-      <button class="btn-submit-add" style="background: #15803d; padding: 8px; margin-top: 0;" onclick="applyAIToForm()">確認採用此句 (填入下方)</button>
-    </div>
-  </div>
-
   <div class="input-section">
     <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
@@ -228,6 +228,22 @@
       <div class="tag-select-container" id="inputTagContainer"></div>
     </div>
     <button class="btn-submit-add" onclick="submitNewData()">新增至資料庫</button>
+  </div>
+</div>
+
+<!-- AI 衍生對話框 / 彈窗 -->
+<div id="aiModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-title">🤖 AI 衍生學習情境</div>
+    <div style="font-size: 12px; color: #64748b; margin-bottom: 6px;">基準句子：<span id="modalBaseText" style="color: #1e293b; font-weight: bold;"></span></div>
+    <div class="modal-content-box">
+      <div id="modalAiEn" class="modal-en">生成中...</div>
+      <div id="modalAiZh" class="modal-zh">--</div>
+    </div>
+    <div class="modal-btn-row">
+      <button class="btn-submit-add" style="background: #16a34a; margin-top: 0; flex: 1;" onclick="addAiResultToDatabase()">直接加入資料庫</button>
+      <button class="btn-submit-add" style="background: #64748b; margin-top: 0; flex: 1;" onclick="closeAiModal()">關閉</button>
+    </div>
   </div>
 </div>
 
@@ -255,6 +271,8 @@
   let playerState = 'stopped';
   let speechTimer = null;
   let currentUtterance = null;
+
+  let currentAiGeneratedItem = { english: '', chinese: '' };
 
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => {
@@ -565,7 +583,10 @@
             <span>⭐ ${item.star}星</span>
           </div>
         </div>
-        <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
+        <div class="read-btn-group">
+          <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
+          <button class="read-ai-btn" onclick="openAiModal('${en.replace(/'/g, "\\'")}')">🤖 AI衍生</button>
+        </div>
       `;
       listContainer.appendChild(div);
     });
@@ -591,6 +612,60 @@
     }
     utterance.rate = playbackSpeed;
     window.speechSynthesis.speak(utterance);
+  }
+
+  async function openAiModal(baseText) {
+    document.getElementById('modalBaseText').innerText = baseText;
+    document.getElementById('modalAiEn').innerText = 'AI 思考衍生句中...';
+    document.getElementById('modalAiZh').innerText = '--';
+    document.getElementById('aiModal').classList.remove('hidden');
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'generateAI', base: baseText })
+      });
+      const result = await res.json();
+      
+      currentAiGeneratedItem.english = result.english || '';
+      currentAiGeneratedItem.chinese = result.chinese || '';
+
+      document.getElementById('modalAiEn').innerText = currentAiGeneratedItem.english;
+      document.getElementById('modalAiZh').innerText = currentAiGeneratedItem.chinese;
+    } catch(e) {
+      document.getElementById('modalAiEn').innerText = '生成失敗，請檢查網路連線。';
+      document.getElementById('modalAiZh').innerText = '';
+    }
+  }
+
+  function closeAiModal() {
+    document.getElementById('aiModal').classList.add('hidden');
+  }
+
+  async function addAiResultToDatabase() {
+    if (!currentAiGeneratedItem.english) return;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'add',
+          english: currentAiGeneratedItem.english,
+          chinese: currentAiGeneratedItem.chinese,
+          tags: []
+        })
+      });
+      const result = await res.json();
+      if (result.success || res.ok) {
+        alert('已成功將衍生句加入資料庫！');
+        closeAiModal();
+        loadSheetData();
+      } else {
+        alert('加入失敗：' + (result.message || '未知錯誤'));
+      }
+    } catch(e) {
+      alert('送出失敗，請檢查網路連線。');
+    }
   }
 
   function setRepeat(n) {
@@ -807,44 +882,6 @@
     } catch(e) {
       alert('送出失敗，請檢查網路連線。');
     }
-  }
-
-  // AI 衍生句功能函數
-  async function generateAISentence() {
-    const btn = document.getElementById('aiBtn');
-    const previewArea = document.getElementById('aiPreviewArea');
-    const baseEn = document.getElementById('inputEnglish').value.trim();
-    
-    if (!baseEn) { 
-      alert('請先在下方的「英文 (English)」欄位輸入基礎單字或句子！'); 
-      return; 
-    }
-
-    btn.innerText = 'AI 思考衍生句中...';
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'generateAI', base: baseEn })
-      });
-      const result = await res.json();
-      
-      document.getElementById('aiTextEn').innerText = result.english;
-      document.getElementById('aiTextZh').innerText = result.chinese;
-      previewArea.classList.remove('hidden');
-    } catch(e) {
-      alert('AI 生成失敗，請確認後端是否支援 generateAI 動作。');
-    } finally {
-      btn.innerText = '生成衍生練習句';
-      btn.disabled = false;
-    }
-  }
-
-  function applyAIToForm() {
-    document.getElementById('inputEnglish').value = document.getElementById('aiTextEn').innerText;
-    document.getElementById('inputChinese').value = document.getElementById('aiTextZh').innerText;
-    document.getElementById('aiPreviewArea').classList.add('hidden');
   }
 
   window.onload = loadSheetData;
