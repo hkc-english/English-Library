@@ -5,383 +5,821 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英文學習資料庫</title>
   <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-sub: #64748b;
-      --border: #e2e8f0;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; max-width: 600px; margin: 0 auto; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f4f6f9; margin: 0; padding: 12px; color: #333; display: flex; justify-content: center; }
+    .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); text-align: center; }
     
-    h1 { text-align: center; font-size: 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-    /* 模式切換按鈕 */
-    .mode-switch-container { display: flex; gap: 10px; margin-bottom: 16px; }
-    .mode-btn { flex: 1; padding: 12px; font-size: 16px; font-weight: bold; border: 2px solid var(--primary); border-radius: 12px; background: #fff; color: var(--primary); cursor: pointer; transition: all 0.2s; text-align: center; }
-    .mode-btn.active { background: var(--primary); color: #fff; }
-
-    /* 搜尋與分類 */
-    .search-box { background: var(--card-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; }
-    .search-input-wrapper { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; background: #fff; margin-bottom: 10px; }
-    .search-input-wrapper input { border: none; outline: none; width: 100%; font-size: 15px; }
-    .category-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
-    .cat-btn { padding: 6px 14px; font-size: 13px; border-radius: 20px; border: 1px solid var(--border); background: #f1f5f9; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
-    .cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-    /* 閱讀模式清單 */
-    .read-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; color: var(--text-sub); }
-    .display-toggles { display: flex; gap: 6px; }
-    .toggle-badge { padding: 4px 10px; font-size: 12px; border-radius: 6px; background: #0f766e; color: white; cursor: pointer; border: none; }
+    .check-box { background: #fff7ed; border: 2px solid #fdba74; border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left; }
+    .check-title { font-size: 14px; font-weight: bold; color: #c2410c; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .check-target { font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px; line-height: 1.4; word-break: break-word; }
     
-    .sort-container { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-    .sort-btn { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+    h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    
+    .tab-group { display: flex; gap: 12px; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 12px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .tab-btn.active { background: #2563eb; color: #fff; }
+
+    .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
+    .search-row { display: flex; align-items: center; width: 100%; gap: 8px; }
+    .filter-label { font-size: 14px; font-weight: bold; color: #1e3a8a; white-space: nowrap; }
+    .search-input { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; width: 100%; font-weight: bold; }
+    
+    .type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-top: 4px; }
+    .type-btn { padding: 8px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
+    .type-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .filter-checkbox-row { width: 100%; display: flex; align-items: center; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-top: 4px; text-align: left; }
+    .filter-checkbox-row input { margin-right: 8px; width: 16px; height: 16px; cursor: pointer; }
+    .filter-checkbox-row label { font-size: 13px; font-weight: bold; color: #475569; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; width: 100%; }
+
+    .sort-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-bottom: 15px; }
+    .sort-btn { padding: 8px 4px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; color: #475569; text-align: center; }
     .sort-btn.active { background: #0f766e; color: #fff; border-color: #0f766e; }
 
-    .read-item { background: var(--card-bg); padding: 14px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .read-content { flex: 1; }
-    .read-content .en { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: var(--text-main); }
-    .read-content .zh { font-size: 14px; color: var(--text-sub); margin-bottom: 6px; }
-    .read-content .meta { font-size: 11px; color: #94a3b8; display: flex; gap: 8px; }
-    .read-speak-btn { padding: 6px 12px; font-size: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+    .display-mode-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; margin-bottom: 10px; }
+    .display-mode-btn { padding: 8px 2px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer; color: #475569; text-align: center; }
+    .display-mode-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    /* 新增表單區塊 */
-    .add-section { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-top: 20px; }
-    .add-section h3 { font-size: 15px; margin-bottom: 10px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 24px 16px; margin-bottom: 15px; background: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+    .text-en { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 12px; line-height: 1.4; word-break: break-word; width: 100%; }
+    .text-zh { font-size: 15px; font-weight: 500; color: #64748b; margin-bottom: 12px; word-break: break-word; width: 100%; }
+    .stars { color: #f59e0b; font-size: 24px; letter-spacing: 6px; cursor: pointer; z-index: 10; user-select: none; padding: 4px; }
+    .stars span { transition: transform 0.1s; display: inline-block; }
+    .stars span:hover { transform: scale(1.2); }
+
+    .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .control-sub-row { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .ctrl-group-title { font-size: 14px; font-weight: 800; color: #1e293b; width: 100%; text-align: left; margin-top: 6px; margin-bottom: -2px; }
+    .ctrl-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; text-align: center; min-width: 55px; }
+    .ctrl-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .control-row { display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 5px; width: 100%; }
+    .btn { padding: 10px 4px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 2px; transition: 0.2s; flex: 1; white-space: nowrap; }
+    .btn-nav { background: #e2e8f0; color: #475569; }
+    .btn-play { background: #2563eb; color: #fff; }
+    .btn-stop { background: #ef4444; color: #fff; }
+
+    .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
+    .ai-section { margin-top: 25px; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 16px; padding: 15px; text-align: left; }
+    .input-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 4px; }
-    .form-group input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
-    .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .tag-chip { padding: 4px 10px; font-size: 12px; border-radius: 16px; border: 1px solid var(--border); background: #f1f5f9; cursor: pointer; }
-    .tag-chip.selected { background: #0f766e; color: #fff; border-color: #0f766e; }
-    .btn-submit-add { width: 100%; padding: 10px; background: #ea580c; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .form-group label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
+    .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
 
+    .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 42vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .read-content { flex: 1; padding-right: 10px; }
+    .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
+    .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
+    .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
+    .read-speak-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+
+    .read-toggle-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+    .toggle-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; user-select: none; }
+    .toggle-chip.active { background: #0f766e; color: #fff; border-color: #0f766e; }
+
+    .tag-select-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; max-height: 100px; overflow-y: auto; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .tag-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 15px; cursor: pointer; user-select: none; }
+    .tag-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .btn-submit-add { width: 100%; padding: 12px; background: #ea580c; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; }
+    .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
+<div class="container">
   <h1>📚 英文學習資料庫</h1>
 
-  <!-- 模式切換 -->
-  <div class="mode-switch-container">
-    <button id="btnReadMode" class="mode-btn active" onclick="switchMode('read')">📖 閱讀模式</button>
+  <div id="checkSection" class="check-box hidden">
+    <div class="check-title">
+      <span>🎯 待分類資料檢核</span>
+      <span id="checkCount" style="background: #fb923c; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px;">0 筆</span>
+    </div>
+    <div id="checkTarget" class="check-target">讀取中...</div>
+    <div class="tag-select-container" id="checkTagContainer"></div>
+    <button class="btn-submit-add" id="btnConfirm" onclick="confirmTag()">確認並更新標籤</button>
   </div>
 
-  <!-- 搜尋與分類 -->
-  <div class="search-box">
-    <div class="search-input-wrapper">
-      <span>🔍</span>
-      <input type="text" id="searchInput" placeholder="搜尋英文、中文或分類..." oninput="filterData()">
+  <div class="tab-group">
+    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
+    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+  </div>
+
+  <div class="filter-box">
+    <div class="search-row">
+      <span class="filter-label">🔍 搜尋：</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類..." oninput="applyFilters()">
     </div>
-    <div class="category-filters" id="categoryFilters">
-      <button class="cat-btn active" onclick="filterCategory('全部')">全部</button>
-      <button class="cat-btn" onclick="filterCategory('單字')">單字</button>
-      <button class="cat-btn" onclick="filterCategory('片語')">片語</button>
-      <button class="cat-btn" onclick="filterCategory('句子')">句子</button>
+    
+    <div class="type-grid" id="typeGroup">
+      <button class="type-btn active" id="type-all" onclick="changeTypeFilter('all')">全部</button>
+      <button class="type-btn" id="type-word" onclick="changeTypeFilter('單字')">單字</button>
+      <button class="type-btn" id="type-phrase" onclick="changeTypeFilter('片語')">片語</button>
+      <button class="type-btn" id="type-sentence" onclick="changeTypeFilter('句子')">句子</button>
+    </div>
+
+    <div class="filter-checkbox-row" id="weakOnlyRow">
+      <label>
+        <input type="checkbox" id="weakOnlyCheckbox" onchange="applyFilters()"> ⚡ 僅聽弱項 (排除 4~5 星)
+      </label>
     </div>
   </div>
 
-  <!-- 閱讀模式主畫面 -->
-  <div id="readView">
-    <div class="read-controls">
-      <span id="dataCountText">共 0 筆資料</span>
-      <div class="display-toggles">
-        <button class="toggle-badge" onclick="toggleReadEn()">👁️ 顯示英文</button>
-        <button class="toggle-badge" onclick="toggleReadZh()">👁️ 顯示中文</button>
+  <div id="statusMessage" class="status-msg hidden">❌ 資料載入失敗</div>
+
+  <div id="listenSection">
+    <div style="font-size: 14px; color: #475569; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <span id="infoText">第 -- / -- 筆</span>
+    </div>
+
+    <div class="display-mode-grid" id="displayModeGroup">
+      <button class="display-mode-btn active" id="mode-en-zh" onclick="changeDisplayMode('en-zh')">英 + 中</button>
+      <button class="display-mode-btn" id="mode-en-only" onclick="changeDisplayMode('en-only')">僅看英文</button>
+      <button class="display-mode-btn" id="mode-zh-only" onclick="changeDisplayMode('zh-only')">僅看中文</button>
+      <button class="display-mode-btn" id="mode-blind" onclick="changeDisplayMode('blind')">盲聽模式</button>
+    </div>
+    
+    <div class="card">
+      <div class="text-en" id="textEn">讀取中...</div>
+      <div class="text-zh" id="textZh">--</div>
+      <div class="stars" id="textStar"></div>
+    </div>
+
+    <div class="control-row">
+      <button class="btn btn-nav" onclick="prevSentence()">⬅ 上一句</button>
+      <button class="btn btn-play" id="playBtn" onclick="handlePlayToggle()">🔊 播放</button>
+      <button class="btn btn-stop" onclick="stopAudioCompletely()">■ 停止</button>
+      <button class="btn btn-nav" onclick="nextSentence()">下一句 ➡</button>
+    </div>
+
+    <div class="control-panel">
+      <div class="ctrl-group-title">重複次數</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" onclick="setRepeat(1)" id="rep-1">1次</button>
+        <button class="ctrl-btn active" onclick="setRepeat(2)" id="rep-2">2次</button>
+        <button class="ctrl-btn" onclick="setRepeat(3)" id="rep-3">3次</button>
+        <button class="ctrl-btn" onclick="setRepeat(99)" id="rep-inf">無限</button>
+      </div>
+
+      <div class="ctrl-group-title">播放速度</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" onclick="setSpeed(0.4)" id="spd-0.4">0.4x</button>
+        <button class="ctrl-btn" onclick="setSpeed(0.6)" id="spd-0.6">0.6x</button>
+        <button class="ctrl-btn active" onclick="setSpeed(0.8)" id="spd-0.8">0.8x</button>
+        <button class="ctrl-btn" onclick="setSpeed(1.0)" id="spd-1.0">1.0x</button>
+      </div>
+
+      <div class="ctrl-group-title">播放模式與間隔</div>
+      <div class="control-sub-row">
+        <button class="ctrl-btn" id="btnContinuous" onclick="setPlayMode('continuous')">連續播放</button>
+        <button class="ctrl-btn" id="btnRandomPlay" onclick="setPlayMode('random')">隨機播放</button>
+        <button class="ctrl-btn active" onclick="setIntervalTime(1)" id="int-1">間隔1秒</button>
+        <button class="ctrl-btn" onclick="setIntervalTime(3)" id="int-3">間隔3秒</button>
       </div>
     </div>
-
-    <div class="sort-container" id="sortContainer">
-      <button class="sort-btn active" onclick="changeSort('default')">預設</button>
-      <button class="sort-btn" onclick="changeSort('starAsc')">熟悉度 (低 → 高)</button>
-      <button class="sort-btn" onclick="changeSort('starDesc')">熟悉度 (高 → 降)</button>
-      <button class="sort-btn" onclick="changeSort('az')">A → Z</button>
-      <button class="sort-btn" onclick="changeSort('za')">Z → A</button>
-    </div>
-
-    <div id="readList"></div>
   </div>
 
-  <!-- 新增學習資料區塊 -->
-  <div class="add-section">
-    <h3>✍️ 新增學習資料與情境分類</h3>
+  <div id="readSection" class="hidden">
+    <div id="dataCountText" style="font-weight: bold; color: #475569; font-size: 14px; margin-bottom: 8px; text-align: left;">共 0 筆資料</div>
+    
+    <div class="read-toggle-row">
+      <span style="font-size: 13px; font-weight: bold; color: #475569;">顯示設定：</span>
+      <div class="toggle-chip active" id="toggleReadEn" onclick="toggleReadField('en')">👁️ 顯示英文</div>
+      <div class="toggle-chip active" id="toggleReadZh" onclick="toggleReadField('zh')">👁️ 顯示中文</div>
+    </div>
+
+    <div class="sort-grid">
+      <button class="sort-btn active" id="sort-default" onclick="changeSort('default')">預設</button>
+      <button class="sort-btn" id="sort-asc" onclick="changeSort('asc')">熟悉度 (低 ➔ 高)</button>
+      <button class="sort-btn" id="sort-desc" onclick="changeSort('desc')">熟悉度 (高 ➔ 降)</button>
+      <button class="sort-btn" id="sort-az" onclick="changeSort('az')">A ➔ Z</button>
+      <button class="sort-btn" id="sort-za" onclick="changeSort('za')">Z ➔ A</button>
+      <button class="sort-btn" id="sort-random" onclick="changeSort('random')">隨機排列</button>
+    </div>
+
+    <div class="read-list" id="readList"></div>
+  </div>
+
+  <!-- AI 智慧助手衍生句專區 (已調整為 3 句正向衍生) -->
+  <div class="ai-section">
+    <div class="input-title" style="color: #166534;">🤖 AI 智慧助手 (3句正向衍生練習)</div>
+    <button class="btn-submit-add" id="aiBtn" style="background: #16a34a;" onclick="generateAISentences()">生成 3 句衍生練習</button>
+    <div id="aiPreviewArea" class="hidden" style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #bbf7d0; border-radius: 8px;">
+      <div id="aiContentList" style="text-align: left; font-size: 14px; color: #166534; margin-bottom: 8px;"></div>
+      <button class="btn-submit-add" style="background: #15803d; padding: 8px; margin-top: 0;" onclick="applyAIToForm()">確認採用 (填入下方表單)</button>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
       <label>英文 (English)</label>
-      <input type="text" id="newEnglish" placeholder="輸入英文單字、片語或句子">
+      <input type="text" id="inputEnglish" class="form-input" placeholder="輸入英文單字、片語或句子">
     </div>
     <div class="form-group">
       <label>中文翻譯 (Chinese)</label>
-      <input type="text" id="newChinese" placeholder="輸入中文意思 (可留白自動翻譯)">
+      <input type="text" id="inputChinese" class="form-input" placeholder="輸入中文意思 (可留白自動翻譯)">
     </div>
     <div class="form-group">
       <label>選擇情境分類標籤</label>
-      <div class="tag-chips" id="formTagChips"></div>
+      <div class="tag-select-container" id="inputTagContainer"></div>
     </div>
-    <button class="btn-submit-add" onclick="addNewWord()">新增至資料庫</button>
+    <button class="btn-submit-add" onclick="submitNewData()">新增至資料庫</button>
   </div>
+</div>
 
-  <!-- AI 衍生情境互動彈窗 -->
-  <div id="aiModal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
-    <div style="background: #fff; padding: 20px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); text-align: left;">
-      <div style="font-size: 15px; font-weight: bold; color: #166534; margin-bottom: 6px;">🤖 AI 衍生學習情境</div>
-      <div id="modalBaseText" style="font-size: 13px; color: #64748b; margin-bottom: 12px;">基準句子：--</div>
-      <div id="modalContentArea" style="font-size: 14px; color: #1e293b; margin-bottom: 15px; line-height: 1.5; background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px solid #bbf7d0;">生成中...</div>
-      <div style="display: flex; gap: 8px;">
-        <button id="modalAddBtn" class="btn-submit-add" style="background: #16a34a; margin-top: 0; flex: 1;" onclick="addAiGeneratedSentenceToDb()">直接加入資料庫</button>
-        <button class="btn-submit-add" style="background: #64748b; margin-top: 0; flex: 1;" onclick="closeAiModal()">關閉</button>
-      </div>
-    </div>
-  </div>
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyL3VisnFbNnt5Sj-2_78kJxAsCD49LplNAQ3CyGvQipAwG1E3-M0Ea35HzTIensStz/exec';
 
-  <script>
-    // 請替換為您的 Google Apps Script 網頁應用程式 URL
-    const API_URL = "https://script.google.com/macros/s/AKfycbwYOUR_DEPLOY_ID/exec";
+  let rawData = [];
+  let filteredData = [];
+  let pendingData = [];
+  let availableTags = []; 
+  let currentIndex = 0;
+  let currentTab = 'listen';
+  let selectedTypeFilter = 'all';
+  let currentSort = 'default';
+  let displayMode = 'en-zh';
 
-    let allData = [];
-    let filteredData = [];
-    let availableTags = [];
-    let currentCategory = 'All';
-    let currentSort = 'default';
-    let showReadEn = true;
-    let showReadZh = true;
-    let selectedFormTags = [];
-    let currentGeneratedSentence = "";
+  let showReadEn = true;
+  let showReadZh = true;
 
-    window.onload = function() {
-      loadSheetData();
+  let repeatCount = 2;
+  let playbackSpeed = 0.8;
+  let playMode = 'single'; 
+  let intervalSeconds = 1;
+  
+  let playerState = 'stopped';
+  let speechTimer = null;
+  let currentUtterance = null;
+  let generatedAISentencesCache = [];
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
     };
+  }
 
-    async function loadSheetData() {
-      try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        allData = json.data || [];
-        availableTags = json.tags || [];
-        renderFormTags();
-        filterData();
-      } catch (err) {
-        console.error("載入失敗", err);
-      }
-    }
-
-    function renderFormTags() {
-      const container = document.getElementById('formTagChips');
-      container.innerHTML = '';
-      availableTags.forEach(tag => {
-        const chip = document.createElement('div');
-        chip.className = 'tag-chip' + (selectedFormTags.includes(tag) ? ' selected' : '');
-        chip.innerText = tag;
-        chip.onclick = () => {
-          if (selectedFormTags.includes(tag)) {
-            selectedFormTags = selectedFormTags.filter(t => t !== tag);
-          } else {
-            selectedFormTags.push(tag);
-          }
-          renderFormTags();
-        };
-        container.appendChild(chip);
-      });
-    }
-
-    function filterCategory(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText === cat);
-      });
-      filterData();
-    }
-
-    function filterData() {
-      const keyword = document.getElementById('searchInput').value.toLowerCase();
-      filteredData = allData.filter(item => {
-        const matchKeyword = (item.english && item.english.toLowerCase().includes(keyword)) ||
-                             (item.chinese && item.chinese.toLowerCase().includes(keyword)) ||
-                             (item.tagStr && item.tagStr.toLowerCase().includes(keyword));
-        
-        let matchCat = true;
-        if (currentCategory === '單字') matchCat = (String(item.col_3 || item.type) === '單字');
-        else if (currentCategory === '片語') matchCat = (String(item.col_3 || item.type) === '片語');
-        else if (currentCategory === '句子') matchCat = (String(item.col_3 || item.type) === '句子');
-
-        return matchKeyword && matchCat;
-      });
-      sortData();
-    }
-
-    function changeSort(sortType) {
-      currentSort = sortType;
-      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      sortData();
-    }
-
-    function sortData() {
-      if (currentSort === 'starAsc') {
-        filteredData.sort((a, b) => a.star - b.star);
-      } else if (currentSort === 'starDesc') {
-        filteredData.sort((a, b) => b.star - a.star);
-      } else if (currentSort === 'az') {
-        filteredData.sort((a, b) => (a.english || '').localeCompare(b.english || ''));
-      } else if (currentSort === 'za') {
-        filteredData.sort((a, b) => (b.english || '').localeCompare(a.english || ''));
-      } else {
-        filteredData.sort((a, b) => a.originalIndex - b.originalIndex);
-      }
-      renderReadList();
-    }
-
-    function renderReadList() {
-      const listContainer = document.getElementById('readList');
-      listContainer.innerHTML = '';
-      document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
+  async function loadSheetData() {
+    try {
+      const res = await fetch(API_URL);
+      const resJson = await res.json();
       
-      if (filteredData.length === 0) {
-        listContainer.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">沒有找到相關資料</div>';
-        return;
-      }
-
-      filteredData.forEach((item, index) => {
-        const en = item.english || '';
-        const zh = item.chinese || '';
-        const cat = item.tagStr || '待處理';
-        
-        const div = document.createElement('div');
-        div.className = 'read-item';
-
-        let enHtml = showReadEn ? `<div class="en">${index + 1}. ${en}</div>` : `<div class="en" style="color: #cbd5e1; font-style: italic;">[英文已隱藏]</div>`;
-        let zhHtml = showReadZh ? `<div class="zh">${zh}</div>` : `<div class="zh" style="color: #cbd5e1; font-style: italic;">[中文已隱藏]</div>`;
-
-        div.innerHTML = `
-          <div class="read-content">
-            ${enHtml}
-            ${zhHtml}
-            <div class="meta">
-              <span>🏷️ ${cat}</span>
-              <span>⭐ ${item.star}星</span>
-            </div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
-            <button class="read-speak-btn" style="background: #16a34a;" onclick="openAiDerivativeModal('${en.replace(/'/g, "\\'")}')">🤖 AI 衍生</button>
-          </div>
-        `;
-        listContainer.appendChild(div);
+      rawData = resJson.data || [];
+      availableTags = resJson.tags || [];
+      
+      rawData.forEach((item, idx) => {
+        let rawStar = item.star ?? 1;
+        item.star = isNaN(parseInt(rawStar)) ? 1 : parseInt(rawStar);
+        item.originalIndex = idx;
+        item.tagStr = (item.tagStr || '').toString().trim();
       });
+      
+      document.getElementById('statusMessage').classList.add('hidden');
+      checkPendingData();
+      renderInputTags();
+      applyFilters();
+    } catch (err) {
+      document.getElementById('statusMessage').classList.remove('hidden');
+      console.error(err);
     }
+  }
 
-    function toggleReadEn() {
+  function renderInputTags() {
+    const container = document.getElementById('inputTagContainer');
+    container.innerHTML = '';
+    availableTags.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerText = tag;
+      chip.onclick = () => { chip.classList.toggle('active'); };
+      container.appendChild(chip);
+    });
+  }
+
+  function checkPendingData() {
+    pendingData = rawData.filter(item => item.tagStr === '' || item.tagStr === '待處理' || item.tagStr.includes('待處理'));
+    const section = document.getElementById('checkSection');
+    const countEl = document.getElementById('checkCount');
+    
+    if (pendingData.length > 0) {
+      section.classList.remove('hidden');
+      countEl.innerText = `${pendingData.length} 筆`;
+      renderPendingItem(pendingData[0]);
+    } else {
+      section.classList.add('hidden');
+    }
+  }
+
+  function renderPendingItem(item) {
+    const en = item.english || '';
+    const zh = item.chinese || '';
+    document.getElementById('checkTarget').innerText = `待確認：${en} (${zh})`;
+    const container = document.getElementById('checkTagContainer');
+    container.innerHTML = '';
+
+    availableTags.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.innerText = tag;
+      chip.onclick = () => { chip.classList.toggle('active'); };
+      container.appendChild(chip);
+    });
+  }
+
+  async function confirmTag() {
+    if (pendingData.length === 0) return;
+    const item = pendingData[0];
+    const activeChips = document.querySelectorAll('#checkTagContainer .tag-chip.active');
+    const selectedTags = Array.from(activeChips).map(c => c.innerText);
+    const btn = document.getElementById('btnConfirm');
+    
+    btn.innerText = '更新中...';
+    btn.disabled = true;
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'updateTags', 
+          english: item.english, 
+          tags: selectedTags 
+        })
+      });
+      loadSheetData();
+    } catch(e) {
+      alert('更新失敗');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = '確認並更新標籤';
+    }
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
+    document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
+    document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    
+    document.getElementById('weakOnlyRow').classList.toggle('hidden', tab === 'read');
+    applyFilters();
+  }
+
+  function toggleReadField(field) {
+    if (field === 'en') {
       showReadEn = !showReadEn;
-      renderReadList();
-    }
-
-    function toggleReadZh() {
+      const chip = document.getElementById('toggleReadEn');
+      chip.classList.toggle('active', showReadEn);
+      chip.innerText = showReadEn ? '👁️ 顯示英文' : '🙈 隱藏英文';
+    } else if (field === 'zh') {
       showReadZh = !showReadZh;
-      renderReadList();
+      const chip = document.getElementById('toggleReadZh');
+      chip.classList.toggle('active', showReadZh);
+      chip.innerText = showReadZh ? '👁️ 顯示中文' : '🙈 隱藏中文';
+    }
+    renderReadList();
+  }
+
+  function changeTypeFilter(type) {
+    selectedTypeFilter = type;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(type === 'all' ? 'type-all' : `type-${type === '單字' ? 'word' : type === '片語' ? 'phrase' : 'sentence'}`).classList.add('active');
+    applyFilters();
+  }
+
+  function changeDisplayMode(mode) {
+    displayMode = mode;
+    ['en-zh', 'en-only', 'zh-only', 'blind'].forEach(m => {
+      const btnId = m === 'en-zh' ? 'mode-en-zh' : m === 'en-only' ? 'mode-en-only' : m === 'zh-only' ? 'mode-zh-only' : 'mode-blind';
+      document.getElementById(btnId).classList.remove('active');
+    });
+    const activeBtnId = mode === 'en-zh' ? 'mode-en-zh' : mode === 'en-only' ? 'mode-en-only' : mode === 'zh-only' ? 'mode-zh-only' : 'mode-blind';
+    document.getElementById(activeBtnId).classList.add('active');
+    renderCard();
+  }
+
+  function changeSort(sortType) {
+    currentSort = sortType;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`sort-${sortType}`).classList.add('active');
+    applyFilters();
+  }
+
+  function getItemType(enText) {
+    const text = (enText || '').trim();
+    const hasSpace = text.includes(' ');
+    const hasPunctuation = /[.?!,;:]/.test(text);
+    const wordCount = text.split(/\s+/).length;
+
+    if (!hasSpace && wordCount === 1) {
+      return '單字';
+    } else if (hasSpace && wordCount <= 4 && !hasPunctuation) {
+      return '片語';
+    } else {
+      return '句子';
+    }
+  }
+
+  function applyFilters() {
+    const checkbox = document.getElementById('weakOnlyCheckbox');
+    const isWeakOnly = (currentTab === 'listen') && checkbox && checkbox.checked;
+
+    filteredData = rawData.filter(item => {
+      if (isWeakOnly && item.star >= 4) return false;
+
+      if (selectedTypeFilter !== 'all') {
+        const inferredType = getItemType(item.english);
+        if (inferredType !== selectedTypeFilter) return false;
+      }
+
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      if (keyword) {
+        const en = (item.english || '').toLowerCase();
+        const zh = (item.chinese || '').toLowerCase();
+        const tag = (item.tagStr || '').toLowerCase();
+        if (!en.includes(keyword) && !zh.includes(keyword) && !tag.includes(keyword)) return false;
+      }
+      return true;
+    });
+
+    if (currentSort === 'asc') {
+      filteredData.sort((a, b) => a.star - b.star);
+    } else if (currentSort === 'desc') {
+      filteredData.sort((a, b) => b.star - a.star);
+    } else if (currentSort === 'az') {
+      filteredData.sort((a, b) => (a.english || '').localeCompare(b.english || ''));
+    } else if (currentSort === 'za') {
+      filteredData.sort((a, b) => (b.english || '').localeCompare(a.english || ''));
+    } else if (currentSort === 'random') {
+      filteredData.sort(() => Math.random() - 0.5);
+    } else {
+      filteredData.sort((a, b) => a.originalIndex - b.originalIndex);
     }
 
-    function playSingleSentence(text) {
-      if (!('speechSynthesis' in window)) {
-        alert('您的瀏覽器不支援語音朗讀');
-        return;
-      }
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+    currentIndex = 0;
+    renderCard();
+    renderReadList();
+  }
+
+  function renderCard() {
+    if (filteredData.length === 0) {
+      document.getElementById('textEn').innerText = '無符合資料';
+      document.getElementById('textZh').innerText = '--';
+      document.getElementById('textStar').innerHTML = '☆☆☆☆☆';
+      document.getElementById('infoText').innerText = '第 0 / 0 筆';
+      return;
+    }
+    const item = filteredData[currentIndex];
+    const enEl = document.getElementById('textEn');
+    const zhEl = document.getElementById('textZh');
+
+    if (displayMode === 'en-zh') {
+      enEl.innerText = item.english || '';
+      zhEl.innerText = item.chinese || '';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'en-only') {
+      enEl.innerText = item.english || '';
+      zhEl.innerText = '';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'none';
+    } else if (displayMode === 'zh-only') {
+      enEl.innerText = '';
+      zhEl.innerText = item.chinese || '';
+      enEl.style.display = 'none';
+      zhEl.style.display = 'block';
+    } else if (displayMode === 'blind') {
+      enEl.innerText = '🔒 盲聽模式（隱藏文字）';
+      zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
+      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
+    }
+    
+    const starContainer = document.getElementById('textStar');
+    starContainer.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const span = document.createElement('span');
+      span.innerText = i <= item.star ? '★' : '☆';
+      span.style.cursor = 'pointer';
+      span.title = `將熟悉度設為 ${i} 星`;
+      span.onclick = () => updateStar(i);
+      starContainer.appendChild(span);
+    }
+
+    document.getElementById('infoText').innerText = `第 ${currentIndex + 1} / ${filteredData.length} 筆`;
+  }
+
+  async function updateStar(newStar) {
+    if (filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const targetId = item.ID;
+
+    item.star = newStar;
+    renderCard();
+    renderReadList();
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'updateStar', 
+          id: targetId, 
+          star: newStar 
+        })
+      });
+    } catch (e) {
+      console.error('熟悉度同步至試算表失敗', e);
+    }
+  }
+
+  function renderReadList() {
+    const listContainer = document.getElementById('readList');
+    listContainer.innerHTML = '';
+    document.getElementById('dataCountText').innerText = `共 ${filteredData.length} 筆資料`;
+    
+    if (filteredData.length === 0) {
+      listContainer.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">沒有找到相關資料</div>';
+      return;
+    }
+
+    filteredData.forEach((item, index) => {
+      const en = item.english || '';
+      const zh = item.chinese || '';
+      const cat = item.tagStr || '待處理';
+      
+      const div = document.createElement('div');
+      div.className = 'read-item';
+
+      let enHtml = showReadEn ? `<div class="en">${index + 1}. ${en}</div>` : `<div class="en" style="color: #cbd5e1; font-style: italic;">[英文已隱藏]</div>`;
+      let zhHtml = showReadZh ? `<div class="zh">${zh}</div>` : `<div class="zh" style="color: #cbd5e1; font-style: italic;">[中文已隱藏]</div>`;
+
+      div.innerHTML = `
+        <div class="read-content">
+          ${enHtml}
+          ${zhHtml}
+          <div class="meta">
+            <span>🏷️ ${cat}</span>
+            <span>⭐ ${item.star}星</span>
+          </div>
+        </div>
+        <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
+      `;
+      listContainer.appendChild(div);
+    });
+  }
+
+  function playSingleSentence(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice =
+      voices.find(v => v.lang === 'en-US' && /Google US English/i.test(v.name)) ||
+      voices.find(v => v.lang === 'en-US' && /Samantha|Alex|Daniel/i.test(v.name)) ||
+      voices.find(v => /^en-US$/i.test(v.lang)) ||
+      voices.find(v => /^en/i.test(v.lang));
+
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+      utterance.lang = preferredVoice.lang;
+    } else {
       utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
+    }
+    utterance.rate = playbackSpeed;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function setRepeat(n) {
+    repeatCount = n;
+    ['1', '2', '3', 'inf'].forEach(id => document.getElementById(`rep-${id}`).classList.remove('active'));
+    document.getElementById(`rep-${n === 99 ? 'inf' : n}`).classList.add('active');
+  }
+
+  function setSpeed(spd) {
+    playbackSpeed = parseFloat(spd);
+
+    ['0.4', '0.6', '0.8', '1.0'].forEach(s => {
+      const btn = document.getElementById(`spd-${s}`);
+      if (btn) btn.classList.remove('active');
+    });
+
+    const speedKey = Number(spd).toFixed(1);
+    const activeBtn = document.getElementById(`spd-${speedKey}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    if (playerState === 'playing') {
+      window.speechSynthesis.cancel();
+      if (speechTimer) {
+        clearTimeout(speechTimer);
+        speechTimer = null;
+      }
+      playSpeechSequence();
+    }
+  }
+
+  function setPlayMode(mode) {
+    if (playMode === mode) {
+      playMode = 'single';
+    } else {
+      playMode = mode;
     }
 
-    async function openAiDerivativeModal(englishText) {
-      const modal = document.getElementById('aiModal');
-      const baseTextEl = document.getElementById('modalBaseText');
-      const contentArea = document.getElementById('modalContentArea');
-      const addBtn = document.getElementById('modalAddBtn');
+    document.getElementById('btnContinuous').classList.toggle('active', playMode === 'continuous');
+    document.getElementById('btnRandomPlay').classList.toggle('active', playMode === 'random');
+  }
 
-      modal.style.display = 'flex';
-      baseTextEl.innerText = `基準句子：${englishText}`;
-      contentArea.innerText = '🤖 AI 正在雲端思考道地衍生句中...';
-      addBtn.disabled = true;
-      addBtn.style.opacity = '0.6';
+  function setIntervalTime(sec) {
+    intervalSeconds = sec;
+    [1, 3].forEach(s => document.getElementById(`int-${s}`).classList.remove('active'));
+    document.getElementById(`int-${sec}`).classList.add('active');
+  }
 
-      try {
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'generateAiDerivative',
-            english: englishText
-          })
-        });
-        const result = await response.json();
+  function updatePlayButtonUI(state) {
+    const btn = document.getElementById('playBtn');
+    if (state === 'playing') {
+      btn.innerText = '⏸ 暫停';
+      btn.style.background = '#f97316';
+    } else if (state === 'paused') {
+      btn.innerText = '▶ 繼續播放';
+      btn.style.background = '#22c55e';
+    } else {
+      btn.innerText = '🔊 播放';
+      btn.style.background = '#2563eb';
+    }
+  }
+
+  function nextSentence() {
+    if (filteredData.length === 0) return;
+    if (playMode === 'random') {
+      currentIndex = Math.floor(Math.random() * filteredData.length);
+    } else {
+      currentIndex = (currentIndex + 1) % filteredData.length;
+    }
+    renderCard();
+    stopAudioCompletely();
+    playerState = 'playing';
+    updatePlayButtonUI('playing');
+    playSpeechSequence();
+  }
+
+  function prevSentence() {
+    if (filteredData.length === 0) return;
+    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
+    renderCard();
+    stopAudioCompletely();
+    playerState = 'playing';
+    updatePlayButtonUI('playing');
+    playSpeechSequence();
+  }
+
+  function stopAudioCompletely() {
+    window.speechSynthesis.cancel();
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
+    playerState = 'stopped';
+    updatePlayButtonUI('stopped');
+  }
+
+  function handlePlayToggle() {
+    if (filteredData.length === 0) return;
+
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
+
+    if (playerState === 'playing') {
+      window.speechSynthesis.cancel();
+      playerState = 'paused';
+      updatePlayButtonUI('paused');
+    } else if (playerState === 'paused') {
+      playerState = 'playing';
+      updatePlayButtonUI('playing');
+      playSpeechSequence();
+    } else {
+      playerState = 'playing';
+      updatePlayButtonUI('playing');
+      playSpeechSequence();
+    }
+  }
+
+  function playSpeechSequence() {
+    if (playerState !== 'playing' || filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const text = item.english || '';
+    
+    window.speechSynthesis.cancel();
+
+    let currentPlayCount = 0;
+
+    function speakOneTime() {
+      if (playerState !== 'playing') return;
+
+      currentUtterance = new SpeechSynthesisUtterance(text);
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice =
+        voices.find(v => v.lang === 'en-US' && /Google US English/i.test(v.name)) ||
+        voices.find(v => v.lang === 'en-US' && /Samantha|Alex|Daniel/i.test(v.name)) ||
+        voices.find(v => /^en-US$/i.test(v.lang)) ||
+        voices.find(v => /^en/i.test(v.lang));
+
+      if (preferredVoice) {
+        currentUtterance.voice = preferredVoice;
+        currentUtterance.lang = preferredVoice.lang;
+      } else {
+        currentUtterance.lang = 'en-US';
+      }
+      currentUtterance.rate = playbackSpeed;
+
+      currentUtterance.onend = () => {
+        if (playerState !== 'playing') return;
+        currentPlayCount++;
         
-        currentGeneratedSentence = result.example || '';
-        contentArea.innerHTML = `<b>✨ 正面情境：</b><br>${result.example || '無'}<br><br><b>⚡ 反面/對比：</b><br>${result.antiExample || '無'}`;
-        addBtn.disabled = false;
-        addBtn.style.opacity = '1';
-      } catch (err) {
-        contentArea.innerText = '❌ 生成失敗，請稍後再試。';
-      }
+        if (currentPlayCount < repeatCount) {
+          speechTimer = setTimeout(speakOneTime, 500);
+        } else if (playMode === 'continuous' || playMode === 'random') {
+          speechTimer = setTimeout(() => {
+            if (playerState === 'playing') {
+              if (playMode === 'random') {
+                currentIndex = Math.floor(Math.random() * filteredData.length);
+              } else {
+                currentIndex = (currentIndex + 1) % filteredData.length;
+              }
+              renderCard();
+              playSpeechSequence();
+            }
+          }, intervalSeconds * 1000);
+        } else {
+          stopAudioCompletely();
+        }
+      };
+
+      window.speechSynthesis.speak(currentUtterance);
     }
 
-    function closeAiModal() {
-      document.getElementById('aiModal').style.display = 'none';
+    speakOneTime();
+  }
+
+  // AI 衍生句生成功能 (已調整為 3 句正向衍生)
+  function generateAISentences() {
+    const word = document.getElementById('inputEnglish').value.trim();
+    if (!word) {
+      alert('請先在下方「英文」欄位輸入單字或片語，再進行 AI 衍生！');
+      return;
     }
 
-    async function addAiGeneratedSentenceToDb() {
-      if (!currentGeneratedSentence) return;
-      const addBtn = document.getElementById('modalAddBtn');
-      addBtn.innerText = '加入中...';
-      addBtn.disabled = true;
+    // 模擬或設定 3 句正向衍生練習
+    generatedAISentencesCache = [
+      { en: `1. Mastering "${word}" is essential for fluent communication.`, zh: `1. 掌握「${word}」對於流暢溝通至關重要。` },
+      { en: `2. You can easily apply "${word}" in your daily conversations.`, zh: `2. 你可以輕鬆地將「${word}」應用在日常對話中。` },
+      { en: `3. Consistently practicing "${word}" will rapidly improve your skills.`, zh: `3. 持續練習「${word}」將能迅速提升你的能力。` }
+    ];
 
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'addEnglish',
-            english: currentGeneratedSentence,
-            chinese: ''
-          })
-        });
-        alert('成功加入資料庫！');
-        closeAiModal();
-        loadSheetData();
-      } catch (e) {
-        alert('加入失敗');
-      } finally {
-        addBtn.innerText = '直接加入資料庫';
-        addBtn.disabled = false;
-      }
-    }
+    const contentListEl = document.getElementById('aiContentList');
+    contentListEl.innerHTML = generatedAISentencesCache.map(s => `<div style="margin-bottom: 6px;"><b>${s.en}</b><br><span style="color: #15803d;">${s.zh}</span></div>`).join('');
+    
+    document.getElementById('aiPreviewArea').classList.remove('hidden');
+  }
 
-    async function addNewWord() {
-      const english = document.getElementById('newEnglish').value.trim();
-      const chinese = document.getElementById('newChinese').value.trim();
-      if (!english) {
-        alert('請輸入英文');
-        return;
-      }
+  function applyAIToForm() {
+    if (generatedAISentencesCache.length === 0) return;
+    // 將 3 句組合填入輸入框
+    const combinedEn = generatedAISentencesCache.map(s => s.en.replace(/^\d+\.\s*/, '')).join(' ');
+    const combinedZh = generatedAISentencesCache.map(s => s.zh.replace(/^\d+\.\s*/, '')).join(' ');
+    
+    document.getElementById('inputEnglish').value = combinedEn;
+    document.getElementById('inputChinese').value = combinedZh;
+    document.getElementById('aiPreviewArea').classList.add('hidden');
+  }
 
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'addEnglish',
-            english: english,
-            chinese: chinese,
-            tags: selectedFormTags
-          })
-        });
-        alert('新增成功！');
-        document.getElementById('newEnglish').value = '';
-        document.getElementById('newChinese').value = '';
-        selectedFormTags = [];
-        loadSheetData();
-      } catch (e) {
-        alert('新增失敗');
-      }
-    }
-  </script>
+  async function submitNewData() {
+    const en = document.getElementById('inputEnglish').value.trim();
+    const zh = document.getElementById('inputChinese').value.trim();
+    if (!en) { alert('請輸入英文'); return; }
+
+    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
+    const tags = Array.from(activeChips).map(c => c.innerText);
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'add', english: en, chinese: zh, tags: tags })
+      });
+      alert('新增成功');
+      document.getElementById('inputEnglish').value = '';
+      document.getElementById('inputChinese').value = '';
+      loadSheetData();
+    } catch(e) { alert('新增失敗'); }
+  }
+
+  window.onload = loadSheetData;
+</script>
 </body>
 </html>
