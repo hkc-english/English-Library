@@ -60,19 +60,28 @@
     .btn-stop { background: #ef4444; color: #fff; }
 
     .input-section { margin-top: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; text-align: left; }
-    .ai-section { margin-top: 25px; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 16px; padding: 15px; text-align: left; }
     .input-title { font-size: 14px; font-weight: bold; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px; }
     .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
 
     .read-list { display: flex; flex-direction: column; gap: 10px; text-align: left; max-height: 42vh; overflow-y: auto; margin-top: 5px; padding-right: 4px; }
-    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .read-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .read-item-main { display: flex; justify-content: space-between; align-items: flex-start; }
     .read-content { flex: 1; padding-right: 10px; }
     .read-item .en { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 4px; line-height: 1.3; word-break: break-word; }
     .read-item .zh { font-size: 14px; color: #64748b; font-weight: 500; word-break: break-word; }
     .read-item .meta { font-size: 11px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
+    
+    .read-btn-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
     .read-speak-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+    .read-ai-btn { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+
+    /* 內嵌 AI 衍生句區塊 (每筆獨立) */
+    .inline-ai-box { background: #f0fdf4; border: 1px dashed #16a34a; border-radius: 8px; padding: 10px; margin-top: 6px; display: none; }
+    .inline-ai-box.show { display: block; }
+    .inline-ai-title { font-size: 12px; font-weight: bold; color: #166534; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .inline-ai-content { font-size: 13px; color: #14532d; line-height: 1.4; }
 
     .read-toggle-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
     .toggle-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; user-select: none; }
@@ -202,16 +211,6 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- AI 智慧助手衍生句專區 (已調整為 3 句正向衍生) -->
-  <div class="ai-section">
-    <div class="input-title" style="color: #166534;">🤖 AI 智慧助手 (3句正向衍生練習)</div>
-    <button class="btn-submit-add" id="aiBtn" style="background: #16a34a;" onclick="generateAISentences()">生成 3 句衍生練習</button>
-    <div id="aiPreviewArea" class="hidden" style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #bbf7d0; border-radius: 8px;">
-      <div id="aiContentList" style="text-align: left; font-size: 14px; color: #166534; margin-bottom: 8px;"></div>
-      <button class="btn-submit-add" style="background: #15803d; padding: 8px; margin-top: 0;" onclick="applyAIToForm()">確認採用 (填入下方表單)</button>
-    </div>
-  </div>
-
   <div class="input-section">
     <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
@@ -254,7 +253,6 @@
   let playerState = 'stopped';
   let speechTimer = null;
   let currentUtterance = null;
-  let generatedAISentencesCache = [];
 
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => {
@@ -495,7 +493,7 @@
       enEl.innerText = '🔒 盲聽模式（隱藏文字）';
       zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
       enEl.style.display = 'block';
-      zhEl.style.display = 'block';
+      enEl.style.display = 'block';
     }
     
     const starContainer = document.getElementById('textStar');
@@ -557,18 +555,50 @@
       let zhHtml = showReadZh ? `<div class="zh">${zh}</div>` : `<div class="zh" style="color: #cbd5e1; font-style: italic;">[中文已隱藏]</div>`;
 
       div.innerHTML = `
-        <div class="read-content">
-          ${enHtml}
-          ${zhHtml}
-          <div class="meta">
-            <span>🏷️ ${cat}</span>
-            <span>⭐ ${item.star}星</span>
+        <div class="read-item-main">
+          <div class="read-content">
+            ${enHtml}
+            ${zhHtml}
+            <div class="meta">
+              <span>🏷️ ${cat}</span>
+              <span>⭐ ${item.star}星</span>
+            </div>
+          </div>
+          <div class="read-btn-group">
+            <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
+            <button class="read-ai-btn" onclick="toggleInlineAI(${index}, '${en.replace(/'/g, "\\'")}')">🤖 AI衍生</button>
           </div>
         </div>
-        <button class="read-speak-btn" onclick="playSingleSentence('${en.replace(/'/g, "\\'")}')">🔊 發音</button>
+        <div class="inline-ai-box" id="ai-box-${index}">
+          <div class="inline-ai-title">
+            <span>✨ 3句內正反情境衍生練習</span>
+            <span style="cursor:pointer;" onclick="toggleInlineAI(${index})">✕</span>
+          </div>
+          <div class="inline-ai-content" id="ai-content-${index}">載入中...</div>
+        </div>
       `;
       listContainer.appendChild(div);
     });
+  }
+
+  // 閱讀模式中每一句旁邊的 AI 衍生切換與 3 句正反情境生成
+  function toggleInlineAI(index, enText) {
+    const box = document.getElementById(`ai-box-${index}`);
+    const contentEl = document.getElementById(`ai-content-${index}`);
+    
+    if (box.classList.contains('show')) {
+      box.classList.remove('show');
+    } else {
+      box.classList.add('show');
+      if (enText) {
+        // 產生 3 句內正反情境（含正向與反向/負面用法）
+        contentEl.innerHTML = `
+          <div style="margin-bottom: 4px;">1. (正向) Successfully mastering <b>${enText}</b> leads to great confidence. <br><span style="color:#166534;">➔ 成功掌握此用法能帶來極大的自信。</span></div>
+          <div style="margin-bottom: 4px;">2. (反向) Failing to apply <b>${enText}</b> correctly often causes misunderstandings. <br><span style="color:#b91c1c;">➔ 無法正確應用往往會造成誤解。</span></div>
+          <div>3. (應用) Even in difficult situations, using <b>${enText}</b> makes communication clearer. <br><span style="color:#166534;">➔ 即使在困難的情況下，使用它也能讓溝通更清晰。</span></div>
+        `;
+      }
+    }
   }
 
   function playSingleSentence(text) {
@@ -765,38 +795,6 @@
     }
 
     speakOneTime();
-  }
-
-  // AI 衍生句生成功能 (已調整為 3 句正向衍生)
-  function generateAISentences() {
-    const word = document.getElementById('inputEnglish').value.trim();
-    if (!word) {
-      alert('請先在下方「英文」欄位輸入單字或片語，再進行 AI 衍生！');
-      return;
-    }
-
-    // 模擬或設定 3 句正向衍生練習
-    generatedAISentencesCache = [
-      { en: `1. Mastering "${word}" is essential for fluent communication.`, zh: `1. 掌握「${word}」對於流暢溝通至關重要。` },
-      { en: `2. You can easily apply "${word}" in your daily conversations.`, zh: `2. 你可以輕鬆地將「${word}」應用在日常對話中。` },
-      { en: `3. Consistently practicing "${word}" will rapidly improve your skills.`, zh: `3. 持續練習「${word}」將能迅速提升你的能力。` }
-    ];
-
-    const contentListEl = document.getElementById('aiContentList');
-    contentListEl.innerHTML = generatedAISentencesCache.map(s => `<div style="margin-bottom: 6px;"><b>${s.en}</b><br><span style="color: #15803d;">${s.zh}</span></div>`).join('');
-    
-    document.getElementById('aiPreviewArea').classList.remove('hidden');
-  }
-
-  function applyAIToForm() {
-    if (generatedAISentencesCache.length === 0) return;
-    // 將 3 句組合填入輸入框
-    const combinedEn = generatedAISentencesCache.map(s => s.en.replace(/^\d+\.\s*/, '')).join(' ');
-    const combinedZh = generatedAISentencesCache.map(s => s.zh.replace(/^\d+\.\s*/, '')).join(' ');
-    
-    document.getElementById('inputEnglish').value = combinedEn;
-    document.getElementById('inputChinese').value = combinedZh;
-    document.getElementById('aiPreviewArea').classList.add('hidden');
   }
 
   async function submitNewData() {
