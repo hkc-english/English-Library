@@ -585,7 +585,7 @@
     });
   }
 
-  // 透過後端 Google Apps Script 呼叫真正的 Gemini API 產生 3 句內正反口語衍生句
+  // 串接真實 Gemini API 並正確解析後端回傳格式
   async function toggleInlineAI(index, enText, category) {
     const box = document.getElementById(`ai-box-${index}`);
     const contentEl = document.getElementById(`ai-content-${index}`);
@@ -605,14 +605,23 @@
             })
           });
           const result = await response.json();
-          if (result && result.derived) {
+          
+          // 修正：檢查後端回傳的結構並安全讀取 derived 陣列
+          let derivedList = [];
+          if (result && result.derived && Array.isArray(result.derived)) {
+            derivedList = result.derived;
+          } else if (Array.isArray(result)) {
+            derivedList = result;
+          }
+
+          if (derivedList.length > 0) {
             let htmlStr = '';
-            result.derived.forEach((item, idx) => {
-              const safeEn = item.en.replace(/'/g, "\\'");
-              const safeZh = item.zh.replace(/'/g, "\\'");
+            derivedList.forEach((item, idx) => {
+              const safeEn = (item.en || '').replace(/'/g, "\\'");
+              const safeZh = (item.zh || '').replace(/'/g, "\\'");
               htmlStr += `
                 <div style="margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;">
-                  <div><b>${idx + 1}. ${item.en}</b><br><span style="color:#166534;">➔ ${item.zh}</span></div>
+                  <div><b>${idx + 1}. ${item.en || ''}</b><br><span style="color:#166534;">➔ ${item.zh || ''}</span></div>
                   <button class="btn-add-derived" onclick="addDerivedToSheet('${safeEn}', '${safeZh}', '${category}')">➕ 加入</button>
                 </div>
               `;
@@ -631,7 +640,7 @@
   // 將選定的衍生句加回 Google Sheet 資料庫
   async function addDerivedToSheet(en, zh, category) {
     try {
-      const res = await fetch(API_URL, {
+      await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({
           action: 'add',
@@ -640,7 +649,6 @@
           tags: category ? [category] : []
         })
       });
-      const result = await res.json();
       alert('已成功加入 Google Sheet 資料庫！');
       loadSheetData();
     } catch(e) {
@@ -855,7 +863,7 @@
     try {
       await fetch(API_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: 'add', english: en, chinese: zh, tags: tags })
+        body: JSON.stringify({ action: 'addEnglish', english: en, chinese: zh, tags: tags })
       });
       alert('新增成功');
       document.getElementById('inputEnglish').value = '';
