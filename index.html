@@ -288,13 +288,28 @@
     };
   }
 
-  // 取得高品質美式英文語音
+  // 取得高品質美式英文語音（強制過濾確保行動裝置也能美式發音）
   function getBestEnglishVoice() {
-    const voices = window.speechSynthesis.getVoices();
-    let voice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
+    const voices = window.speechSynthesis.getVoices() || [];
+    
+    // 1. 優先尋找明確的 en-US 且包含 Google 或 Natural 的高品質美式語音
+    let voice = voices.find(v => (v.lang === 'en-US' || v.lang === 'en_US') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('US English')));
+    
+    // 2. 其次尋找任何 en-US 語音
+    if (!voice) {
+      voice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
+    }
+    
+    // 3. 再其次尋找名稱含美式相關的英文語音
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('United States') || v.name.includes('US') || v.name.includes('America')));
+    }
+    
+    // 4. 最後若真的沒有，才挑選第一個英文語音
     if (!voice) {
       voice = voices.find(v => v.lang.startsWith('en'));
     }
+    
     return voice || null;
   }
 
@@ -720,17 +735,18 @@
     }
 
     try {
+      // 修正：這裡的 action 必須送出 "addEnglish" 讓後端順利接收
       const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'addData',
+          action: 'addEnglish',
           english: pendingDerivedEn,
           chinese: pendingDerivedZh,
           tags: selectedTags
         })
       });
       const json = await res.json();
-      if (json.success || res.ok) {
+      if (json.status === 'success' || json.success || res.ok) {
         alert('成功加入資料庫！');
         closeDerivedModal();
         loadSheetData();
@@ -778,14 +794,14 @@
       const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'addData',
+          action: 'addEnglish',
           english: enInput,
           chinese: zhInput,
           tags: selectedTags
         })
       });
       const json = await res.json();
-      if (json.success || res.ok) {
+      if (json.status === 'success' || json.success || res.ok) {
         alert('新增成功！');
         document.getElementById('inputEnglish').value = '';
         document.getElementById('inputChinese').value = '';
