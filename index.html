@@ -288,7 +288,7 @@
     };
   }
 
-  // 取得高品質美式英文語音（解決機械音問題）
+  // 取得高品質美式英文語音
   function getBestEnglishVoice() {
     const voices = window.speechSynthesis.getVoices();
     let voice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
@@ -710,7 +710,6 @@
     pendingDerivedZh = '';
   }
 
-  // 修復確認加入衍生句（明確帶入 action: 'addData'）
   async function confirmAddDerived() {
     const activeChips = document.querySelectorAll('#modalTagContainer .tag-chip.active');
     const selectedTags = Array.from(activeChips).map(c => c.innerText);
@@ -744,16 +743,30 @@
     }
   }
 
-  // 新增語料
+  // 新增語料（支援中文留白時自動呼叫翻譯）
   async function submitNewData() {
-    const enInput = document.getElementById('inputEnglish').value.trim();
-    const zhInput = document.getElementById('inputChinese').value.trim();
+    let enInput = document.getElementById('inputEnglish').value.trim();
+    let zhInput = document.getElementById('inputChinese').value.trim();
     const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
     const selectedTags = Array.from(activeChips).map(c => c.innerText);
 
     if (!enInput) {
       alert('請至少輸入英文內容');
       return;
+    }
+
+    // 如果中文留白，前端透過公用翻譯 API（或後端）自動取得翻譯
+    if (!zhInput) {
+      try {
+        const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
+        const transJson = await transRes.json();
+        if (transJson && transJson[0]) {
+          zhInput = transJson[0].map(item => item[0]).join('');
+          document.getElementById('inputChinese').value = zhInput; // 填回畫面供使用者確認
+        }
+      } catch (e) {
+        console.warn('自動翻譯失敗，將由後端處理或保持空白', e);
+      }
     }
 
     try {
@@ -768,7 +781,7 @@
       });
       const json = await res.json();
       if (json.success || res.ok) {
-        alert('新增成功！');
+        alert('新增成功！' + (zhInput ? ` (已自動翻譯為: ${zhInput})` : ''));
         document.getElementById('inputEnglish').value = '';
         document.getElementById('inputChinese').value = '';
         document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
@@ -849,7 +862,7 @@
     const text = item.english;
     if (!text) return;
 
-    window.speechSynthesis.cancel(); // 確實清除殘留語音以解決機械音與佇列卡住
+    window.speechSynthesis.cancel();
 
     currentUtterance = new SpeechSynthesisUtterance(text);
     const voice = getBestEnglishVoice();
