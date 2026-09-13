@@ -275,11 +275,8 @@
   let speechTimer = null;
   let currentUtterance = null;
 
-  // 暫存準備加入的衍生句資料
   let pendingDerivedEn = '';
   let pendingDerivedZh = '';
-
-  // 暫存 AI 衍生結果避免重複呼叫
   let aiCache = {};
 
   if ('speechSynthesis' in window) {
@@ -288,28 +285,19 @@
     };
   }
 
-  // 取得高品質美式英文語音（強制過濾確保行動裝置也能美式發音）
+  // 強化版：強制鎖定美式英文語音
   function getBestEnglishVoice() {
     const voices = window.speechSynthesis.getVoices() || [];
-    
-    // 1. 優先尋找明確的 en-US 且包含 Google 或 Natural 的高品質美式語音
     let voice = voices.find(v => (v.lang === 'en-US' || v.lang === 'en_US') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('US English')));
-    
-    // 2. 其次尋找任何 en-US 語音
     if (!voice) {
       voice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
     }
-    
-    // 3. 再其次尋找名稱含美式相關的英文語音
     if (!voice) {
       voice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('United States') || v.name.includes('US') || v.name.includes('America')));
     }
-    
-    // 4. 最後若真的沒有，才挑選第一個英文語音
     if (!voice) {
       voice = voices.find(v => v.lang.startsWith('en'));
     }
-    
     return voice || null;
   }
 
@@ -393,6 +381,7 @@
     try {
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'updateTags', 
           english: item.english, 
@@ -575,6 +564,7 @@
     try {
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'updateStar', 
           id: targetId, 
@@ -658,6 +648,7 @@
         try {
           const response = await fetch(API_URL, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
               action: 'generateAI',
               english: enText
@@ -735,9 +726,9 @@
     }
 
     try {
-      // 修正：這裡的 action 必須送出 "addEnglish" 讓後端順利接收
       const res = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'addEnglish',
           english: pendingDerivedEn,
@@ -759,7 +750,6 @@
     }
   }
 
-  // 離開英文輸入框時自動翻譯並填入中文欄位供使用者預覽/修正
   async function autoTranslateInput() {
     const enInput = document.getElementById('inputEnglish').value.trim();
     const zhInputEl = document.getElementById('inputChinese');
@@ -778,7 +768,6 @@
     }
   }
 
-  // 新增語料
   async function submitNewData() {
     let enInput = document.getElementById('inputEnglish').value.trim();
     let zhInput = document.getElementById('inputChinese').value.trim();
@@ -793,6 +782,7 @@
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'addEnglish',
           english: enInput,
@@ -815,8 +805,6 @@
       alert('連線錯誤');
     }
   }
-
-  // --- 語音播放控制與語音修復 ---
 
   function setRepeat(count) {
     repeatCount = count;
@@ -957,7 +945,6 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  // 初始化載入
   window.onload = loadSheetData;
 </script>
 </body>
