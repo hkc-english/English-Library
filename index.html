@@ -288,6 +288,16 @@
     };
   }
 
+  // 取得高品質美式英文語音（解決機械音問題）
+  function getBestEnglishVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    let voice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en'));
+    }
+    return voice || null;
+  }
+
   async function loadSheetData() {
     try {
       const res = await fetch(API_URL);
@@ -516,12 +526,12 @@
       enEl.innerText = '';
       zhEl.innerText = item.chinese || '';
       enEl.style.display = 'none';
-      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
     } else if (displayMode === 'blind') {
       enEl.innerText = '🔒 盲聽模式（隱藏文字）';
       zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
       enEl.style.display = 'block';
-      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
     }
     
     const starContainer = document.getElementById('textStar');
@@ -696,95 +706,103 @@
 
   function closeDerivedModal() {
     document.getElementById('derivedModal').classList.add('hidden');
+    pendingDerivedEn = '';
+    pendingDerivedZh = '';
   }
 
+  // 修復確認加入衍生句（明確帶入 action: 'addData'）
   async function confirmAddDerived() {
     const activeChips = document.querySelectorAll('#modalTagContainer .tag-chip.active');
     const selectedTags = Array.from(activeChips).map(c => c.innerText);
 
+    if (!pendingDerivedEn) {
+      alert('沒有可加入的衍生句資料');
+      return;
+    }
+
     try {
-      await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'addDerived',
+          action: 'addData',
           english: pendingDerivedEn,
           chinese: pendingDerivedZh,
           tags: selectedTags
         })
       });
-      closeDerivedModal();
-      alert('成功加入資料庫！');
-      loadSheetData();
+      const json = await res.json();
+      if (json.success || res.ok) {
+        alert('成功加入資料庫！');
+        closeDerivedModal();
+        loadSheetData();
+      } else {
+        alert('加入失敗，請稍後再試');
+      }
     } catch (e) {
-      alert('加入失敗');
+      console.error(e);
+      alert('連線錯誤，無法新增');
     }
   }
 
+  // 新增語料
   async function submitNewData() {
-    const en = document.getElementById('inputEnglish').value.trim();
-    const zh = document.getElementById('inputChinese').value.trim();
+    const enInput = document.getElementById('inputEnglish').value.trim();
+    const zhInput = document.getElementById('inputChinese').value.trim();
     const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
-    const tags = Array.from(activeChips).map(c => c.innerText);
+    const selectedTags = Array.from(activeChips).map(c => c.innerText);
 
-    if (!en) {
+    if (!enInput) {
       alert('請至少輸入英文內容');
       return;
     }
 
     try {
-      await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({
           action: 'addData',
-          english: en,
-          chinese: zh,
-          tags: tags
+          english: enInput,
+          chinese: zhInput,
+          tags: selectedTags
         })
       });
-      document.getElementById('inputEnglish').value = '';
-      document.getElementById('inputChinese').value = '';
-      document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
-      alert('新增成功！');
-      loadSheetData();
+      const json = await res.json();
+      if (json.success || res.ok) {
+        alert('新增成功！');
+        document.getElementById('inputEnglish').value = '';
+        document.getElementById('inputChinese').value = '';
+        document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
+        loadSheetData();
+      } else {
+        alert('新增失敗');
+      }
     } catch (e) {
-      alert('新增失敗');
+      console.error(e);
+      alert('連線錯誤');
     }
   }
 
-  function prevSentence() {
-    if (filteredData.length === 0) return;
-    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
-    renderCard();
-  }
-
-  function nextSentence() {
-    if (filteredData.length === 0) return;
-    currentIndex = (currentIndex + 1) % filteredData.length;
-    renderCard();
-  }
+  // --- 語音播放控制與語音修復 ---
 
   function setRepeat(count) {
     repeatCount = count;
-    ['rep-1', 'rep-2', 'rep-3', 'rep-inf'].forEach(id => document.getElementById(id).classList.remove('active'));
-    if (count === 1) document.getElementById('rep-1').classList.add('active');
-    else if (count === 2) document.getElementById('rep-2').classList.add('active');
-    else if (count === 3) document.getElementById('rep-3').classList.add('active');
-    else if (count === 99) document.getElementById('rep-inf').classList.add('active');
+    [1, 2, 3, 99].forEach(c => {
+      const id = c === 99 ? 'rep-inf' : `rep-${c}`;
+      document.getElementById(id).classList.toggle('active', repeatCount === c);
+    });
   }
 
   function setSpeed(speed) {
     playbackSpeed = speed;
-    ['spd-0.4', 'spd-0.6', 'spd-0.8', 'spd-1.0'].forEach(id => document.getElementById(id).classList.remove('active'));
-    if (speed === 0.4) document.getElementById('spd-0.4').classList.add('active');
-    else if (speed === 0.6) document.getElementById('spd-0.6').classList.add('active');
-    else if (speed === 0.8) document.getElementById('spd-0.8').classList.add('active');
-    else if (speed === 1.0) document.getElementById('spd-1.0').classList.add('active');
+    [0.4, 0.6, 0.8, 1.0].forEach(s => {
+      document.getElementById(`spd-${s}`).classList.toggle('active', playbackSpeed === s);
+    });
   }
 
   function setPlayMode(mode) {
     playMode = mode;
     document.getElementById('btnContinuous').classList.toggle('active', mode === 'continuous');
-    document.getElementById('btnRandomPlay', mode === 'random').classList.toggle('active', mode === 'random');
+    document.getElementById('btnRandomPlay').classList.toggle('active', mode === 'random');
   }
 
   function setIntervalTime(sec) {
@@ -795,45 +813,62 @@
 
   function handlePlayToggle() {
     if (playerState === 'playing') {
-      stopAudioCompletely();
+      pauseAudio();
     } else {
-      startAudioPlay();
+      startPlayback();
     }
   }
 
-  function startAudioPlay() {
+  function startPlayback() {
     if (filteredData.length === 0) return;
     playerState = 'playing';
-    document.getElementById('playBtn').innerText = '⏸ 暫停';
+    document.getElementById('playBtn').innerText = '❚❚ 暫停';
     document.getElementById('playBtn').className = 'btn btn-stop';
-    playCurrentItem();
+    playCurrentSentenceWithRepeat(repeatCount);
   }
 
-  function playCurrentItem() {
+  function pauseAudio() {
+    playerState = 'paused';
+    window.speechSynthesis.cancel();
+    clearTimeout(speechTimer);
+    document.getElementById('playBtn').innerText = '▶ 繼續';
+    document.getElementById('playBtn').className = 'btn btn-play';
+  }
+
+  function stopAudioCompletely() {
+    playerState = 'stopped';
+    window.speechSynthesis.cancel();
+    clearTimeout(speechTimer);
+    document.getElementById('playBtn').innerText = '🔊 播放';
+    document.getElementById('playBtn').className = 'btn btn-play';
+  }
+
+  function playCurrentSentenceWithRepeat(remainingRepeat) {
     if (playerState !== 'playing' || filteredData.length === 0) return;
     const item = filteredData[currentIndex];
-    const text = item.english || '';
+    const text = item.english;
+    if (!text) return;
+
+    window.speechSynthesis.cancel(); // 確實清除殘留語音以解決機械音與佇列卡住
 
     currentUtterance = new SpeechSynthesisUtterance(text);
+    const voice = getBestEnglishVoice();
+    if (voice) {
+      currentUtterance.voice = voice;
+    }
     currentUtterance.lang = 'en-US';
     currentUtterance.rate = playbackSpeed;
 
-    let currentRepeat = 0;
     currentUtterance.onend = () => {
-      currentRepeat++;
-      if (currentRepeat < repeatCount && playerState === 'playing') {
+      if (playerState !== 'playing') return;
+      if (remainingRepeat > 1 || repeatCount === 99) {
+        const nextRep = repeatCount === 99 ? 99 : remainingRepeat - 1;
         speechTimer = setTimeout(() => {
-          window.speechSynthesis.speak(currentUtterance);
+          playCurrentSentenceWithRepeat(nextRep);
         }, intervalSeconds * 1000);
-      } else if (playerState === 'playing') {
+      } else {
         speechTimer = setTimeout(() => {
-          if (playMode === 'random') {
-            currentIndex = Math.floor(Math.random() * filteredData.length);
-          } else {
-            currentIndex = (currentIndex + 1) % filteredData.length;
-          }
-          renderCard();
-          playCurrentItem();
+          moveToNextAfterPlay();
         }, intervalSeconds * 1000);
       }
     };
@@ -841,37 +876,55 @@
     window.speechSynthesis.speak(currentUtterance);
   }
 
-  function stopAudioCompletely() {
-    playerState = 'stopped';
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+  function moveToNextAfterPlay() {
+    if (playerState !== 'playing') return;
+    if (playMode === 'random') {
+      currentIndex = Math.floor(Math.random() * filteredData.length);
+    } else {
+      currentIndex++;
+      if (currentIndex >= filteredData.length) {
+        if (playMode === 'continuous') {
+          currentIndex = 0;
+        } else {
+          stopAudioCompletely();
+          return;
+        }
+      }
     }
-    if (speechTimer) {
-      clearTimeout(speechTimer);
-      speechTimer = null;
-    }
-    const playBtn = document.getElementById('playBtn');
-    if (playBtn) {
-      playBtn.innerText = '🔊 播放';
-      playBtn.className = 'btn btn-play';
-    }
+    renderCard();
+    playCurrentSentenceWithRepeat(repeatCount);
+  }
+
+  function nextSentence() {
+    stopAudioCompletely();
+    if (filteredData.length === 0) return;
+    currentIndex = (currentIndex + 1) % filteredData.length;
+    renderCard();
+  }
+
+  function prevSentence() {
+    stopAudioCompletely();
+    if (filteredData.length === 0) return;
+    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
+    renderCard();
   }
 
   function playSingleSentenceFromElement(btn) {
-    const text = btn.dataset.en;
-    if (!text) return;
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = playbackSpeed;
-      window.speechSynthesis.speak(utterance);
+    const enText = btn.dataset.en;
+    if (!enText) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(enText);
+    const voice = getBestEnglishVoice();
+    if (voice) {
+      utterance.voice = voice;
     }
+    utterance.lang = 'en-US';
+    utterance.rate = playbackSpeed;
+    window.speechSynthesis.speak(utterance);
   }
 
-  window.onload = () => {
-    loadSheetData();
-  };
+  // 初始化載入
+  window.onload = loadSheetData;
 </script>
 </body>
 </html>
