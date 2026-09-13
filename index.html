@@ -223,11 +223,11 @@
     <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
       <label>英文 (English)</label>
-      <input type="text" id="inputEnglish" class="form-input" placeholder="輸入英文單字、片語或句子">
+      <input type="text" id="inputEnglish" class="form-input" placeholder="輸入英文單字、片語或句子" onblur="autoTranslateInput()">
     </div>
     <div class="form-group">
       <label>中文翻譯 (Chinese)</label>
-      <input type="text" id="inputChinese" class="form-input" placeholder="輸入中文意思 (可留白自動翻譯)">
+      <input type="text" id="inputChinese" class="form-input" placeholder="輸入中文意思 (輸入英文後自動翻譯)">
     </div>
     <div class="form-group">
       <label>選擇情境分類標籤</label>
@@ -743,7 +743,26 @@
     }
   }
 
-  // 新增語料（支援中文留白時自動呼叫翻譯）
+  // 離開英文輸入框時自動翻譯並填入中文欄位供使用者預覽/修正
+  async function autoTranslateInput() {
+    const enInput = document.getElementById('inputEnglish').value.trim();
+    const zhInputEl = document.getElementById('inputChinese');
+    
+    if (enInput && !zhInputEl.value.trim()) {
+      try {
+        const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
+        const transJson = await transRes.json();
+        if (transJson && transJson[0]) {
+          const translatedText = transJson[0].map(item => item[0]).join('');
+          zhInputEl.value = translatedText;
+        }
+      } catch (e) {
+        console.warn('即時自動翻譯失敗', e);
+      }
+    }
+  }
+
+  // 新增語料
   async function submitNewData() {
     let enInput = document.getElementById('inputEnglish').value.trim();
     let zhInput = document.getElementById('inputChinese').value.trim();
@@ -753,20 +772,6 @@
     if (!enInput) {
       alert('請至少輸入英文內容');
       return;
-    }
-
-    // 如果中文留白，前端透過公用翻譯 API（或後端）自動取得翻譯
-    if (!zhInput) {
-      try {
-        const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
-        const transJson = await transRes.json();
-        if (transJson && transJson[0]) {
-          zhInput = transJson[0].map(item => item[0]).join('');
-          document.getElementById('inputChinese').value = zhInput; // 填回畫面供使用者確認
-        }
-      } catch (e) {
-        console.warn('自動翻譯失敗，將由後端處理或保持空白', e);
-      }
     }
 
     try {
@@ -781,7 +786,7 @@
       });
       const json = await res.json();
       if (json.success || res.ok) {
-        alert('新增成功！' + (zhInput ? ` (已自動翻譯為: ${zhInput})` : ''));
+        alert('新增成功！');
         document.getElementById('inputEnglish').value = '';
         document.getElementById('inputChinese').value = '';
         document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
