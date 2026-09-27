@@ -76,6 +76,8 @@
     .read-btn-group { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
     .read-speak-btn { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
     .read-ai-btn { background: #16a34a; color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+    .read-del-btn { background: #ef4444; color: #fff; border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; margin-top: 2px; }
+    .read-del-btn:hover { background: #dc2626; }
 
     .inline-ai-box { background: #f0fdf4; border: 1px dashed #16a34a; border-radius: 8px; padding: 10px; margin-top: 6px; display: none; }
     .inline-ai-box.show { display: block; }
@@ -93,7 +95,9 @@
     .tag-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; border-radius: 15px; cursor: pointer; user-select: none; }
     .tag-chip.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-    .btn-submit-add { width: 100%; padding: 12px; background: #ea580c; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; }
+    .btn-submit-add { width: 100%; padding: 12px; background: #ea580c; color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+    .btn-submit-add:disabled { background: #cbd5e1; cursor: not-allowed; }
+    
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
 
@@ -233,7 +237,7 @@
       <label>選擇情境分類標籤</label>
       <div class="tag-select-container" id="inputTagContainer"></div>
     </div>
-    <button class="btn-submit-add" onclick="submitNewData()">新增至資料庫</button>
+    <button class="btn-submit-add" id="submitBtn" onclick="submitNewData()">新增至資料庫</button>
   </div>
 </div>
 
@@ -530,7 +534,7 @@
       enEl.innerText = '';
       zhEl.innerText = item.chinese || '';
       enEl.style.display = 'none';
-      zhEl.style.display = 'block';
+      enEl.style.display = 'block';
     } else if (displayMode === 'blind') {
       enEl.innerText = '🔒 盲聽模式（隱藏文字）';
       zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
@@ -610,6 +614,7 @@
           <div class="read-btn-group">
             <button class="read-speak-btn" onclick="playSingleSentenceFromElement(this)">🔊 發音</button>
             <button class="read-ai-btn" onclick="toggleInlineAI(${index}, this)">🤖 AI衍生</button>
+            <button class="read-del-btn" onclick="deleteSentence('${item.ID}', '${en.replace(/'/g, "\\'")}')">🗑️ 刪除</button>
           </div>
         </div>
         <div class="inline-ai-box" id="ai-box-${index}">
@@ -621,11 +626,35 @@
         </div>
       `;
       div.querySelector('.read-speak-btn').dataset.en = en;
-      const aiBtn = div.querySelector('.read-ai-btn');
-      aiBtn.dataset.en = en;
       
       listContainer.appendChild(div);
     });
+  }
+
+  async function deleteSentence(id, enText) {
+    if (!confirm(`確定要刪除這筆資料嗎？\n"${enText}"`)) return;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'deleteEnglish',
+          id: id,
+          english: enText
+        })
+      });
+      const json = await res.json();
+      if (json.status === 'success' || json.success || res.ok) {
+        alert('刪除成功！');
+        loadSheetData();
+      } else {
+        alert('刪除失敗，請檢查後端');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('刪除連線錯誤');
+    }
   }
 
   async function toggleInlineAI(index, btnElement) {
@@ -773,11 +802,16 @@
     let zhInput = document.getElementById('inputChinese').value.trim();
     const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
     const selectedTags = Array.from(activeChips).map(c => c.innerText);
+    const submitBtn = document.getElementById('submitBtn');
 
     if (!enInput) {
       alert('請至少輸入英文內容');
       return;
     }
+
+    // 防呆：立刻將按鈕鎖定，避免連點
+    submitBtn.disabled = true;
+    submitBtn.innerText = '新增中...';
 
     try {
       const res = await fetch(API_URL, {
@@ -791,7 +825,10 @@
         })
       });
       const json = await res.json();
-      if (json.status === 'success' || json.success || res.ok) {
+      
+      if (json.status === 'duplicate') {
+        alert('⚠️ 系統偵測到此英文句子已經存在資料庫中，已幫您阻擋重複新增！');
+      } else if (json.status === 'success' || json.success || res.ok) {
         alert('新增成功！');
         document.getElementById('inputEnglish').value = '';
         document.getElementById('inputChinese').value = '';
@@ -803,6 +840,10 @@
     } catch (e) {
       console.error(e);
       alert('連線錯誤');
+    } finally {
+      // 恢復按鈕狀態
+      submitBtn.disabled = false;
+      submitBtn.innerText = '新增至資料庫';
     }
   }
 
