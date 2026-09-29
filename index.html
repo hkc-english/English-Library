@@ -15,8 +15,8 @@
     
     h1 { font-size: 22px; color: #1e293b; margin-top: 5px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     
-    .tab-group { display: flex; gap: 12px; margin-bottom: 15px; }
-    .tab-btn { flex: 1; padding: 12px; font-size: 15px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .tab-group { display: flex; gap: 8px; margin-bottom: 15px; }
+    .tab-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: bold; border: 2px solid #2563eb; background: #fff; color: #2563eb; border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
     .tab-btn.active { background: #2563eb; color: #fff; }
 
     .filter-box { background: #edf2f7; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; }
@@ -83,9 +83,6 @@
     .inline-ai-box.show { display: block; }
     .inline-ai-title { font-size: 12px; font-weight: bold; color: #166534; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .inline-ai-content { font-size: 13px; color: #14532d; line-height: 1.4; }
-    
-    .btn-add-derived { background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; margin-left: 6px; }
-    .btn-add-derived:hover { background: #1d4ed8; }
 
     .read-toggle-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
     .toggle-chip { padding: 6px 12px; font-size: 12px; font-weight: bold; border: 1px solid #cbd5e1; background: #fff; color: #475569; border-radius: 8px; cursor: pointer; user-select: none; }
@@ -101,11 +98,21 @@
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
 
-    /* 彈跳視窗樣式 */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-card { background: #fff; width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; text-align: left; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-    .modal-title { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 10px; }
-    .modal-actions { display: flex; gap: 8px; margin-top: 15px; }
+    /* AI 家教聊天室樣式 */
+    .ai-chat-container { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+    .chat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px; height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; word-break: break-word; }
+    .chat-bubble.user { background: #2563eb; color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .chat-bubble.ai { background: #fff; color: #1e293b; border: 1px solid #cbd5e1; align-self: flex-start; border-bottom-left-radius: 2px; }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; outline: none; }
+    .btn-chat-send { background: #2563eb; color: #fff; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; cursor: pointer; }
+    .btn-mic { background: #059669; color: #fff; border: none; border-radius: 10px; padding: 0 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .btn-mic.recording { background: #dc2626; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+    
+    .blindspot-card { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px; margin-top: 10px; font-size: 13px; color: #92400e; }
+    .blindspot-title { font-weight: bold; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -124,11 +131,12 @@
   </div>
 
   <div class="tab-group">
-    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力模式</button>
-    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀模式</button>
+    <button class="tab-btn active" id="btn-tab-listen" onclick="switchTab('listen')">🎧 聽力</button>
+    <button class="tab-btn" id="btn-tab-read" onclick="switchTab('read')">📖 閱讀</button>
+    <button class="tab-btn" id="btn-tab-aichat" onclick="switchTab('aichat')">🤖 AI家教</button>
   </div>
 
-  <div class="filter-box">
+  <div class="filter-box" id="filterBoxContainer">
     <div class="search-row">
       <span class="filter-label">🔍 搜尋：</span>
       <input type="text" id="searchInput" class="search-input" placeholder="搜尋英文、中文或分類..." oninput="applyFilters()">
@@ -223,7 +231,25 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <div class="input-section">
+  <!-- AI 家教聊天畫面 (新加入) -->
+  <div id="aiChatSection" class="ai-chat-container hidden">
+    <div style="font-size: 13px; font-weight: bold; color: #475569; text-align: left;">
+      💬 隨時中英夾雜對話，AI 家教隨時陪練與糾正
+    </div>
+    <div class="chat-box" id="chatBox">
+      <div class="chat-bubble ai">Hi！我是你的專屬生活美語教練。今天想聊點什麼？你可以用中文、英文或中英夾雜跟我對話，或點擊下方麥克風用講的喔！</div>
+    </div>
+    
+    <div id="blindSpotContainer"></div>
+
+    <div class="chat-input-row">
+      <button class="btn-mic" id="micBtn" onclick="toggleSpeechRecognition()" title="語音輸入">🎤 說話</button>
+      <input type="text" id="chatInput" class="chat-input" placeholder="輸入你想說的話（支援中英夾雜）..." onkeypress="handleChatKeypress(event)">
+      <button class="btn-chat-send" onclick="sendChatMessage()">送出</button>
+    </div>
+  </div>
+
+  <div class="input-section" id="inputSectionBlock">
     <div class="input-title">✍️ 新增學習資料與情境分類</div>
     <div class="form-group">
       <label>英文 (English)</label>
@@ -238,19 +264,6 @@
       <div class="tag-select-container" id="inputTagContainer"></div>
     </div>
     <button class="btn-submit-add" id="submitBtn" onclick="submitNewData()">新增至資料庫</button>
-  </div>
-</div>
-
-<!-- 彈出視窗：加入衍生句時選擇標籤 -->
-<div id="derivedModal" class="modal-overlay hidden">
-  <div class="modal-card">
-    <div class="modal-title">📌 選擇衍生句的情境分類</div>
-    <div style="font-size:13px; color:#475569; margin-bottom:8px;" id="modalTargetText"></div>
-    <div class="tag-select-container" id="modalTagContainer"></div>
-    <div class="modal-actions">
-      <button class="btn btn-nav" onclick="closeDerivedModal()">取消</button>
-      <button class="btn btn-play" onclick="confirmAddDerived()">確認加入</button>
-    </div>
   </div>
 </div>
 
@@ -278,31 +291,60 @@
   let playerState = 'stopped';
   let speechTimer = null;
   let currentUtterance = null;
-
-  let pendingDerivedEn = '';
-  let pendingDerivedZh = '';
   let aiCache = {};
 
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
+  // 語音辨識相關變數
+  let recognition = null;
+  let isRecording = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US'; // 預設支援英文與混和辨識
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const speechToText = event.results[0][0].transcript;
+      document.getElementById('chatInput').value = speechToText;
+      stopSpeechRecognitionUI();
+      sendChatMessage(); // 辨識完直接送出
+    };
+
+    recognition.onerror = () => {
+      stopSpeechRecognitionUI();
+    };
+
+    recognition.onend = () => {
+      stopSpeechRecognitionUI();
     };
   }
 
-  // 強化版：強制鎖定美式英文語音
-  function getBestEnglishVoice() {
-    const voices = window.speechSynthesis.getVoices() || [];
-    let voice = voices.find(v => (v.lang === 'en-US' || v.lang === 'en_US') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('US English')));
-    if (!voice) {
-      voice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
+  function toggleSpeechRecognition() {
+    if (!recognition) {
+      alert('您的瀏覽器不支援語音辨識功能，請使用 Chrome 瀏覽器。');
+      return;
     }
-    if (!voice) {
-      voice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('United States') || v.name.includes('US') || v.name.includes('America')));
+    if (isRecording) {
+      recognition.stop();
+    } else {
+      try {
+        recognition.start();
+        isRecording = true;
+        const micBtn = document.getElementById('micBtn');
+        micBtn.classList.add('recording');
+        micBtn.innerText = '聆聽中...';
+      } catch(e) {
+        isRecording = false;
+      }
     }
-    if (!voice) {
-      voice = voices.find(v => v.lang.startsWith('en'));
-    }
-    return voice || null;
+  }
+
+  function stopSpeechRecognitionUI() {
+    isRecording = false;
+    const micBtn = document.getElementById('micBtn');
+    micBtn.classList.remove('recording');
+    micBtn.innerText = '🎤 說話';
   }
 
   async function loadSheetData() {
@@ -405,12 +447,113 @@
     currentTab = tab;
     document.getElementById('btn-tab-listen').classList.toggle('active', tab === 'listen');
     document.getElementById('btn-tab-read').classList.toggle('active', tab === 'read');
+    document.getElementById('btn-tab-aichat').classList.toggle('active', tab === 'aichat');
+
     document.getElementById('listenSection').classList.toggle('hidden', tab !== 'listen');
     document.getElementById('readSection').classList.toggle('hidden', tab !== 'read');
+    document.getElementById('aiChatSection').classList.toggle('hidden', tab !== 'aichat');
     
-    document.getElementById('weakOnlyRow').classList.toggle('hidden', tab === 'read');
-    applyFilters();
+    document.getElementById('filterBoxContainer').classList.toggle('hidden', tab === 'aichat');
+    document.getElementById('inputSectionBlock').classList.toggle('hidden', tab === 'aichat');
+
+    if (tab !== 'aichat') {
+      applyFilters();
+    }
   }
+
+  // ===== AI 家教聊天室互動邏輯 (新加入) =====
+  function handleChatKeypress(e) {
+    if (e.key === 'Enter') {
+      sendChatMessage();
+    }
+  }
+
+  async function sendChatMessage() {
+    const inputEl = document.getElementById('chatInput');
+    const msg = inputEl.value.trim();
+    if (!msg) return;
+
+    appendChatBubble(msg, 'user');
+    inputEl.value = '';
+
+    const chatBox = document.getElementById('chatBox');
+    const loadingId = 'loading-' + Date.now();
+    const loadingBubble = document.createElement('div');
+    loadingBubble.className = 'chat-bubble ai';
+    loadingBubble.id = loadingId;
+    loadingBubble.innerHTML = '🤖 AI 家教正在思考中...';
+    chatBox.appendChild(loadingBubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'aiChat',
+          message: msg
+        })
+      });
+      const data = await res.json();
+      
+      const loadingEl = document.getElementById(loadingId);
+      if (loadingEl) loadingEl.remove();
+
+      if (data.success) {
+        appendChatBubble(data.reply, 'ai', true);
+        if (data.blindSpot && data.blindSpot !== '無') {
+          renderBlindSpot(data.blindSpot);
+        }
+      } else {
+        appendChatBubble('抱歉，發生了一點錯誤，請再試一次。', 'ai');
+      }
+    } catch (e) {
+      const loadingEl = document.getElementById(loadingId);
+      if (loadingEl) loadingEl.remove();
+      appendChatBubble('網路連線失敗，請稍後再試。', 'ai');
+    }
+  }
+
+  function appendChatBubble(text, sender, speakable = false) {
+    const chatBox = document.getElementById('chatBox');
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${sender}`;
+    bubble.innerHTML = text;
+
+    if (sender === 'ai' && speakable) {
+      const speakBtn = document.createElement('button');
+      speakBtn.className = 'read-speak-btn';
+      speakBtn.style.marginTop = '6px';
+      speakBtn.innerText = '🔊 讀取語音';
+      speakBtn.onclick = () => speakText(text.replace(/<[^>]*>?/gm, ''));
+      bubble.appendChild(document.createElement('br'));
+      bubble.appendChild(speakBtn);
+    }
+
+    chatBox.appendChild(bubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function renderBlindSpot(spotText) {
+    const container = document.getElementById('blindSpotContainer');
+    container.innerHTML = `
+      <div class="blindspot-card">
+        <div class="blindspot-title">💡 今日學習盲點與教練建議</div>
+        <div>${spotText}</div>
+      </div>
+    `;
+  }
+
+  function speakText(text) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+  // ==========================================
 
   function toggleReadField(field) {
     if (field === 'en') {
@@ -534,7 +677,7 @@
       enEl.innerText = '';
       zhEl.innerText = item.chinese || '';
       enEl.style.display = 'none';
-      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
     } else if (displayMode === 'blind') {
       enEl.innerText = '🔒 盲聽模式（隱藏文字）';
       zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
@@ -657,336 +800,9 @@
     }
   }
 
-  async function toggleInlineAI(index, btnElement) {
-    const box = document.getElementById(`ai-box-${index}`);
-    const contentEl = document.getElementById(`ai-content-${index}`);
-    
-    if (box.classList.contains('show')) {
-      box.classList.remove('show');
-    } else {
-      box.classList.add('show');
-      if (btnElement && btnElement.dataset.en) {
-        const enText = btnElement.dataset.en;
-        
-        if (aiCache[enText]) {
-          renderAIContent(index, aiCache[enText]);
-          return;
-        }
-
-        contentEl.innerHTML = '🤖 Gemini 正在雲端思考口語情境...';
-        try {
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-              action: 'generateAI',
-              english: enText
-            })
-          });
-          const result = await response.json();
-          
-          let derivedList = [];
-          if (result && result.derived && Array.isArray(result.derived)) {
-            derivedList = result.derived;
-          } else if (Array.isArray(result)) {
-            derivedList = result;
-          }
-
-          if (derivedList.length > 0) {
-            aiCache[enText] = derivedList;
-            renderAIContent(index, derivedList);
-          } else {
-            contentEl.innerHTML = '❌ 產生失敗，請稍後再試';
-          }
-        } catch (e) {
-          contentEl.innerHTML = '❌ 連線錯誤，請檢查網路或後端設定';
-        }
-      }
-    }
-  }
-
-  function renderAIContent(index, derivedList) {
-    const contentEl = document.getElementById(`ai-content-${index}`);
-    let htmlStr = '';
-    derivedList.forEach((item, idx) => {
-      const safeEn = (item.en || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const safeZh = (item.zh || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      htmlStr += `
-        <div style="margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;">
-          <div><b>${idx + 1}. ${item.en || ''}</b><br><span style="color:#166534;">➔ ${item.zh || ''}</span></div>
-          <button class="btn-add-derived" onclick="openDerivedModalFromParams('${safeEn}', '${safeZh}')">➕ 加入</button>
-        </div>
-      `;
-    });
-    contentEl.innerHTML = htmlStr;
-  }
-
-  function openDerivedModalFromParams(en, zh) {
-    pendingDerivedEn = en;
-    pendingDerivedZh = zh;
-    document.getElementById('modalTargetText').innerText = `句子：${en} (${zh})`;
-    
-    const container = document.getElementById('modalTagContainer');
-    container.innerHTML = '';
-    availableTags.forEach(tag => {
-      const chip = document.createElement('div');
-      chip.className = 'tag-chip';
-      chip.innerText = tag;
-      chip.onclick = () => { chip.classList.toggle('active'); };
-      container.appendChild(chip);
-    });
-
-    document.getElementById('derivedModal').classList.remove('hidden');
-  }
-
-  function closeDerivedModal() {
-    document.getElementById('derivedModal').classList.add('hidden');
-    pendingDerivedEn = '';
-    pendingDerivedZh = '';
-  }
-
-  async function confirmAddDerived() {
-    const activeChips = document.querySelectorAll('#modalTagContainer .tag-chip.active');
-    const selectedTags = Array.from(activeChips).map(c => c.innerText);
-
-    if (!pendingDerivedEn) {
-      alert('沒有可加入的衍生句資料');
-      return;
-    }
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'addEnglish',
-          english: pendingDerivedEn,
-          chinese: pendingDerivedZh,
-          tags: selectedTags
-        })
-      });
-      const json = await res.json();
-      if (json.status === 'success' || json.success || res.ok) {
-        alert('成功加入資料庫！');
-        closeDerivedModal();
-        loadSheetData();
-      } else {
-        alert('加入失敗，請稍後再試');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('連線錯誤，無法新增');
-    }
-  }
-
-  async function autoTranslateInput() {
-    const enInput = document.getElementById('inputEnglish').value.trim();
-    const zhInputEl = document.getElementById('inputChinese');
-    
-    if (enInput && !zhInputEl.value.trim()) {
-      try {
-        const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
-        const transJson = await transRes.json();
-        if (transJson && transJson[0]) {
-          const translatedText = transJson[0].map(item => item[0]).join('');
-          zhInputEl.value = translatedText;
-        }
-      } catch (e) {
-        console.warn('即時自動翻譯失敗', e);
-      }
-    }
-  }
-
-  async function submitNewData() {
-    let enInput = document.getElementById('inputEnglish').value.trim();
-    let zhInput = document.getElementById('inputChinese').value.trim();
-    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
-    const selectedTags = Array.from(activeChips).map(c => c.innerText);
-    const submitBtn = document.getElementById('submitBtn');
-
-    if (!enInput) {
-      alert('請至少輸入英文內容');
-      return;
-    }
-
-    // 防呆：立刻將按鈕鎖定，避免連點
-    submitBtn.disabled = true;
-    submitBtn.innerText = '新增中...';
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'addEnglish',
-          english: enInput,
-          chinese: zhInput,
-          tags: selectedTags
-        })
-      });
-      const json = await res.json();
-      
-      if (json.status === 'duplicate') {
-        alert('⚠️ 系統偵測到此英文句子已經存在資料庫中，已幫您阻擋重複新增！');
-      } else if (json.status === 'success' || json.success || res.ok) {
-        alert('新增成功！');
-        document.getElementById('inputEnglish').value = '';
-        document.getElementById('inputChinese').value = '';
-        document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
-        loadSheetData();
-      } else {
-        alert('新增失敗');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('連線錯誤');
-    } finally {
-      // 恢復按鈕狀態
-      submitBtn.disabled = false;
-      submitBtn.innerText = '新增至資料庫';
-    }
-  }
-
-  function setRepeat(count) {
-    repeatCount = count;
-    [1, 2, 3, 99].forEach(c => {
-      const id = c === 99 ? 'rep-inf' : `rep-${c}`;
-      document.getElementById(id).classList.toggle('active', repeatCount === c);
-    });
-  }
-
-  function setSpeed(speed) {
-    playbackSpeed = speed;
-    [0.4, 0.6, 0.8, 1.0].forEach(s => {
-      document.getElementById(`spd-${s}`).classList.toggle('active', playbackSpeed === s);
-    });
-  }
-
-  function setPlayMode(mode) {
-    playMode = mode;
-    document.getElementById('btnContinuous').classList.toggle('active', mode === 'continuous');
-    document.getElementById('btnRandomPlay').classList.toggle('active', mode === 'random');
-  }
-
-  function setIntervalTime(sec) {
-    intervalSeconds = sec;
-    document.getElementById('int-1').classList.toggle('active', sec === 1);
-    document.getElementById('int-3').classList.toggle('active', sec === 3);
-  }
-
-  function handlePlayToggle() {
-    if (playerState === 'playing') {
-      pauseAudio();
-    } else {
-      startPlayback();
-    }
-  }
-
-  function startPlayback() {
-    if (filteredData.length === 0) return;
-    playerState = 'playing';
-    document.getElementById('playBtn').innerText = '❚❚ 暫停';
-    document.getElementById('playBtn').className = 'btn btn-stop';
-    playCurrentSentenceWithRepeat(repeatCount);
-  }
-
-  function pauseAudio() {
-    playerState = 'paused';
-    window.speechSynthesis.cancel();
-    clearTimeout(speechTimer);
-    document.getElementById('playBtn').innerText = '▶ 繼續';
-    document.getElementById('playBtn').className = 'btn btn-play';
-  }
-
-  function stopAudioCompletely() {
-    playerState = 'stopped';
-    window.speechSynthesis.cancel();
-    clearTimeout(speechTimer);
-    document.getElementById('playBtn').innerText = '🔊 播放';
-    document.getElementById('playBtn').className = 'btn btn-play';
-  }
-
-  function playCurrentSentenceWithRepeat(remainingRepeat) {
-    if (playerState !== 'playing' || filteredData.length === 0) return;
-    const item = filteredData[currentIndex];
-    const text = item.english;
-    if (!text) return;
-
-    window.speechSynthesis.cancel();
-
-    currentUtterance = new SpeechSynthesisUtterance(text);
-    const voice = getBestEnglishVoice();
-    if (voice) {
-      currentUtterance.voice = voice;
-    }
-    currentUtterance.lang = 'en-US';
-    currentUtterance.rate = playbackSpeed;
-
-    currentUtterance.onend = () => {
-      if (playerState !== 'playing') return;
-      if (remainingRepeat > 1 || repeatCount === 99) {
-        const nextRep = repeatCount === 99 ? 99 : remainingRepeat - 1;
-        speechTimer = setTimeout(() => {
-          playCurrentSentenceWithRepeat(nextRep);
-        }, intervalSeconds * 1000);
-      } else {
-        speechTimer = setTimeout(() => {
-          moveToNextAfterPlay();
-        }, intervalSeconds * 1000);
-      }
-    };
-
-    window.speechSynthesis.speak(currentUtterance);
-  }
-
-  function moveToNextAfterPlay() {
-    if (playerState !== 'playing') return;
-    if (playMode === 'random') {
-      currentIndex = Math.floor(Math.random() * filteredData.length);
-    } else {
-      currentIndex++;
-      if (currentIndex >= filteredData.length) {
-        if (playMode === 'continuous') {
-          currentIndex = 0;
-        } else {
-          stopAudioCompletely();
-          return;
-        }
-      }
-    }
-    renderCard();
-    playCurrentSentenceWithRepeat(repeatCount);
-  }
-
-  function nextSentence() {
-    stopAudioCompletely();
-    if (filteredData.length === 0) return;
-    currentIndex = (currentIndex + 1) % filteredData.length;
-    renderCard();
-  }
-
-  function prevSentence() {
-    stopAudioCompletely();
-    if (filteredData.length === 0) return;
-    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
-    renderCard();
-  }
-
-  function playSingleSentenceFromElement(btn) {
-    const enText = btn.dataset.en;
-    if (!enText) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(enText);
-    const voice = getBestEnglishVoice();
-    if (voice) {
-      utterance.voice = voice;
-    }
-    utterance.lang = 'en-US';
-    utterance.rate = playbackSpeed;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  window.onload = loadSheetData;
+  // 載入初始資料
+  loadSheetData();
 </script>
+
 </body>
 </html>
