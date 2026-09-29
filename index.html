@@ -231,7 +231,7 @@
     <div class="read-list" id="readList"></div>
   </div>
 
-  <!-- AI 家教聊天畫面 (新加入) -->
+  <!-- AI 家教聊天畫面 -->
   <div id="aiChatSection" class="ai-chat-container hidden">
     <div style="font-size: 13px; font-weight: bold; color: #475569; text-align: left;">
       💬 隨時中英夾雜對話，AI 家教隨時陪練與糾正
@@ -293,14 +293,13 @@
   let currentUtterance = null;
   let aiCache = {};
 
-  // 語音辨識相關變數
   let recognition = null;
   let isRecording = false;
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
-    recognition.lang = 'en-US'; // 預設支援英文與混和辨識
+    recognition.lang = 'en-US';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -308,16 +307,11 @@
       const speechToText = event.results[0][0].transcript;
       document.getElementById('chatInput').value = speechToText;
       stopSpeechRecognitionUI();
-      sendChatMessage(); // 辨識完直接送出
+      sendChatMessage();
     };
 
-    recognition.onerror = () => {
-      stopSpeechRecognitionUI();
-    };
-
-    recognition.onend = () => {
-      stopSpeechRecognitionUI();
-    };
+    recognition.onerror = () => { stopSpeechRecognitionUI(); };
+    recognition.onend = () => { stopSpeechRecognitionUI(); };
   }
 
   function toggleSpeechRecognition() {
@@ -461,7 +455,6 @@
     }
   }
 
-  // ===== AI 家教聊天室互動邏輯 (新加入) =====
   function handleChatKeypress(e) {
     if (e.key === 'Enter') {
       sendChatMessage();
@@ -553,7 +546,6 @@
       window.speechSynthesis.speak(utterance);
     }
   }
-  // ==========================================
 
   function toggleReadField(field) {
     if (field === 'en') {
@@ -774,6 +766,236 @@
     });
   }
 
+  // 完整還原的播放控制函式
+  function setRepeat(count) {
+    repeatCount = count;
+    [1, 2, 3, 99].forEach(c => {
+      const btnId = c === 99 ? 'rep-inf' : `rep-${c}`;
+      document.getElementById(btnId).classList.remove('active');
+    });
+    document.getElementById(count === 99 ? 'rep-inf' : `rep-${count}`).classList.add('active');
+  }
+
+  function setSpeed(speed) {
+    playbackSpeed = speed;
+    [0.4, 0.6, 0.8, 1.0].forEach(s => {
+      document.getElementById(`spd-${s}`).classList.remove('active');
+    });
+    document.getElementById(`spd-${speed}`).classList.add('active');
+  }
+
+  function setPlayMode(mode) {
+    playMode = mode;
+    document.getElementById('btnContinuous').classList.toggle('active', mode === 'continuous');
+    document.getElementById('btnRandomPlay').classList.toggle('active', mode === 'random');
+  }
+
+  function setIntervalTime(sec) {
+    intervalSeconds = sec;
+    document.getElementById('int-1').classList.toggle('active', sec === 1);
+    document.getElementById('int-3').classList.toggle('active', sec === 3);
+  }
+
+  function prevSentence() {
+    if (filteredData.length === 0) return;
+    currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
+    renderCard();
+    if (playerState === 'playing') playCurrentSentence();
+  }
+
+  function nextSentence() {
+    if (filteredData.length === 0) return;
+    if (playMode === 'random') {
+      currentIndex = Math.floor(Math.random() * filteredData.length);
+    } else {
+      currentIndex = (currentIndex + 1) % filteredData.length;
+    }
+    renderCard();
+    if (playerState === 'playing') playCurrentSentence();
+  }
+
+  function handlePlayToggle() {
+    if (playerState === 'playing') {
+      stopAudioCompletely();
+    } else {
+      playerState = 'playing';
+      document.getElementById('playBtn').innerText = '⏸ 暫停';
+      document.getElementById('playBtn').style.background = '#eab308';
+      playCurrentSentence();
+    }
+  }
+
+  function stopAudioCompletely() {
+    playerState = 'stopped';
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    clearTimeout(speechTimer);
+    const playBtn = document.getElementById('playBtn');
+    playBtn.innerText = '🔊 播放';
+    playBtn.style.background = '#2563eb';
+  }
+
+  function playCurrentSentence() {
+    if (playerState !== 'playing' || filteredData.length === 0) return;
+    const item = filteredData[currentIndex];
+    const text = item.english;
+    
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    let timesPlayed = 0;
+    
+    const playSingle = () => {
+      if (playerState !== 'playing') return;
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = playbackSpeed;
+
+      currentUtterance.onend = () => {
+        if (playerState !== 'playing') return;
+        timesPlayed++;
+        if (timesPlayed < repeatCount) {
+          speechTimer = setTimeout(playSingle, 400);
+        } else {
+          speechTimer = setTimeout(() => {
+            if (playerState !== 'playing') return;
+            if (playMode === 'continuous' || playMode === 'random') {
+              if (playMode === 'random') {
+                currentIndex = Math.floor(Math.random() * filteredData.length);
+              } else {
+                currentIndex = (currentIndex + 1) % filteredData.length;
+              }
+              renderCard();
+              playCurrentSentence();
+            } else {
+              stopAudioCompletely();
+            }
+          }, intervalSeconds * 1000);
+        }
+      };
+
+      window.speechSynthesis.speak(currentUtterance);
+    };
+
+    playSingle();
+  }
+
+  function playSingleSentenceFromElement(btn) {
+    const en = btn.dataset.en;
+    if (!en || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(en);
+    utterance.lang = 'en-US';
+    utterance.rate = playbackSpeed;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  async function toggleInlineAI(index, btnElement) {
+    const box = document.getElementById(`ai-box-${index}`);
+    const content = document.getElementById(`ai-content-${index}`);
+    
+    if (box.classList.contains('show')) {
+      box.classList.remove('show');
+      return;
+    }
+
+    box.classList.add('show');
+    const item = filteredData[index];
+    
+    if (aiCache[item.english]) {
+      content.innerHTML = aiCache[item.english];
+      return;
+    }
+
+    content.innerHTML = '✨ AI 正在生成情境與對話範例...';
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'aiDerive',
+          english: item.english,
+          chinese: item.chinese
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        aiCache[item.english] = data.result;
+        content.innerHTML = data.result;
+      } else {
+        content.innerHTML = '生成失敗，請稍後再試。';
+      }
+    } catch(e) {
+      content.innerHTML = '連線錯誤，請稍後再試。';
+    }
+  }
+
+  async function autoTranslateInput() {
+    const enInput = document.getElementById('inputEnglish');
+    const zhInput = document.getElementById('inputChinese');
+    const enVal = enInput.value.trim();
+    
+    if (enVal && !zhInput.value.trim()) {
+      zhInput.placeholder = '翻譯中...';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'translate', text: enVal })
+        });
+        const data = await res.json();
+        if (data.success && data.translation) {
+          zhInput.value = data.translation;
+        }
+      } catch(e) {
+        console.error('自動翻譯失敗', e);
+      } finally {
+        zhInput.placeholder = '輸入中文意思 (輸入英文後自動翻譯)';
+      }
+    }
+  }
+
+  async function submitNewData() {
+    const en = document.getElementById('inputEnglish').value.trim();
+    const zh = document.getElementById('inputChinese').value.trim();
+    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
+    const selectedTags = Array.from(activeChips).map(c => c.innerText);
+    const btn = document.getElementById('submitBtn');
+
+    if (!en || !zh) {
+      alert('請填寫英文與中文');
+      return;
+    }
+
+    btn.innerText = '新增中...';
+    btn.disabled = true;
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'addEnglish',
+          english: en,
+          chinese: zh,
+          tags: selectedTags
+        })
+      });
+      alert('新增成功！');
+      document.getElementById('inputEnglish').value = '';
+      document.getElementById('inputChinese').value = '';
+      document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
+      loadSheetData();
+    } catch(e) {
+      alert('新增失敗');
+    } finally {
+      btn.innerText = '新增至資料庫';
+      btn.disabled = false;
+    }
+  }
+
   async function deleteSentence(id, enText) {
     if (!confirm(`確定要刪除這筆資料嗎？\n"${enText}"`)) return;
 
@@ -800,7 +1022,7 @@
     }
   }
 
-  // 載入初始資料
+  // 初始化載入
   loadSheetData();
 </script>
 
