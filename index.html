@@ -101,7 +101,6 @@
     .status-msg { color: #ef4444; font-weight: bold; font-size: 14px; margin: 15px 0; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; }
     .hidden { display: none !important; }
 
-    /* 彈跳視窗樣式 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .modal-card { background: #fff; width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; text-align: left; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .modal-title { font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 10px; }
@@ -241,7 +240,6 @@
   </div>
 </div>
 
-<!-- 彈出視窗：加入衍生句時選擇標籤 -->
 <div id="derivedModal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-title">📌 選擇衍生句的情境分類</div>
@@ -289,10 +287,10 @@
     };
   }
 
-  // 強化版：強制鎖定美式英文語音
+  // 強化版：強制鎖定自然美式英文語音，徹底解決「鴨子音」與無聲問題
   function getBestEnglishVoice() {
     const voices = window.speechSynthesis.getVoices() || [];
-    let voice = voices.find(v => (v.lang === 'en-US' || v.lang === 'en_US') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('US English')));
+    let voice = voices.find(v => (v.lang === 'en-US' || v.lang === 'en_US') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('US English') || v.name.includes('Samantha')));
     if (!voice) {
       voice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
     }
@@ -303,6 +301,36 @@
       voice = voices.find(v => v.lang.startsWith('en'));
     }
     return voice || null;
+  }
+
+  // 強化版發音函式：加入 cancel 清除排程與最佳真人語音，杜絕鴨子音
+  function speakText(text, onEndCallback) {
+    if (!('speechSynthesis' in window)) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    window.speechSynthesis.cancel(); // 清除之前的語音佇列，避免卡住或疊音
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const bestVoice = getBestEnglishVoice();
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+    }
+    utterance.lang = 'en-US';
+    utterance.rate = playbackSpeed;
+
+    utterance.onend = () => {
+      if (onEndCallback) onEndCallback();
+    };
+
+    utterance.onerror = (e) => {
+      console.error('發音錯誤', e);
+      if (onEndCallback) onEndCallback();
+    };
+
+    currentUtterance = utterance;
+    window.speechSynthesis.speak(utterance);
   }
 
   async function loadSheetData() {
@@ -359,7 +387,7 @@
   function renderPendingItem(item) {
     const en = item.english || '';
     const zh = item.chinese || '';
-    document.getElementById('checkTarget').innerText = `待確認：en({zh})`;
+    document.getElementById('checkTarget').innerText = `待確認：${en} (${zh})`;
     const container = document.getElementById('checkTagContainer');
     container.innerHTML = '';
 
@@ -534,7 +562,7 @@
       enEl.innerText = '';
       zhEl.innerText = item.chinese || '';
       enEl.style.display = 'none';
-      enEl.style.display = 'block';
+      zhEl.style.display = 'block';
     } else if (displayMode === 'blind') {
       enEl.innerText = '🔒 盲聽模式（隱藏文字）';
       zhEl.innerText = '🔒 盲聽模式（隱藏中文）';
@@ -614,7 +642,7 @@
           <div class="read-btn-group">
             <button class="read-speak-btn" onclick="playSingleSentenceFromElement(this)">🔊 發音</button>
             <button class="read-ai-btn" onclick="toggleInlineAI(${index}, this)">🤖 AI衍生</button>
-            <button class="read-del-btn" onclick="deleteSentence('item.ID','{en.replace(/'/g, "\\'")}')">🗑️ 刪除</button>
+            <button class="read-del-btn" onclick="deleteSentence('${item.ID}', '${en.replace(/'/g, "\\'")}')">🗑️ 刪除</button>
           </div>
         </div>
         <div class="inline-ai-box" id="ai-box-${index}">
@@ -629,6 +657,13 @@
       
       listContainer.appendChild(div);
     });
+  }
+
+  function playSingleSentenceFromElement(btn) {
+    const enText = btn.dataset.en;
+    if (enText) {
+      speakText(enText);
+    }
   }
 
   async function deleteSentence(id, enText) {
@@ -684,48 +719,32 @@
             })
           });
           const result = await response.json();
-          
-          let derivedList = [];
-          if (result && result.derived && Array.isArray(result.derived)) {
-            derivedList = result.derived;
-          } else if (Array.isArray(result)) {
-            derivedList = result;
-          }
-
-          if (derivedList.length > 0) {
-            aiCache[enText] = derivedList;
-            renderAIContent(index, derivedList);
-          } else {
-            contentEl.innerHTML = '❌ 產生失敗，請稍後再試';
-          }
+          aiCache[enText] = result;
+          renderAIContent(index, result);
         } catch (e) {
-          contentEl.innerHTML = '❌ 連線錯誤，請檢查網路或後端設定';
+          contentEl.innerHTML = '❌ 無法取得 AI 衍生內容';
         }
       }
     }
   }
 
-  function renderAIContent(index, derivedList) {
+  function renderAIContent(index, result) {
     const contentEl = document.getElementById(`ai-content-${index}`);
-    let htmlStr = '';
-    derivedList.forEach((item, idx) => {
-      const safeEn = (item.en || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      const safeZh = (item.zh || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      htmlStr += `
-        <div style="margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;">
-          <div><b>${idx + 1}. ${item.en || ''}</b><br><span style="color:#166534;">➔ ${item.zh || ''}</span></div>
-          <button class="btn-add-derived" onclick="openDerivedModalFromParams('safeEn','{safeZh}')">➕ 加入</button>
-        </div>
-      `;
+    if (!result || !result.sentences) {
+      contentEl.innerHTML = '查無衍生內容';
+      return;
+    }
+    let html = '';
+    result.sentences.forEach(s => {
+      html += `<div style="margin-bottom:6px;">• <b>${s.en}</b><br><span style="color:#166534;">${s.zh}</span><button class="btn-add-derived" onclick='openDerivedModal("${s.en.replace(/'/g, "\\'")}", "${s.zh.replace(/'/g, "\\'")}")'>+ 加入資料庫</button></div>`;
     });
-    contentEl.innerHTML = htmlStr;
+    contentEl.innerHTML = html;
   }
 
-  function openDerivedModalFromParams(en, zh) {
+  function openDerivedModal(en, zh) {
     pendingDerivedEn = en;
     pendingDerivedZh = zh;
-    document.getElementById('modalTargetText').innerText = `句子：en({zh})`;
-    
+    document.getElementById('modalTargetText').innerText = `${en} (${zh})`;
     const container = document.getElementById('modalTagContainer');
     container.innerHTML = '';
     availableTags.forEach(tag => {
@@ -735,27 +754,19 @@
       chip.onclick = () => { chip.classList.toggle('active'); };
       container.appendChild(chip);
     });
-
     document.getElementById('derivedModal').classList.remove('hidden');
   }
 
   function closeDerivedModal() {
     document.getElementById('derivedModal').classList.add('hidden');
-    pendingDerivedEn = '';
-    pendingDerivedZh = '';
   }
 
   async function confirmAddDerived() {
     const activeChips = document.querySelectorAll('#modalTagContainer .tag-chip.active');
     const selectedTags = Array.from(activeChips).map(c => c.innerText);
 
-    if (!pendingDerivedEn) {
-      alert('沒有可加入的衍生句資料');
-      return;
-    }
-
     try {
-      const res = await fetch(API_URL, {
+      await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -765,101 +776,25 @@
           tags: selectedTags
         })
       });
-      const json = await res.json();
-      if (json.status === 'success' || json.success || res.ok) {
-        alert('成功加入資料庫！');
-        closeDerivedModal();
-        loadSheetData();
-      } else {
-        alert('加入失敗，請稍後再試');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('連線錯誤，無法新增');
+      alert('成功新增衍生句至資料庫！');
+      closeDerivedModal();
+      loadSheetData();
+    } catch(e) {
+      alert('新增失敗');
     }
   }
 
-  async function autoTranslateInput() {
-    const enInput = document.getElementById('inputEnglish').value.trim();
-    const zhInputEl = document.getElementById('inputChinese');
-    
-    if (enInput && !zhInputEl.value.trim()) {
-      try {
-        const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
-        const transJson = await transRes.json();
-        if (transJson && transJson[0]) {
-          const translatedText = transJson[0].map(item => item[0]).join('');
-          zhInputEl.value = translatedText;
-        }
-      } catch (e) {
-        console.warn('即時自動翻譯失敗', e);
-      }
-    }
-  }
-
-  async function submitNewData() {
-    let enInput = document.getElementById('inputEnglish').value.trim();
-    let zhInput = document.getElementById('inputChinese').value.trim();
-    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
-    const selectedTags = Array.from(activeChips).map(c => c.innerText);
-    const submitBtn = document.getElementById('submitBtn');
-
-    if (!enInput) {
-      alert('請至少輸入英文內容');
-      return;
-    }
-
-    // 防呆：立刻將按鈕鎖定，避免連點
-    submitBtn.disabled = true;
-    submitBtn.innerText = '新增中...';
-
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'addEnglish',
-          english: enInput,
-          chinese: zhInput,
-          tags: selectedTags
-        })
-      });
-      const json = await res.json();
-      
-      if (json.status === 'duplicate') {
-        alert('⚠️ 系統偵測到此英文句子已經存在資料庫中，已幫您阻擋重複新增！');
-      } else if (json.status === 'success' || json.success || res.ok) {
-        alert('新增成功！');
-        document.getElementById('inputEnglish').value = '';
-        document.getElementById('inputChinese').value = '';
-        document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
-        loadSheetData();
-      } else {
-        alert('新增失敗');
-      }
-    } catch (e) {
-      console.error(e);
-      alert('連線錯誤');
-    } finally {
-      // 恢復按鈕狀態
-      submitBtn.disabled = false;
-      submitBtn.innerText = '新增至資料庫';
-    }
-  }
-
+  // 播放控制邏輯
   function setRepeat(count) {
     repeatCount = count;
-    [1, 2, 3, 99].forEach(c => {
-      const id = c === 99 ? 'rep-inf' : `rep-${c}`;
-      document.getElementById(id).classList.toggle('active', repeatCount === c);
-    });
+    [1, 2, 3, 99].forEach(c => document.getElementById(`rep-${c === 99 ? 'inf' : c}`).classList.remove('active'));
+    document.getElementById(`rep-${count === 99 ? 'inf' : count}`).classList.add('active');
   }
 
   function setSpeed(speed) {
     playbackSpeed = speed;
-    [0.4, 0.6, 0.8, 1.0].forEach(s => {
-      document.getElementById(`spd-${s}`).classList.toggle('active', playbackSpeed === s);
-    });
+    [0.4, 0.6, 0.8, 1.0].forEach(s => document.getElementById(`spd-${s}`).classList.remove('active'));
+    document.getElementById(`spd-${speed}`).classList.add('active');
   }
 
   function setPlayMode(mode) {
@@ -870,77 +805,67 @@
 
   function setIntervalTime(sec) {
     intervalSeconds = sec;
-    document.getElementById('int-1').classList.toggle('active', sec === 1);
-    document.getElementById('int-3').classList.toggle('active', sec === 3);
+    [1, 3].forEach(s => document.getElementById(`int-${s}`).classList.remove('active'));
+    document.getElementById(`int-${sec}`).classList.add('active');
   }
 
   function handlePlayToggle() {
     if (playerState === 'playing') {
-      pauseAudio();
+      stopAudioCompletely();
     } else {
-      startPlayback();
+      startPlaybackLoop();
     }
-  }
-
-  function startPlayback() {
-    if (filteredData.length === 0) return;
-    playerState = 'playing';
-    document.getElementById('playBtn').innerText = '❚❚ 暫停';
-    document.getElementById('playBtn').className = 'btn btn-stop';
-    playCurrentSentenceWithRepeat(repeatCount);
-  }
-
-  function pauseAudio() {
-    playerState = 'paused';
-    window.speechSynthesis.cancel();
-    clearTimeout(speechTimer);
-    document.getElementById('playBtn').innerText = '▶ 繼續';
-    document.getElementById('playBtn').className = 'btn btn-play';
   }
 
   function stopAudioCompletely() {
     playerState = 'stopped';
-    window.speechSynthesis.cancel();
-    clearTimeout(speechTimer);
-    document.getElementById('playBtn').innerText = '🔊 播放';
-    document.getElementById('playBtn').className = 'btn btn-play';
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (speechTimer) {
+      clearTimeout(speechTimer);
+      speechTimer = null;
+    }
+    const playBtn = document.getElementById('playBtn');
+    playBtn.innerText = '🔊 播放';
+    playBtn.style.background = '#2563eb';
   }
 
-  function playCurrentSentenceWithRepeat(remainingRepeat) {
-    if (playerState !== 'playing' || filteredData.length === 0) return;
+  function startPlaybackLoop() {
+    if (filteredData.length === 0) return;
+    playerState = 'playing';
+    const playBtn = document.getElementById('playBtn');
+    playBtn.innerText = '❚❚ 暫停播放';
+    playBtn.style.background = '#ef4444';
+
+    playCurrentWithRepeat(0);
+  }
+
+  function playCurrentWithRepeat(currentRepeatIndex) {
+    if (playerState !== 'playing') return;
+    if (filteredData.length === 0) return;
+
     const item = filteredData[currentIndex];
-    const text = item.english;
-    if (!text) return;
+    const textToSpeak = item.english || '';
 
-    window.speechSynthesis.cancel();
-
-    currentUtterance = new SpeechSynthesisUtterance(text);
-    const voice = getBestEnglishVoice();
-    if (voice) {
-      currentUtterance.voice = voice;
-    }
-    currentUtterance.lang = 'en-US';
-    currentUtterance.rate = playbackSpeed;
-
-    currentUtterance.onend = () => {
+    speakText(textToSpeak, () => {
       if (playerState !== 'playing') return;
-      if (remainingRepeat > 1 || repeatCount === 99) {
-        const nextRep = repeatCount === 99 ? 99 : remainingRepeat - 1;
+
+      if (currentRepeatIndex + 1 < repeatCount) {
         speechTimer = setTimeout(() => {
-          playCurrentSentenceWithRepeat(nextRep);
+          playCurrentWithRepeat(currentRepeatIndex + 1);
         }, intervalSeconds * 1000);
       } else {
         speechTimer = setTimeout(() => {
-          moveToNextAfterPlay();
+          moveToNextAndContinue();
         }, intervalSeconds * 1000);
       }
-    };
-
-    window.speechSynthesis.speak(currentUtterance);
+    });
   }
 
-  function moveToNextAfterPlay() {
+  function moveToNextAndContinue() {
     if (playerState !== 'playing') return;
+
     if (playMode === 'random') {
       currentIndex = Math.floor(Math.random() * filteredData.length);
     } else {
@@ -955,40 +880,79 @@
       }
     }
     renderCard();
-    playCurrentSentenceWithRepeat(repeatCount);
+    playCurrentWithRepeat(0);
   }
 
   function nextSentence() {
-    stopAudioCompletely();
     if (filteredData.length === 0) return;
+    stopAudioCompletely();
     currentIndex = (currentIndex + 1) % filteredData.length;
     renderCard();
   }
 
   function prevSentence() {
-    stopAudioCompletely();
     if (filteredData.length === 0) return;
+    stopAudioCompletely();
     currentIndex = (currentIndex - 1 + filteredData.length) % filteredData.length;
     renderCard();
   }
 
-  function playSingleSentenceFromElement(btn) {
-    const enText = btn.dataset.en;
-    if (!enText) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(enText);
-    const voice = getBestEnglishVoice();
-    if (voice) {
-      utterance.voice = voice;
+  async function autoTranslateInput() {
+    const enInput = document.getElementById('inputEnglish').value.trim();
+    const zhInput = document.getElementById('inputChinese').value.trim();
+    if (!enInput || zhInput) return;
+
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(enInput)}`);
+      const json = await res.json();
+      if (json && json[0] && json[0][0] && json[0][0][0]) {
+        document.getElementById('inputChinese').value = json[0][0][0];
+      }
+    } catch (e) {
+      console.error('自動翻譯失敗', e);
     }
-    utterance.lang = 'en-US';
-    utterance.rate = playbackSpeed;
-    window.speechSynthesis.speak(utterance);
+  }
+
+  async function submitNewData() {
+    const en = document.getElementById('inputEnglish').value.trim();
+    const zh = document.getElementById('inputChinese').value.trim();
+    const activeChips = document.querySelectorAll('#inputTagContainer .tag-chip.active');
+    const tags = Array.from(activeChips).map(c => c.innerText);
+
+    if (!en) {
+      alert('請輸入英文');
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.innerText = '新增中...';
+    btn.disabled = true;
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'addEnglish',
+          english: en,
+          chinese: zh,
+          tags: tags
+        })
+      });
+      alert('新增成功！');
+      document.getElementById('inputEnglish').value = '';
+      document.getElementById('inputChinese').value = '';
+      document.querySelectorAll('#inputTagContainer .tag-chip').forEach(c => c.classList.remove('active'));
+      loadSheetData();
+    } catch(e) {
+      alert('新增失敗');
+    } finally {
+      btn.innerText = '新增至資料庫';
+      btn.disabled = false;
+    }
   }
 
   window.onload = loadSheetData;
 </script>
 </body>
 </html>
-
-
