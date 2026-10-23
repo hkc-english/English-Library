@@ -1,3 +1,6 @@
+這是一份為您完整整合、並且修復了 **「🤖 AI衍生功能卡在載入中」** 的完整程式碼。所有的版面邏輯、按鈕設計與排版都保持不變，您可以直接將以下完整的程式碼複製並覆蓋您的檔案：
+
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -692,6 +695,7 @@
     }
   }
 
+  // 【已修復】精準抓取資料並防止卡住的 AI 衍生功能
   async function toggleInlineAI(index, btnElement) {
     const box = document.getElementById(`ai-box-${index}`);
     const contentEl = document.getElementById(`ai-content-${index}`);
@@ -700,8 +704,9 @@
       box.classList.remove('show');
     } else {
       box.classList.add('show');
-      if (btnElement && btnElement.dataset.en) {
-        const enText = btnElement.dataset.en;
+      
+      if (filteredData[index] && filteredData[index].english) {
+        const enText = filteredData[index].english;
         
         if (aiCache[enText]) {
           renderAIContent(index, aiCache[enText]);
@@ -719,24 +724,39 @@
             })
           });
           const result = await response.json();
-          aiCache[enText] = result;
-          renderAIContent(index, result);
+          if (result && result.sentences) {
+            aiCache[enText] = result;
+            renderAIContent(index, result);
+          } else {
+            contentEl.innerHTML = '⚠️ 後端回傳格式有誤或無衍生內容';
+          }
         } catch (e) {
-          contentEl.innerHTML = '❌ 無法取得 AI 衍生內容';
+          console.error('AI 衍生請求失敗:', e);
+          contentEl.innerHTML = '❌ 連線失敗，請檢查 API 網址或網路狀況';
         }
+      } else {
+        contentEl.innerHTML = '❌ 找不到對應的英文文字';
       }
     }
   }
 
+  // 【已修復】加入安全引號跳脫與排版渲染
   function renderAIContent(index, result) {
     const contentEl = document.getElementById(`ai-content-${index}`);
-    if (!result || !result.sentences) {
+    if (!result || !result.sentences || result.sentences.length === 0) {
       contentEl.innerHTML = '查無衍生內容';
       return;
     }
     let html = '';
     result.sentences.forEach(s => {
-      html += `<div style="margin-bottom:6px;">• <b>${s.en}</b><br><span style="color:#166534;">${s.zh}</span><button class="btn-add-derived" onclick='openDerivedModal("${s.en.replace(/'/g, "\\'")}", "${s.zh.replace(/'/g, "\\'")}")'>+ 加入資料庫</button></div>`;
+      const safeEn = (s.en || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const safeZh = (s.zh || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      
+      html += `<div style="margin-bottom:8px; border-bottom:1px dashed #bbf7d0; padding-bottom:6px;">
+        • <b>${s.en}</b><br>
+        <span style="color:#166534;">${s.zh}</span>
+        <button class="btn-add-derived" onclick="openDerivedModal('${safeEn}', '${safeZh}')">+ 加入資料庫</button>
+      </div>`;
     });
     contentEl.innerHTML = html;
   }
@@ -956,3 +976,5 @@
 </script>
 </body>
 </html>
+
+```
